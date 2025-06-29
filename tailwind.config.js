@@ -160,6 +160,7 @@ export default  {
     			'heading-header-header-regular': 'var(--heading-header-header-regular-font-family)',
     			'heading-header-header-semibold': 'var(--heading-header-header-semibold-font-family)',
     			sans: [
+    				'Mona Sans',
     				'ui-sans-serif',
     				'system-ui',
     				'sans-serif',

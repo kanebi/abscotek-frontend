@@ -3,9 +3,9 @@ import Header from '../layout/Header';
 import Footer from '../layout/Footer';
 
 const Layout = ({ children }) => (
-  <div className=".">
+  <div>
     <Header />
-    <main className="flex-1 w-full max-w-7xl mx-auto px-4 py-8">{children}</main>
+    <main className=" w-full max-w-7xl mx-auto">{children}</main>
     <Footer />
   </div>
 );

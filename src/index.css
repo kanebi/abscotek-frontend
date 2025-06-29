@@ -1,3 +1,10 @@
+@import url('https://fonts.googleapis.com/css2?family=Mona+Sans:wght@400;700;800&display=swap');
+
+body, .font-sans {
+  font-family: 'Mona Sans', ui-sans-serif, system-ui, sans-serif;
+ 
+}
+
 @tailwind components;
 @tailwind utilities;
 
@@ -460,5 +467,6 @@
     body {
         @apply bg-background text-foreground;
         font-feature-settings: "rlig" 1, "calt" 1;
+        background-color: #131314;
     }
 }

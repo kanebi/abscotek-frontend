@@ -1,18 +1,21 @@
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { Gift, Search, ShoppingBag, Menu } from "lucide-react";
+import { Search } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import React from "react";
 import useStore from "@/store/useStore";
+import { ChevronDown, TrendingUp } from "lucide-react"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+
 
 export default function Frame() {
     const user = useStore((state) => state.user); // Assumes user object has { avatar, balance, ... }
     const defaultTopBackground = "rgba(36, 36, 36, 1)";
 
     return (
-        <header className="relative w-full h-[84px] bg-neutral-900">
+        <header className="overflow-hidden relative w-full md:h-[156px] h-[184px] bg-neutral-900">
             {/* Desktop Header */}
-            <div className="hidden md:flex md:min-w-[90%] items-center justify-between absolute top-3.5 left-[86px] w-[calc(100%-172px)]">
+            <div className="hidden md:flex w-[86%] items-center justify-between mt-3.5 mx-auto">
                 <div className="inline-flex items-center gap-[52px] relative flex-[0_0_auto]">
                     <div className="inline-flex items-center gap-[10.1px] relative flex-[0_0_auto]">
                         <div className="relative w-[30.45px] h-14">
@@ -67,7 +70,7 @@ export default function Frame() {
                                 </div>
                             </Button>
                         </div>
-                               {user ? (
+                        {user ? (
                             <div className="inline-flex items-center gap-2 relative flex-[0_0_auto]">
                                 <div className="flex flex-col w-[34px] items-center justify-center relative">
                                     <span className="relative w-fit mt-[-1.00px] font-body-base-base-semibold font-[number:var(--body-base-base-semibold-font-weight)] text-white text-[length:var(--body-base-base-semibold-font-size)] tracking-[var(--body-base-base-semibold-letter-spacing)] leading-[var(--body-base-base-semibold-line-height)] whitespace-nowrap [font-style:var(--body-base-base-semibold-font-style)]">
@@ -112,7 +115,6 @@ export default function Frame() {
                     </div>
                 </div>
             </div>
-            <Separator className="hidden md:block absolute w-[1440px] h-px top-[83px] left-0 bg-white/10" />
 
             {/* Mobile Header */}
             <div className="flex md:hidden w-full h-[94px] bg-neutral-900 items-center justify-center relative">
@@ -203,6 +205,97 @@ export default function Frame() {
                     </div>
                 </nav>
             </div>
+            <Separator className=" sm:block   w-full h-px mt-[15px] left-0 bg-white/10" />
+            {/* Navigation Bar */}
+            <div className=" md:w-[86%] w-full py-2 px-[17px] md:px-0 md:mx-auto">
+                <NavigationBar />
+
+            </div>
+            
+
+
         </header>
     );
+}
+
+
+export function NavigationBar() {
+    const navItems = ["Computer", "Phone", "Web3 Accessories", "Web3 Gaming", "Smartwatches", "Tablets", "Audio"]
+    const TodayPrices = [
+        { Label: "USDT: $1.01", value: "usdt", rate: "1.01", iconSrc: "/images/usdt-icon.svg", bg: '#00A478' },
+        { Label: "BTC: $43,250", value: "btc", rate: "43250", iconSrc: "/images/btc-icon.svg", bg: '#F7931A' },
+        { Label: "ETH: $2,580", value: "eth", rate: "2580", iconSrc: "/images/eth-icon.svg", bg: '#3C3C3D' }
+    ]
+    const [selectedPrice, setSelectedPrice] = React.useState(TodayPrices[0]);
+    return (
+        <nav className=" text-defaultwhite">
+            <div className="flex items-center  justify-between max-w-full   py-2">
+                {/* Left side - Price indicator */}
+                <div className="flex items-center gap-3">
+                    <span className="text-sm text-defaultgrey whitespace-nowrap">Today Price:</span>
+                    <div className="flex items-center gap-2">
+                        {/* <TrendingUp className="w-4 h-4 text-primaryp-300" /> */}
+                        <DropdownMenu modal >
+                            <DropdownMenuTrigger  asChild>
+                                <Button
+                                    variant="ghost"
+                                    className={`text-defaultwhite w-36 relative hover:text-defaultwhite hover:bg-defaulttop-background h-auto font-normal outline-none border-none hover:outline-none flex items-center gap-1 `}
+                                >
+                                    <div className={`absolute  bg-[${selectedPrice.bg || "#00A478"}] bg-opacity-15 left-0 rounded-full overflow-hidden p-2 `}>
+                                        <img src={selectedPrice.iconSrc} className="w-4 h-4" />
+
+                                    </div>
+
+                                    <span className="pl-3 text-sm font-medium">{selectedPrice.Label}</span>
+                                    <img src="/images/dropdown.svg" alt="Dropdown Icon" className=" absolute right-0" />
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent  align="start">
+                                {TodayPrices.map((price) => (
+                                    <DropdownMenuItem  key={price.value}  className=" hover:var(--bg-defaulttop-background)">
+                                        <div className="flex items-center gap-2" >
+                                            <img src={price.iconSrc} alt={price.Label} className="w-4 h-4" />
+                                            <span>{price.Label}</span>
+                                        </div>
+                                    </DropdownMenuItem>
+                                ))}
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    </div>
+                </div>
+
+                {/* Right side - Navigation menu */}
+                <div className="hidden lg:flex items-center gap-2 ">
+                    {navItems.map((item) => (
+                        <Button
+                            key={item} variant="ghost"
+                            className="text-defaultwhite hover:bg-defaulttop-background hover:text-defaultwhite px-4 py-2 text-sm font-normal h-auto"
+                        >
+                            {item}
+                        </Button>
+                    ))}
+                </div>
+
+                {/* Mobile menu button */}
+                <div className="md:hidden lg:hidden hidden ">
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" className="text-defaultwhite hover:bg-defaulttop-background p-2">
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                                </svg>
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="bg-defaulttop-background border-defaultgrey w-48">
+                            {navItems.map((item) => (
+                                <DropdownMenuItem key={item} className="text-defaultwhite hover:bg-defaulttop-background">
+                                    {item}
+                                </DropdownMenuItem>
+                            ))}
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                </div>
+            </div>
+        </nav>
+    )
 }
