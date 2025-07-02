@@ -35,5 +35,9 @@ export const AppRoutes = {
     path: '/admin/wishlist',
     name: 'Manage Wishlist',
   },
+  productDetail:{
+    path:'/product/:id',
+    name: 'Product Detail',
+  }
   // Add more routes here as needed
 };

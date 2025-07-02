@@ -30,7 +30,7 @@ function HomePage() {
       <div className="hidden md:block w-full h-96 relative bg-neutral-800 overflow-hidden">
         <img className="w-full h-[906px] left-0 top-[-336px] absolute object-cover" src="/images/desktop-2.jpg" />
         <div className="w-full h-96 left-0 top-0 absolute">
-          <div className="w-full h-96 left-0 top-0 absolute bg-gradient-to-br from-neutral-900 to-zinc-900/0" />
+          <div className="w-full h-96 left-0 top-0 absolute bg-gradient-to-br from-neutral-900/90 via-neutral-900/60 to-transparent" />
         </div>
         <div className="absolute left-[87px] top-[117px] max-w-[465px] flex flex-col gap-3 z-10">
           <h1 className="text-white text-4xl md:text-5xl font-extrabold leading-[48px] font-sans">Stay Ahead with the Latest Tech</h1>
@@ -39,10 +39,10 @@ function HomePage() {
       </div>
 
       {/* Hero Section Mobile */}
-      <div className="self-stretch h-[175px]  relative bg-neutral-800 overflow-hidden">
+      <div className="self-stretch h-[175px] md:hidden  relative bg-neutral-800 overflow-hidden">
         <img className="w-full h-[175px] left-0  absolute" src="/images/mobile-2.png" />
         <div className="w-full h-[175px]  left-0 top-0 absolute">
-          <div className="w-full h-[175px]  left-0 top-0 absolute bg-gradient-to-br from-neutral-900 to-zinc-800/10" />
+          <div className="w-72 h-[175px] bg-gradient-to-br from-neutral-900/90 via-neutral-900/60 to-transparent" />
         </div>
         <div className="w-52 left-[25px] top-[43px] absolute inline-flex flex-col justify-start items-start gap-[3.43px]">
           <div className="self-stretch justify-start text-white text-lg font-bold   leading-snug">Stay Ahead with the Latest Tech</div>

@@ -14,6 +14,7 @@ import { AppRoutes } from './config/routes';
 import './App.css';
 import Toast from './components/Toast';
 import Layout from './components/Layout';
+import ProductDetail from './components/ProductDetail';
 
 function App() {
   return (
@@ -26,6 +27,8 @@ function App() {
             <Route path={AppRoutes.login.path} element={<LoginPage />} />
             {/* Example: wrap other public pages with Layout if needed */}
             {/* <Route path="/about" element={<Layout><AboutPage /></Layout>} /> */}
+            {/* Product Detail Route */}
+            <Route path={AppRoutes.productDetail.path} element={<ProductDetail />} />
             {/* Protected Admin Routes */}
             <Route path={AppRoutes.admin.path} element={<PrivateRoute><AdminDashboard /></PrivateRoute>} />
             <Route path={AppRoutes.adminUsers.path} element={<PrivateRoute><UserManagement /></PrivateRoute>} />

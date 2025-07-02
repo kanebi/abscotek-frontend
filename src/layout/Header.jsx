@@ -6,6 +6,7 @@ import React from "react";
 import useStore from "@/store/useStore";
 import { ChevronDown, TrendingUp } from "lucide-react"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import SliderCart from "@/components/ui/SliderCart";
 
 
 export default function Frame() {
@@ -71,7 +72,8 @@ export default function Frame() {
                             </Button>
                         </div>
                         {user ? (
-                            <div className="inline-flex items-center gap-2 relative flex-[0_0_auto]">
+                            <div className="inline-flex items-center gap-4 relative flex-[0_0_auto]">
+
                                 <div className="flex flex-col w-[34px] items-center justify-center relative">
                                     <span className="relative w-fit mt-[-1.00px] font-body-base-base-semibold font-[number:var(--body-base-base-semibold-font-weight)] text-white text-[length:var(--body-base-base-semibold-font-size)] tracking-[var(--body-base-base-semibold-letter-spacing)] leading-[var(--body-base-base-semibold-line-height)] whitespace-nowrap [font-style:var(--body-base-base-semibold-font-style)]">
                                         TON
@@ -98,20 +100,8 @@ export default function Frame() {
                                     </div>
                                 </Button>
                             )}
-                        <Button
-                            variant="secondary"
-                            size="icon"
-                            className="relative w-12 h-15 py-[20px] rounded-xl overflow-hidden border-0 transition-colors hover:!bg-[rgba(36,36,36,0.8)]"
-                            style={{ background: `var(--defaulttop-background, ${defaultTopBackground})` }}
-                            onMouseOver={e => e.currentTarget.style.background = 'rgba(36,36,36,0.8)'}
-                            onMouseOut={e => e.currentTarget.style.background = `var(--defaulttop-background, ${defaultTopBackground})`}
-                        >
-                            <img
-                                className="w-6 h-6 text-white absolute top-0 left-0 right-0 bottom-0 m-auto"
-                                alt="Group"
-                                src="/images/solar-bag-3-bold.svg"
-                            />
-                        </Button>
+                        <SliderCart />
+
                     </div>
                 </div>
             </div>
@@ -174,20 +164,8 @@ export default function Frame() {
                                 </span>
                             </Button>
                         )}
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            className="relative w-10 h-10 items-center justify-center gap-[11.11px] px-[13.33px] py-[11.11px] bg-defaulttop-background rounded-[13.33px] overflow-hidden transition-colors hover:!bg-[rgba(36,36,36,0.8)]"
-                            style={{ background: `var(--defaulttop-background, ${defaultTopBackground})` }}
-                            onMouseOver={e => e.currentTarget.style.background = 'rgba(36,36,36,0.8)'}
-                            onMouseOut={e => e.currentTarget.style.background = `var(--defaulttop-background, ${defaultTopBackground})`}
-                        >
-                            <img
-                                className="w-5 h-5 text-white absolute top-0 left-0 right-0 bottom-0 m-auto"
-                                alt="Bag"
-                                src="/images/solar-bag-3-bold.svg"
-                            />
-                        </Button>
+
+                        <SliderCart />
                         <Button
                             variant="ghost"
                             size="icon"
@@ -211,7 +189,6 @@ export default function Frame() {
                 <NavigationBar />
 
             </div>
-            
 
 
         </header>
@@ -236,7 +213,7 @@ export function NavigationBar() {
                     <div className="flex items-center gap-2">
                         {/* <TrendingUp className="w-4 h-4 text-primaryp-300" /> */}
                         <DropdownMenu modal >
-                            <DropdownMenuTrigger  asChild>
+                            <DropdownMenuTrigger asChild>
                                 <Button
                                     variant="ghost"
                                     className={`text-defaultwhite w-36 relative hover:text-defaultwhite hover:bg-defaulttop-background h-auto font-normal outline-none border-none hover:outline-none flex items-center gap-1 `}
@@ -250,9 +227,9 @@ export function NavigationBar() {
                                     <img src="/images/dropdown.svg" alt="Dropdown Icon" className=" absolute right-0" />
                                 </Button>
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent  align="start">
+                            <DropdownMenuContent align="start">
                                 {TodayPrices.map((price) => (
-                                    <DropdownMenuItem  key={price.value}  className=" hover:var(--bg-defaulttop-background)">
+                                    <DropdownMenuItem key={price.value} className=" hover:var(--bg-defaulttop-background)">
                                         <div className="flex items-center gap-2" >
                                             <img src={price.iconSrc} alt={price.Label} className="w-4 h-4" />
                                             <span>{price.Label}</span>
