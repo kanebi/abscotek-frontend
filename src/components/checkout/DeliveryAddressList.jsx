@@ -43,7 +43,7 @@ function DeliveryAddressList({
       </div>
 
       {/* Separator under heading row */}
-      <Separator className="mb-6 bg-[#2C2C2E]" />
+      <Separator className="mb-6 bg-[#38383a]" />
 
       {addresses.length === 0 ? (
         <div className="text-center py-8">
@@ -61,20 +61,20 @@ function DeliveryAddressList({
           {addresses.map((address, index) => (
             <div key={address.id}>
               <div 
-                className={`p-4 rounded-lg border cursor-pointer transition-all ${
+                className={`w-full p-5 rounded-xl border cursor-pointer transition-all ${
                   selectedAddressId === address.id 
-                    ? 'border-primaryp-500 bg-primaryp-500/10' 
-                    : 'border-[#2C2C2E] hover:border-neutralneutral-500'
+                    ? 'bg-zinc-800 outline outline-1 outline-offset-[-1px] outline-rose-500' 
+                    : 'border-[#2C2C2E] hover:border-neutralneutral-500 bg-zinc-800'
                 }`}
                 onClick={() => handleSelectAddress(address.id)}
               >
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
+                <div className="flex items-start justify-between w-full">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-3">
                       <div 
                         className={`w-4 h-4 rounded-full border-2 ${
                           selectedAddressId === address.id 
-                            ? 'border-primaryp-500 bg-primaryp-500' 
+                            ? 'border-[#FF5059] bg-[#FF5059]' 
                             : 'border-neutralneutral-400'
                         }`}
                       />
@@ -88,19 +88,24 @@ function DeliveryAddressList({
                       )}
                     </div>
                     
-                    <p className="text-neutralneutral-300 text-sm mb-1">
-                      {formatAddress(address)}
-                    </p>
-                    
-                    <p className="text-neutralneutral-400 text-sm">
-                      {address.areaNumber} {address.phoneNumber}
-                    </p>
-                    
-                    {address.email && (
-                      <p className="text-neutralneutral-400 text-sm">
-                        {address.email}
-                      </p>
-                    )}
+                    <div className="flex flex-col justify-start items-start gap-3 flex-1 min-w-0">
+                      <div className="flex justify-start items-center gap-1 w-full">
+                        <div className="text-white text-base font-medium leading-normal flex-shrink-0">Name:</div>
+                        <div className="text-white text-base font-normal leading-normal truncate">{address.firstName} {address.lastName}</div>
+                      </div>
+                      <div className="flex justify-start items-center gap-1 w-full">
+                        <div className="text-white text-base font-medium leading-normal flex-shrink-0">Email:</div>
+                        <div className="text-white text-base font-normal leading-normal truncate">{address.email}</div>
+                      </div>
+                      <div className="flex justify-start items-center gap-1 w-full">
+                        <div className="text-white text-base font-medium leading-normal flex-shrink-0">Phone:</div>
+                        <div className="text-white text-base font-normal leading-normal truncate">{address.areaNumber} {address.phoneNumber}</div>
+                      </div>
+                      <div className="flex justify-start items-center gap-1 w-full">
+                        <div className="text-white text-base font-medium leading-normal flex-shrink-0">Address:</div>
+                        <div className="text-white text-base font-normal leading-normal truncate">{formatAddress(address)}</div>
+                      </div>
+                    </div>
                   </div>
                   
                   <div className="flex items-center gap-2">
@@ -111,9 +116,9 @@ function DeliveryAddressList({
                       }}
                       variant="ghost"
                       size="sm"
-                      className="text-neutralneutral-400 hover:text-white p-2"
+                      className="text-neutralneutral-300 hover:text-white p-2 hover:bg-neutralneutral-700"
                     >
-                      <Edit3 size={16} />
+                      <Edit3 size={18} />
                     </Button>
                     
                     <Button
@@ -123,16 +128,16 @@ function DeliveryAddressList({
                       }}
                       variant="ghost"
                       size="sm"
-                      className="text-neutralneutral-400 hover:text-red-500 p-2"
+                      className="text-neutralneutral-300 hover:text-red-500 p-2 hover:bg-neutralneutral-700"
                     >
-                      <Trash2 size={16} />
+                      <Trash2 size={18} />
                     </Button>
                   </div>
                 </div>
               </div>
               
               {index < addresses.length - 1 && (
-                <Separator className="my-4 bg-neutralneutral-700" />
+                <Separator className="my-4 bg-[#38383a]" />
               )}
             </div>
           ))}

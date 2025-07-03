@@ -7,15 +7,18 @@ import { ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { AppRoutes } from '../../config/routes';
 
-function OrderSummary({ onPlaceOrder, isPlacingOrder = false, hasSelectedAddress = false }) {
+function OrderSummary({ onPlaceOrder, isPlacingOrder = false, hasSelectedAddress = false, deliveryMethod = null, requireDeliveryMethod = true }) {
   const { cart, userCurrency, getCartTotal } = useStore();
+  
+  const deliveryCost = deliveryMethod ? deliveryMethod.price : 0;
+  const orderTotal = getCartTotal() + deliveryCost;
 
   if (!cart || !cart.items || cart.items.length === 0) {
     return (
       <>
         <div className="rounded-xl p-6 border border-[#2C2C2E]" style={{ backgroundColor: '#1F1F21' }}>
           <h2 className="text-xl font-semibold text-white mb-4">My Order</h2>
-          <Separator className="mb-4 bg-[#2C2C2E]" />
+          <Separator className="mb-4 bg-[#38383a]" />
           <p className="text-neutralneutral-400">No items in cart</p>
         </div>
         
@@ -35,9 +38,9 @@ function OrderSummary({ onPlaceOrder, isPlacingOrder = false, hasSelectedAddress
 
   return (
     <>
-      <div className="rounded-xl p-6 sm:pb-4 bottom-10 md:mb-0 sticky top-4 border border-none md:border-[#2C2C2E] md:bg-[#1F1F21] bg-opacity-0">
+      <div className="rounded-xl md:p-6 sm:pb-4 bottom-10 md:mb-0 md:sticky md:top-4 border border-none md:border-[#2C2C2E] md:bg-[#1F1F21] bg-opacity-0">
         <h2 className="text-xl font-semibold text-white mb-6">My Order</h2>
-        <Separator className="mb-6 bg-[#2C2C2E]" />
+        <Separator className="bg-[#38383a] md:mb-6 mb-8" />
         
         {/* Order Items */}
         <div className="space-y-4 mb-6">
@@ -62,21 +65,21 @@ function OrderSummary({ onPlaceOrder, isPlacingOrder = false, hasSelectedAddress
                     <span>Qty: {item.quantity}</span>
                     <span>Color: Blue</span>
                   </div>
-                  <div className="text-white font-semibold text-base">
+                  <div className="text-white font-[510] text-base">
                     <AmountCurrency amount={item.price * item.quantity} fromCurrency={userCurrency} />
                   </div>
                 </div>
               </div>
               
               {index < cart.items.length - 1 && (
-                <Separator className="my-4 bg-[#2C2C2E]" />
+                <Separator className="my-4 bg-[#38383a]" />
               )}
             </div>
           ))}
         </div>
         
          {/* Order Totals */}
-         <div className="space-y-3 mb-6">
+         <div className="space-y-3 ">
           <div className="flex justify-between text-white text-base">
             <span>Subtotal</span>
             <span className="font-medium">
@@ -87,25 +90,25 @@ function OrderSummary({ onPlaceOrder, isPlacingOrder = false, hasSelectedAddress
           <div className="flex justify-between text-white text-base">
             <span>Delivery</span>
             <span className="font-medium">
-              <AmountCurrency amount={0} fromCurrency={userCurrency} />
+              <AmountCurrency amount={deliveryCost} fromCurrency={userCurrency} />
             </span>
           </div>
           
-          <Separator className="bg-[#2C2C2E]" />
+          <Separator className="bg-[#38383a]" />
           
           <div className="flex justify-between text-white text-lg font-semibold">
             <span>Order Total</span>
             <span>
-              <AmountCurrency amount={getCartTotal()} fromCurrency={userCurrency} />
+              <AmountCurrency amount={orderTotal} fromCurrency={userCurrency} />
             </span>
           </div>
           
       {/* Action Buttons - Outside Card */}
-      <div className="space-y-4 pt-6 px-2 relative">
+      <div className="space-y-4 pt-6 md:px-2 relative">
         <Button 
           onClick={onPlaceOrder}
-          disabled={isPlacingOrder || !hasSelectedAddress}
-          className="w-full bg-red-500 hover:bg-red-600 text-white px-12 py-3 rounded-lg font-medium disabled:opacity-50 text-base"
+          disabled={isPlacingOrder || !hasSelectedAddress || (requireDeliveryMethod && !deliveryMethod)}
+          className="w-full bg-red-500 hover:bg-red-600 text-white px-12 py-6 rounded-lg font-medium disabled:opacity-50 text-base"
         >
           {isPlacingOrder ? 'Placing Order...' : 'Place Order'}
         </Button>

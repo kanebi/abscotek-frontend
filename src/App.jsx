@@ -14,6 +14,7 @@ import WishlistManagement from './pages/admin/WishlistManagement';
 import LoginPage from './pages/public/LoginPage';
 import HomePage from './pages/public/HomePage';
 import ProductDetailPage from './pages/public/ProductDetailPage';
+import ProductListPage from './pages/public/ProductListPage';
 import CartPage from './pages/public/CartPage';
 import CheckoutPage from './pages/public/CheckoutPage';
 import UserOrdersPage from './pages/public/UserOrdersPage';
@@ -43,6 +44,7 @@ function App() {
             <Route path={AppRoutes.home.path} element={<HomePage />} />
             <Route path={AppRoutes.login.path} element={<LoginPage />} />
             <Route path={AppRoutes.productDetail.path} element={<ProductDetailPage />} />
+            <Route path={AppRoutes.productList.path} element={<ProductListPage />} />
             <Route path={AppRoutes.cart.path} element={<CartPage />} />
             <Route path={AppRoutes.checkout.path} element={<CheckoutPage />} />
             <Route path={AppRoutes.userOrders.path} element={<UserOrdersPage />} />

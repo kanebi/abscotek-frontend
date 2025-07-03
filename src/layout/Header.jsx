@@ -7,6 +7,8 @@ import useStore from "@/store/useStore";
 import { ChevronDown, TrendingUp } from "lucide-react"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import SliderCart from "@/components/ui/SliderCart";
+import { useNavigate } from 'react-router-dom';
+import { AppRoutes } from '@/config/routes';
 
 
 export default function Frame() {
@@ -193,6 +195,7 @@ export default function Frame() {
 
 
 export function NavigationBar() {
+    const navigate = useNavigate();
     const navItems = ["Computer", "Phone", "Web3 Accessories", "Web3 Gaming", "Smartwatches", "Tablets", "Audio"]
     const TodayPrices = [
         { Label: "USDT: $1.01", value: "usdt", rate: "1.01", iconSrc: "/images/usdt-icon.svg", bg: '#00A478' },
@@ -201,6 +204,11 @@ export function NavigationBar() {
     ]
     const [selectedPrice, setSelectedPrice] = React.useState(TodayPrices[0]);
 
+    const handleNavigation = (category) => {
+        navigate(`${AppRoutes.productList.path}?category=${encodeURIComponent(category)}`);
+    };
+
+    let bg = selectedPrice? selectedPrice.bg : '#00A478'
     return (
         <nav className=" text-defaultwhite">
             <div className="flex items-center  justify-between max-w-full   py-2">
@@ -215,7 +223,7 @@ export function NavigationBar() {
                                     variant="ghost"
                                     className={`text-defaultwhite w-36 relative hover:text-defaultwhite hover:bg-defaulttop-background h-auto font-normal outline-none border-none hover:outline-none flex items-center gap-1 `}
                                 >
-                                    <div className={`absolute bg-[${selectedPrice?.bg}] bg-opacity-15 left-0 rounded-full overflow-hidden p-2 `}>
+                                    <div className={`absolute bg-[${bg}] bg-opacity-15 left-0 rounded-full overflow-hidden p-2 `}>
                                         <img src={selectedPrice.iconSrc} className="w-4 h-4" />
                                        
                                     </div>
@@ -243,7 +251,8 @@ export function NavigationBar() {
                     {navItems.map((item) => (
                         <Button
                             key={item} variant="ghost"
-                            className="text-defaultwhite hover:bg-defaulttop-background hover:text-defaultwhite px-4 py-2 text-sm font-normal h-auto"
+                            onClick={() => handleNavigation(item)}
+                            className="text-defaultwhite hover:bg-defaulttop-background hover:text-defaultwhite px-4 py-2 text-sm font-normal h-auto cursor-pointer"
                         >
                             {item}
                         </Button>
@@ -262,7 +271,11 @@ export function NavigationBar() {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="bg-defaulttop-background border-defaultgrey w-48">
                             {navItems.map((item) => (
-                                <DropdownMenuItem key={item} className="text-defaultwhite hover:bg-defaulttop-background">
+                                <DropdownMenuItem 
+                                    key={item} 
+                                    onClick={() => handleNavigation(item)}
+                                    className="text-defaultwhite hover:bg-defaulttop-background cursor-pointer"
+                                >
                                     {item}
                                 </DropdownMenuItem>
                             ))}

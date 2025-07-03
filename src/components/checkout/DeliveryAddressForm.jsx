@@ -64,7 +64,7 @@ function DeliveryAddressForm({ onSave, onCancel, showCancel = false, editingAddr
         </h2>
         
         {/* Separator under heading */}
-        <Separator className="mb-6 bg-[#2C2C2E]" />
+        <Separator className="mb-6 bg-[#38383a]" />
         
         <form onSubmit={handleSubmit} className="space-y-5">
           {/* First Name and Last Name */}
@@ -113,9 +113,9 @@ function DeliveryAddressForm({ onSave, onCancel, showCancel = false, editingAddr
           </div>
 
           {/* Area Number and Phone Number */}
-          <div className="flex flex-col sm:flex-row gap-4 items-end justify-start align-baseline content-baseline justify-items-center justify-self-centers">
-            <div className="flex-1 sm:flex-[0_0_25%]">
-              <label className="block text-white text-base font-medium mb-2">
+          <div className="flex gap-4">
+            <div className="flex-shrink-0 w-32">
+              <label className="block text-white text-base font-medium mb-2 truncate">
                 Area Number <span className="text-red-500">*</span>
               </label>
               <input
@@ -124,11 +124,11 @@ function DeliveryAddressForm({ onSave, onCancel, showCancel = false, editingAddr
                 value={formData.areaNumber}
                 onChange={handleInputChange}
                 required
-                className="w-full px-4 py-2.5 bg-[#1F1F21] border border-[#2C2C2E] rounded-lg text-white focus:outline-none focus:border-primaryp-500 text-base"
+                className="w-full px-3 py-2.5 bg-[#1F1F21] border border-[#2C2C2E] rounded-lg text-white focus:outline-none focus:border-primaryp-500 text-base text-center"
               />
             </div>
-            <div className="flex-1 sm:flex-[0_0_75%]">
-              <label className="block text-white text-base font-medium mb-2">
+            <div className="flex-1">
+              <label className="block text-white text-base font-medium mb-2 truncate">
                 Phone Number <span className="text-red-500">*</span>
               </label>
               <input
@@ -267,9 +267,9 @@ function DeliveryAddressForm({ onSave, onCancel, showCancel = false, editingAddr
           </div>
 
           {/* Area Number and Phone Number */}
-          <div className="grid grid-cols-4 gap-4">
-            <div className="col-span-1">
-              <label className="block text-white text-base font-medium mb-2">
+          <div className="grid grid-cols-12 gap-3">
+            <div className="col-span-3">
+              <label className="block text-white text-base font-medium mb-2 truncate">
                 Area Number <span className="text-red-500">*</span>
               </label>
               <input
@@ -278,11 +278,11 @@ function DeliveryAddressForm({ onSave, onCancel, showCancel = false, editingAddr
                 value={formData.areaNumber}
                 onChange={handleInputChange}
                 required
-                className="w-full px-4 py-2.5 bg-[#1F1F21] border border-[#2C2C2E] rounded-lg text-white focus:outline-none focus:border-primaryp-500 text-base"
+                className="w-full px-3 py-2.5 bg-[#1F1F21] border border-[#2C2C2E] rounded-lg text-white focus:outline-none focus:border-primaryp-500 text-base text-center"
               />
             </div>
-            <div className="col-span-3">
-              <label className="block text-white text-base font-medium mb-2">
+            <div className="col-span-9">
+              <label className="block text-white text-base font-medium mb-2 truncate">
                 Phone Number <span className="text-red-500">*</span>
               </label>
               <input
@@ -384,7 +384,7 @@ function DeliveryAddressForm({ onSave, onCancel, showCancel = false, editingAddr
             type="button" 
             onClick={onCancel}
             variant="outline"
-            className="w-full border-neutralneutral-600 text-white hover:bg-neutralneutral-800 px-12 py-3 rounded-lg font-medium text-base"
+            className="w-full bg-neutralneutral-800 border-[0.5] border-[#FF5059] text-white hover:bg-neutralneutral-900 hover:border-neutralneutral-500 px-12 py-3 rounded-lg font-medium text-base"
           >
             Cancel
           </Button>

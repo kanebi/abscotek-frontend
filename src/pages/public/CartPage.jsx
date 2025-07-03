@@ -123,7 +123,7 @@ function CartPage() {
                     </div>
                     
                     {/* Quantity Controls */}
-                    <div className="flex items-center gap-0 border border-[#404040] rounded-lg w-fit">
+                    <div className="flex items-center gap-0 border border-[#38383a] rounded-lg w-fit">
                       <button
                         onClick={() => handleUpdateQuantity(item.productId, item.quantity - 1)}
                         disabled={cartUpdating || item.quantity <= 1}
@@ -161,7 +161,7 @@ function CartPage() {
           <div className="mt-8">
             <div className="bg-neutralneutral-800 rounded-xl p-6">
               <h2 className="text-xl font-semibold text-white mb-4">Summary</h2>
-              <Separator className="mb-6 bg-[#404040] h-0.3" />
+              <Separator className="mb-6 bg-[#38383a] h-0.3" />
               
               <div className="space-y-4 mb-6">
                 <div className="flex justify-between text-white">
@@ -212,7 +212,7 @@ function CartPage() {
                     <h3 className="text-white font-medium text-base mb-3">{item.name}</h3>
                     
                     {/* Quantity Controls */}
-                    <div className="flex items-center gap-0 border border-[#404040] rounded-lg w-fit">
+                    <div className="flex items-center gap-0 border border-[#38383a] rounded-lg w-fit">
                       <button
                         onClick={() => handleUpdateQuantity(item.productId, item.quantity - 1)}
                         disabled={cartUpdating || item.quantity <= 1}
@@ -253,7 +253,7 @@ function CartPage() {
                 
                 {/* Separator - Show after every item except the last */}
                 {index !== cart.items.length - 1 && (
-                  <Separator className="bg-[#404040] h-0.3" />
+                  <Separator className="bg-[#38383a] h-0.3" />
                 )}
               </div>
             ))}
@@ -263,7 +263,7 @@ function CartPage() {
           <div className="lg:col-span-1 space-y-4">
             <div className="rounded-xl p-6 sticky top-4" style={{ backgroundColor: '#1F1F21' }}>
               <h2 className="text-xl font-semibold text-white mb-4">Summary</h2>
-              <Separator className="mb-6 bg-[#404040] h-0.3" />
+              <Separator className="mb-6 bg-[#38383a] h-0.3" />
               
               <div className="space-y-4 mb-6">
                 <div className="flex justify-between text-white">

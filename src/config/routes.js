@@ -39,6 +39,10 @@ export const AppRoutes = {
     path:'/product/:id',
     name: 'Product Detail',
   },
+  productList: {
+    path: '/products',
+    name: 'Products',
+  },
   // User-facing pages
   cart: {
     path: '/cart',
@@ -71,6 +75,6 @@ export const AppRoutes = {
   withdrawal: {
     path: '/withdrawal',
     name: 'Withdrawal',
-  }
+  },
   // Add more routes here as needed
 };
