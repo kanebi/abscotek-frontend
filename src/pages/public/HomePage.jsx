@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import productService from '../services/productService';
-import Layout from './Layout';
-import ProductList from './ProductList';
-import { Separator } from './ui/separator';
+import productService from '../../services/productService';
+import Layout from '../../components/Layout';
+import ProductList from '../../components/ProductList';
+import { Separator } from '../../components/ui/separator';
 
 function HomePage() {
   const [featuredProducts, setFeaturedProducts] = useState([]);

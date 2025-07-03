@@ -21,11 +21,7 @@ export default function Frame() {
                     <div className="inline-flex items-center gap-[10.1px] relative flex-[0_0_auto]">
                         <div className="relative w-[30.45px] h-14">
                             <div className="relative w-[30px] h-14">
-                                <img
-                                    className="absolute w-[18px] h-[17px] top-5 left-1.5"
-                                    alt="Vector"
-                                    src="/images/layer-2.svg"
-                                />
+                               
                                 <img
                                     className="absolute w-[30px] h-14 top-0 left-0"
                                     alt="Group"
@@ -204,6 +200,7 @@ export function NavigationBar() {
         { Label: "ETH: $2,580", value: "eth", rate: "2580", iconSrc: "/images/eth-icon.svg", bg: '#3C3C3D' }
     ]
     const [selectedPrice, setSelectedPrice] = React.useState(TodayPrices[0]);
+
     return (
         <nav className=" text-defaultwhite">
             <div className="flex items-center  justify-between max-w-full   py-2">
@@ -218,9 +215,9 @@ export function NavigationBar() {
                                     variant="ghost"
                                     className={`text-defaultwhite w-36 relative hover:text-defaultwhite hover:bg-defaulttop-background h-auto font-normal outline-none border-none hover:outline-none flex items-center gap-1 `}
                                 >
-                                    <div className={`absolute  bg-[${selectedPrice.bg || "#00A478"}] bg-opacity-15 left-0 rounded-full overflow-hidden p-2 `}>
+                                    <div className={`absolute bg-[${selectedPrice?.bg}] bg-opacity-15 left-0 rounded-full overflow-hidden p-2 `}>
                                         <img src={selectedPrice.iconSrc} className="w-4 h-4" />
-
+                                       
                                     </div>
 
                                     <span className="pl-3 text-sm font-medium">{selectedPrice.Label}</span>

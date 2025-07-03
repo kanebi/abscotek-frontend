@@ -8,7 +8,7 @@ export default function AmountCurrency({ amount, fromCurrency = "USDT" }) {
   const converted = convertCurrency(amount, fromCurrency, userCurrency, rates);
 
   return (
-    <span className="text-white text-lg font-semibold leading-snug">
+    <span className="text-white leading-snug">
       {converted} {userCurrency}
     </span>
   );

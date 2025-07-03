@@ -1,14 +1,14 @@
 import React from "react";
-import Breadcrumb from "./ui/Breadcrumb";
-import { Card } from "./ui/card";
-import { Button } from "./ui/button";
-import { Separator } from "./ui/separator";
-import AmountCurrency from "./ui/AmountCurrency";
-import Layout from "./Layout";
+import Breadcrumb from "../../components/ui/Breadcrumb";
+import { Card } from "../../components/ui/card";
+import { Button } from "../../components/ui/button";
+import { Separator } from "../../components/ui/separator";
+import AmountCurrency from "../../components/ui/AmountCurrency";
+import Layout from "../../components/Layout";
 import { Minus, Plus } from "lucide-react";
-import { Select, SelectItem, SelectContent, SelectTrigger, SelectValue } from "./ui/select";
-import Carousel from "./ui/Carousel";
-import ProductList from "./ProductList";
+import { Select, SelectItem, SelectContent, SelectTrigger, SelectValue } from "../../components/ui/select";
+import Carousel from "../../components/ui/Carousel";
+import ProductList from "../../components/ProductList";
 
 export default function ProductDetail({ product }) {
     // Example product fallback

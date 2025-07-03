@@ -1,0 +1,246 @@
+# Cursor Rules for Frontend E-commerce Project
+
+## 🎯 Project Overview
+This is a React e-commerce frontend built with Vite, using shadcn/ui components, Tailwind CSS, and a comprehensive custom design system.
+
+## 🏗️ Architecture & Structure
+
+### Project Structure
+```
+src/
+├── pages/           # All page components (public & admin)
+├── components/      # Reusable UI components & widgets
+├── layout/          # Layout components (Header, Footer)
+├── services/        # API services
+├── store/           # State management (Zustand)
+├── config/          # Configuration files
+├── lib/             # Utility functions
+└── admin/           # Admin-related utilities (if needed)
+```
+
+### File Naming Conventions
+- **Pages**: PascalCase with descriptive names (e.g., `HomePage.jsx`, `ProductDetailPage.jsx`)
+- **Components**: PascalCase for components, camelCase for utilities
+- **Services**: camelCase with 'Service' suffix (e.g., `productService.js`)
+
+## 🎨 Design System & Theming
+
+### CSS Variables & Colors
+We use an extensive custom design system with CSS variables defined in `src/index.css`:
+
+**Primary Color Palette:**
+- `--primaryp-*` (50, 75, 100-500) - Primary brand colors
+- `--secondarys-*` (50, 75, 100-500) - Secondary colors
+- `--dangerd-*`, `--successs-*`, `--warningw-*`, `--infoi-*` - Status colors
+- `--neutralneutral-*` (50-900) - Neutral grays
+- `--defaultbody`, `--defaultwhite`, `--defaultgrey-*` - Default colors
+
+**Usage in Tailwind:**
+```jsx
+// Use CSS variables in Tailwind classes
+<div className="bg-primaryp-500 text-defaultwhite" />
+<div className="text-neutralneutral-600" />
+```
+
+### Typography System
+Custom typography scale with CSS variables:
+- **Body**: `--body-{size}-{size}-{weight}` (xxsmall, xsmall, small, base, large, xlarge)
+- **Headings**: `--heading-header-{level}-header-{level}-{weight}` (1-6)
+- **Font Family**: "Mona Sans" is the primary font
+
+**Usage:**
+```jsx
+<h1 className="font-heading-header-1-header-1-bold">Main Title</h1>
+<p className="font-body-base-base-regular">Body text</p>
+```
+
+## 🧩 Component Guidelines
+
+### shadcn/ui Configuration
+- **Style**: "new-york"
+- **Base Color**: "neutral" 
+- **CSS Variables**: Enabled
+- **Icon Library**: "lucide-react"
+
+### Component Creation Rules
+1. **Always use shadcn/ui components** when available before creating custom ones
+2. **Extend shadcn components** using the `cn()` utility from `src/lib/utils.js`
+3. **Follow the component pattern**:
+```jsx
+import { cn } from "@/lib/utils";
+
+export function CustomComponent({ className, children, ...props }) {
+  return (
+    <div className={cn("base-styles", className)} {...props}>
+      {children}
+    </div>
+  );
+}
+```
+
+### UI Component Categories
+- **ui/**: shadcn/ui base components (Button, Card, Select, etc.)
+- **widgets/**: Complex reusable components (ProductCard, SliderCart)
+- **layout/**: Layout-specific components (Header, Footer)
+
+## 🛣️ Routing & Navigation
+
+### Route Structure
+Routes are centrally defined in `src/config/routes.js`:
+```javascript
+export const AppRoutes = {
+  home: { path: '/', name: 'Home' },
+  productDetail: { path: '/product/:id', name: 'Product Detail' },
+  // ... admin routes
+};
+```
+
+### Page Component Guidelines
+1. **All pages should be in `src/pages/`** organized by feature
+2. **Use descriptive names** that match the route purpose
+3. **Wrap pages with Layout component** when needed
+4. **Handle loading and error states** appropriately
+
+## 📱 Responsive Design
+
+### Mobile-First Approach
+Always implement mobile-first design:
+```jsx
+// Mobile (default)
+<div className="flex flex-col gap-4">
+  
+// Desktop (md: and up)
+<div className="md:flex-row md:gap-8">
+```
+
+### Breakpoint Strategy
+- **Base**: Mobile styles (default)
+- **md**: Tablet and up (768px+)
+- **lg**: Desktop (1024px+)
+- **xl**: Large desktop (1280px+)
+
+## 🔧 Development Best Practices
+
+### State Management
+- **Zustand** for global state (`src/store/`)
+- **React hooks** for local component state
+- **Service layer** for API calls (`src/services/`)
+
+### Error Handling
+- Use the notification system (`src/store/notificationStore.js`)
+- Implement proper error boundaries
+- Show loading states for async operations
+
+### Performance
+- **Lazy load** route components when possible
+- **Optimize images** and use appropriate formats
+- **Bundle split** for admin vs public features
+
+## 🎯 Code Style & Conventions
+
+### React Patterns
+```jsx
+// Preferred component structure
+function ComponentName({ prop1, prop2, ...restProps }) {
+  const [localState, setLocalState] = useState();
+  
+  useEffect(() => {
+    // Effects here
+  }, []);
+  
+  const handleEvent = useCallback(() => {
+    // Event handlers
+  }, []);
+  
+  return (
+    <Layout>
+      {/* Component JSX */}
+    </Layout>
+  );
+}
+```
+
+### Import Organization
+```jsx
+// 1. React and core libraries
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+
+// 2. External libraries
+import { Button } from '@/components/ui/button';
+
+// 3. Internal components & services
+import Layout from '@/components/Layout';
+import productService from '@/services/productService';
+
+// 4. Configuration & utilities
+import { AppRoutes } from '@/config/routes';
+import { cn } from '@/lib/utils';
+```
+
+## 🛡️ Security & Quality
+
+### Authentication
+- Use `PrivateRoute` component for protected routes
+- Implement proper token handling in services
+- Clear sensitive data on logout
+
+### Code Quality
+- **TypeScript**: Consider migrating for better type safety
+- **ESLint**: Follow configured rules
+- **Performance**: Monitor bundle size and rendering performance
+
+## 🚀 Deployment & Build
+
+### Environment Configuration
+- Use Vite's environment variables (`VITE_*`)
+- Configure different environments (dev, staging, prod)
+- Handle API URLs through environment configuration
+
+### Build Optimization
+- Ensure proper tree shaking
+- Optimize assets and images
+- Configure proper caching headers
+
+## 📝 Documentation Standards
+
+### Component Documentation
+```jsx
+/**
+ * ProductCard - Displays product information in a card format
+ * @param {Object} product - Product data object
+ * @param {string} className - Additional CSS classes
+ * @param {function} onAddToCart - Cart addition handler
+ */
+export function ProductCard({ product, className, onAddToCart }) {
+  // Component implementation
+}
+```
+
+### README Updates
+- Keep component usage examples current
+- Document environment setup
+- Maintain deployment instructions
+
+---
+
+## 🎨 Quick Reference
+
+### Common Patterns
+```jsx
+// Currency display
+
+<AmountCurrency amount={price} fromCurrency="USDT" />
+```Never display any product price withour this component ```
+
+// Responsive layout
+<div className="flex flex-col md:flex-row gap-4 md:gap-8">
+
+// Custom styling with design system
+<Button className="bg-primaryp-500 text-defaultwhite">
+
+// Loading states
+{loading ? <Spinner /> : <Content />}
+```
+
+Remember: This project prioritizes user experience, performance, and maintainability. Always consider the impact of changes on these three pillars. 

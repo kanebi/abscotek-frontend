@@ -57,7 +57,13 @@ export default function Footer() {
                                     <div className="relative w-[98.7px] h-7">
                                         <div className="relative w-[99px] h-7">
                                             <div className="absolute w-[99px] h-[17px] top-0 left-0 bg-[url(/image.png)] bg-[100%_100%]" />
-                                            <div className="absolute w-20 h-2.5 top-[18px] left-[18px] bg-[url(/images/group-161972.svg)] bg-[100%_100%]" />
+                                            {/* <div className="absolute w-20 h-2.5 top-[18px] left-[18px] bg-[url(/images/group-161972.svg)] bg-[100%_100%]" /> */}
+                                      
+                        <div className="relative w-[98.7px] h-8">
+                            <div className="relative w-[99px] h-8 ">
+                                <div className="absolute w-[99px] h-[30px]  bottom-0 left-0 bg-[url(/images/layer-2.svg)] bg-[100%_100%] bg-no-repeat" />
+                            </div>
+                        </div>
                                         </div>
                                     </div>
                                 </div>
@@ -126,8 +132,12 @@ export default function Footer() {
                                     </div>
                                     <div className="relative w-[114.42px] h-7">
                                         <div className="absolute w-[113px] h-[18px] top-0 left-0 bg-[url(/image.png)] bg-[100%_100%]" />
-                                        <div className="absolute w-[77px] h-[9px] top-[19px] left-[37px] bg-[url(/images/group-161972.svg)] bg-[100%_100%]" />
-                                    </div>
+               
+                                        <div className="relative w-[98.7px] h-8">
+                            <div className="relative w-[99px] h-8 ">
+                                <div className="absolute w-[99px] h-[30px]  bottom-0 left-0 bg-[url(/images/layer-2.svg)] bg-[100%_100%] bg-no-repeat" />
+                            </div>
+                        </div>                                    </div>
                                 </div>
                                 <p className="self-stretch font-body-base-base-regular font-[number:var(--body-base-base-regular-font-weight)] text-defaultgrey text-[length:var(--body-base-base-regular-font-size)] tracking-[var(--body-base-base-regular-letter-spacing)] leading-[var(--body-base-base-regular-line-height)] [font-style:var(--body-base-base-regular-font-style)]">
                                     Welcome to the largest NFT marketplace based on The Open Network. Make yourself at home among other NFT enthusiasts.

@@ -38,6 +38,39 @@ export const AppRoutes = {
   productDetail:{
     path:'/product/:id',
     name: 'Product Detail',
+  },
+  // User-facing pages
+  cart: {
+    path: '/cart',
+    name: 'Shopping Cart',
+  },
+  checkout: {
+    path: '/checkout',
+    name: 'Checkout',
+  },
+  userOrders: {
+    path: '/orders',
+    name: 'My Orders',
+  },
+  orderDetails: {
+    path: '/orders/:id',
+    name: 'Order Details',
+  },
+  orderSuccess: {
+    path: '/order-success/:orderId?',
+    name: 'Order Successful',
+  },
+  userProfile: {
+    path: '/profile',
+    name: 'User Profile',
+  },
+  referral: {
+    path: '/referral',
+    name: 'Referral Program',
+  },
+  withdrawal: {
+    path: '/withdrawal',
+    name: 'Withdrawal',
   }
   // Add more routes here as needed
 };
