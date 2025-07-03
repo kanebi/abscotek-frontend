@@ -9,10 +9,15 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import SliderCart from "@/components/ui/SliderCart";
 import { useNavigate } from 'react-router-dom';
 import { AppRoutes } from '@/config/routes';
+import AvatarBlock from "@/components/ui/avatar";
+import UserPopover from "@/components/ui/UserPopover";
+import ReferModal from '@/components/ui/ReferModal';
 
 
 export default function Frame() {
-    const user = useStore((state) => state.user); // Assumes user object has { avatar, balance, ... }
+    const user = useStore((state) => state.currentUser);
+    const connectUserWallet = useStore((state) => state.connectUserWallet);
+    const [referModalOpen, setReferModalOpen] = React.useState(false);
     const defaultTopBackground = "rgba(36, 36, 36, 1)";
 
     return (
@@ -54,6 +59,7 @@ export default function Frame() {
                                 variant="secondary"
                                 className="inline-flex flex-col items-start px-5 py-3 relative flex-[0_0_auto] rounded-xl overflow-hidden h-auto border-0 transition-colors hover:!bg-[rgba(36,36,36,0.8)]"
                                 style={{ background: `var(--defaulttop-background, ${defaultTopBackground})` }}
+                                onClick={() => setReferModalOpen(true)}
                                 onMouseOver={e => e.currentTarget.style.background = 'rgba(36,36,36,0.8)'}
                                 onMouseOut={e => e.currentTarget.style.background = `var(--defaulttop-background, ${defaultTopBackground})`}
                             >
@@ -70,29 +76,16 @@ export default function Frame() {
                             </Button>
                         </div>
                         {user ? (
-                            <div className="inline-flex items-center gap-4 relative flex-[0_0_auto]">
-
-                                <div className="flex flex-col w-[34px] items-center justify-center relative">
-                                    <span className="relative w-fit mt-[-1.00px] font-body-base-base-semibold font-[number:var(--body-base-base-semibold-font-weight)] text-white text-[length:var(--body-base-base-semibold-font-size)] tracking-[var(--body-base-base-semibold-letter-spacing)] leading-[var(--body-base-base-semibold-line-height)] whitespace-nowrap [font-style:var(--body-base-base-semibold-font-style)]">
-                                        TON
-                                    </span>
-                                    <span className="relative self-stretch font-body-base-base-medium font-[number:var(--body-base-base-medium-font-weight)] text-neutralneutral-100 text-[length:var(--body-base-base-medium-font-size)] text-center tracking-[var(--body-base-base-medium-letter-spacing)] leading-[var(--body-base-base-medium-line-height)] [font-style:var(--body-base-base-medium-font-style)]">
-                                        ${user.balance ?? 0}
-                                    </span>
+                            <UserPopover user={user}>
+                                <div className="cursor-pointer">
+                                    <AvatarBlock user={user} />
                                 </div>
-                                <Avatar className="relative w-12 h-12 bg-[#4e5462] rounded-xl overflow-hidden">
-                                    <AvatarImage
-                                        className="w-12 h-12 object-cover"
-                                        alt={user.name || "Avatar sign IN"}
-                                        src={user.avatar || "/images/avatar.png"}
-                                    />
-                                    <AvatarFallback className="bg-[#4e5462] text-white">
-                                        {user.name ? user.name[0].toUpperCase() : "U"}
-                                    </AvatarFallback>
-                                </Avatar>
-                            </div>)
-                            : (
-                                <Button className="inline-flex items-center justify-center gap-2.5 px-7 py-[13px] relative flex-[0_0_auto] bg-primaryp-300 rounded-xl h-auto transition-colors hover:bg-primaryp-300/90">
+                            </UserPopover>
+                        ) : (
+                            <Button
+                                className="inline-flex items-center justify-center gap-2.5 px-7 py-[13px] relative flex-[0_0_auto] bg-primaryp-300 rounded-xl h-auto transition-colors hover:bg-primaryp-300/90"
+                                onClick={connectUserWallet}
+                            >
                                     <div className="relative w-fit mt-[-1.00px] font-body-base-base-medium font-[number:var(--body-base-base-medium-font-weight)] text-white text-[length:var(--body-base-base-medium-font-size)] tracking-[var(--body-base-base-medium-letter-spacing)] leading-[var(--body-base-base-medium-line-height)] whitespace-nowrap [font-style:var(--body-base-base-medium-font-style)]">
                                         Connect Wallet
                                     </div>
@@ -135,31 +128,19 @@ export default function Frame() {
                             <Search className="relative w-5 h-5 text-[#858585]" />
                         </Button>
                         {user ? (
-                            <div className="inline-flex items-center gap-2 relative flex-[0_0_auto]">
-                                <div className="flex flex-col w-[34px] items-center justify-center relative">
-                                    <div className="relative w-fit mt-[-1.00px] font-body-small-small-semibold font-[number:var(--body-small-small-semibold-font-weight)] text-white text-[length:var(--body-small-small-semibold-font-size)] tracking-[var(--body-small-small-semibold-letter-spacing)] leading-[var(--body-small-small-semibold-line-height)] whitespace-nowrap [font-style:var(--body-small-small-semibold-font-style)]">
-                                        TON
-                                    </div>
-                                    <div className="relative self-stretch font-body-small-small-medium font-[number:var(--body-small-small-medium-font-weight)] text-neutralneutral-100 text-[length:var(--body-small-small-medium-font-size)] text-center tracking-[var(--body-small-small-medium-letter-spacing)] leading-[var(--body-small-small-medium-line-height)] [font-style:var(--body-small-small-medium-font-style)]">
-                                        ${user.balance ?? 0}
-                                    </div>
+                            <UserPopover user={user}>
+                                <div className="cursor-pointer">
+                                    <AvatarBlock user={user} />
                                 </div>
-                                <Avatar className="w-10 h-10 bg-[#4e5462] rounded-[10px] overflow-hidden">
-                                    <AvatarImage
-                                        src={user.avatar || "/images/avatar.png"}
-                                        alt={user.name || "Avatar"}
-                                        className="w-10 h-10 object-cover"
-                                    />
-                                    <AvatarFallback className="w-10 h-10 bg-[#4e5462]">
-                                        {user.name ? user.name[0].toUpperCase() : "U"}
-                                    </AvatarFallback>
-                                </Avatar>
-                            </div>
+                            </UserPopover>
                         ) : (
-                            <Button className="inline-flex justify-center gap-2.5 px-6 py-3 flex-[0_0_auto] bg-primaryp-300 rounded-xl items-center transition-colors hover:bg-primaryp-400 h-auto">
-                                <span className="relative w-fit mt-[-1.00px] font-body-small-small-medium font-[number:var(--body-small-small-medium-font-weight)] text-white text-[length:var(--body-small-small-medium-font-size)] tracking-[var(--body-small-small-medium-letter-spacing)] leading-[var(--body-small-small-medium-line-height)] whitespace-nowrap [font-style:var(--body-small-small-medium-font-style)]">
+                            <Button
+                                className="inline-flex items-center justify-center gap-2.5 px-7 py-[13px] relative flex-[0_0_auto] bg-primaryp-300 rounded-xl h-auto transition-colors hover:bg-primaryp-300/90"
+                                onClick={connectUserWallet}
+                            >
+                                <div className="relative w-fit mt-[-1.00px] font-body-base-base-medium font-[number:var(--body-base-base-medium-font-weight)] text-white text-[length:var(--body-base-base-medium-font-size)] tracking-[var(--body-base-base-medium-letter-spacing)] leading-[var(--body-base-base-medium-line-height)] whitespace-nowrap [font-style:var(--body-base-base-medium-font-style)]">
                                     Connect Wallet
-                                </span>
+                                </div>
                             </Button>
                         )}
 
@@ -187,8 +168,7 @@ export default function Frame() {
                 <NavigationBar />
 
             </div>
-
-
+            <ReferModal open={referModalOpen} onClose={() => setReferModalOpen(false)} />
         </header>
     );
 }
@@ -286,3 +266,5 @@ export function NavigationBar() {
         </nav>
     )
 }
+
+

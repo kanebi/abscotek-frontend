@@ -1,7 +1,16 @@
 import { create } from 'zustand';
+import userService from '../services/userService';
+
+const MOCK_USER = {
+  address: '0xCbdc...3432',
+  avatar: '/images/0e48610f4fecc933e17441d93f63ddcc9c4d1943 (1).png',
+  name: 'John Doe',
+  balance: 0,
+  profileUrl: '/profile',
+};
 
 const useStore = create((set, get) => ({
-  currentUser: JSON.parse(localStorage.getItem('user')) || null,
+  currentUser: null,
   userCurrency: "USDT",
 
   setCurrentUser: (user) => {
@@ -12,6 +21,22 @@ const useStore = create((set, get) => ({
       localStorage.removeItem('user');
     }
   },
+
+  connectUserWallet: async () => {
+    // Simulate wallet connect and user creation
+    const walletUser = {
+      address: '0xCbdc...3432',
+      avatar: '/images/0e48610f4fecc933e17441d93f63ddcc9c4d1943 (1).png',
+      name: 'John Doe',
+      balance: 0,
+      profileUrl: '/profile',
+    };
+    // Optionally call userService.createUser(walletUser) if you want to persist
+    // await userService.createUser(walletUser);
+    set({ currentUser: walletUser });
+    localStorage.setItem('user', JSON.stringify(walletUser));
+  },
+
   setUserCurrency: (currency) => set({ userCurrency: currency }),
 
   // Cart state management

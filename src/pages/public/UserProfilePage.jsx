@@ -1,83 +1,34 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import userService from '../../services/userService';
 import Layout from '../../components/Layout';
 import { Button } from '../../components/ui/button';
 import { Card } from '../../components/ui/card';
 import { AppRoutes } from '../../config/routes';
-import { User, Mail, Phone, MapPin, Calendar, Package, Edit, Settings } from 'lucide-react';
+import { Mail, Phone, Edit, Package } from 'lucide-react';
+import useStore from '../../store/useStore';
 
 function UserProfilePage() {
-  const [user, setUser] = useState(null);
+  const user = useStore((state) => state.currentUser);
   const [isEditing, setIsEditing] = useState(false);
-  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [editForm, setEditForm] = useState({
-    firstName: '',
-    lastName: '',
-    email: '',
-    phone: '',
-    address: '',
-    city: '',
-    state: '',
-    zipCode: '',
-    country: ''
+    name: user?.name || '',
+    email: user?.email || '',
+    phone: user?.phone || '',
   });
 
-  useEffect(() => {
-    fetchUserProfile();
-  }, []);
-
-  const fetchUserProfile = async () => {
-    try {
-      const userData = await userService.getCurrentUser();
-      setUser(userData);
-      setEditForm({
-        firstName: userData.firstName || '',
-        lastName: userData.lastName || '',
-        email: userData.email || '',
-        phone: userData.phone || '',
-        address: userData.address || '',
-        city: userData.city || '',
-        state: userData.state || '',
-        zipCode: userData.zipCode || '',
-        country: userData.country || ''
-      });
-    } catch (error) {
-      console.error('Error fetching user profile:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleSave = async (e) => {
+  const handleSave = (e) => {
     e.preventDefault();
     setSaving(true);
-    try {
-      const updatedUser = await userService.updateProfile(editForm);
-      setUser(updatedUser);
-      setIsEditing(false);
-    } catch (error) {
-      console.error('Error updating profile:', error);
-      alert('Failed to update profile. Please try again.');
-    } finally {
+    setTimeout(() => {
       setSaving(false);
-    }
+      setIsEditing(false);
+    }, 1000);
   };
 
   const handleInputChange = (field, value) => {
     setEditForm(prev => ({ ...prev, [field]: value }));
   };
-
-  if (loading) {
-    return (
-      <Layout>
-        <div className="w-[86%] mx-auto py-8">
-          <div className="text-center text-white">Loading profile...</div>
-        </div>
-      </Layout>
-    );
-  }
 
   return (
     <Layout>
@@ -89,7 +40,6 @@ function UserProfilePage() {
               <h1 className="text-3xl font-heading-header-2-header-2-bold text-white">My Profile</h1>
               <p className="text-neutralneutral-400">Manage your account settings and preferences</p>
             </div>
-            
             {!isEditing && (
               <Button onClick={() => setIsEditing(true)} className="bg-primaryp-500 hover:bg-primaryp-400">
                 <Edit size={16} className="mr-2" />
@@ -103,14 +53,14 @@ function UserProfilePage() {
             <div className="lg:col-span-2">
               <Card className="p-6">
                 <div className="flex items-center gap-4 mb-6">
-                  <div className="w-16 h-16 bg-primaryp-100/10 rounded-full flex items-center justify-center">
-                    <User size={32} className="text-primaryp-400" />
+                  <div className="w-16 h-16 bg-primaryp-100/10 rounded-full flex items-center justify-center overflow-hidden">
+                    <img src={user?.avatar} alt="avatar" className="w-16 h-16 rounded-full object-cover" />
                   </div>
                   <div>
                     <h2 className="text-xl font-heading-header-3-header-3-bold text-white">
-                      {user?.firstName} {user?.lastName}
+                      {user?.name}
                     </h2>
-                    <p className="text-neutralneutral-400">{user?.email}</p>
+                    <p className="text-neutralneutral-400">{user?.address}</p>
                   </div>
                 </div>
 
@@ -119,17 +69,9 @@ function UserProfilePage() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <input
                         type="text"
-                        placeholder="First Name"
-                        value={editForm.firstName}
-                        onChange={(e) => handleInputChange('firstName', e.target.value)}
-                        className="p-3 bg-neutralneutral-800 border border-neutralneutral-600 rounded-lg text-white placeholder-neutralneutral-400"
-                        required
-                      />
-                      <input
-                        type="text"
-                        placeholder="Last Name"
-                        value={editForm.lastName}
-                        onChange={(e) => handleInputChange('lastName', e.target.value)}
+                        placeholder="Name"
+                        value={editForm.name}
+                        onChange={(e) => handleInputChange('name', e.target.value)}
                         className="p-3 bg-neutralneutral-800 border border-neutralneutral-600 rounded-lg text-white placeholder-neutralneutral-400"
                         required
                       />
@@ -149,7 +91,6 @@ function UserProfilePage() {
                         className="p-3 bg-neutralneutral-800 border border-neutralneutral-600 rounded-lg text-white placeholder-neutralneutral-400"
                       />
                     </div>
-                    
                     <div className="flex gap-4 pt-4">
                       <Button type="submit" disabled={saving} className="bg-primaryp-500 hover:bg-primaryp-400">
                         {saving ? 'Saving...' : 'Save Changes'}
@@ -169,7 +110,6 @@ function UserProfilePage() {
                           <p className="text-white">{user?.email || 'Not provided'}</p>
                         </div>
                       </div>
-                      
                       <div className="flex items-center gap-3">
                         <Phone size={16} className="text-neutralneutral-500" />
                         <div>
@@ -194,7 +134,6 @@ function UserProfilePage() {
                       View Orders
                     </Button>
                   </Link>
-                  
                   <Link to={AppRoutes.referral.path}>
                     <Button variant="outline" className="w-full border-neutralneutral-600 text-neutralneutral-300 justify-start">
                       Referral Program
