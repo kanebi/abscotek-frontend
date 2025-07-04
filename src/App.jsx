@@ -23,6 +23,7 @@ import OrderSuccessPage from './pages/public/OrderSuccessPage';
 import UserProfilePage from './pages/public/UserProfilePage';
 import ReferralPage from './pages/public/ReferralPage';
 import WithdrawalPage from './pages/public/WithdrawalPage';
+import SearchResultsPage from './pages/public/SearchResultsPage';
 
 // Components
 import PrivateRoute from './components/PrivateRoute';
@@ -53,6 +54,7 @@ function App() {
             <Route path={AppRoutes.userProfile.path} element={<UserProfilePage />} />
             <Route path={AppRoutes.referral.path} element={<ReferralPage />} />
             <Route path={AppRoutes.withdrawal.path} element={<WithdrawalPage />} />
+            <Route path={AppRoutes.search.path} element={<SearchResultsPage />} />
             
             {/* Protected Admin Routes */}
             <Route path={AppRoutes.admin.path} element={<PrivateRoute><AdminDashboard /></PrivateRoute>} />

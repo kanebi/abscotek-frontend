@@ -12,13 +12,17 @@ import { AppRoutes } from '@/config/routes';
 import AvatarBlock from "@/components/ui/avatar";
 import UserPopover from "@/components/ui/UserPopover";
 import ReferModal from '@/components/ui/ReferModal';
+import {DROPDOWN_MENU_CONTENT_STYLE} from "@/components/constants";
+import MobileSearchModal from "@/components/widgets/MobileSearchModal";
 
 
 export default function Frame() {
     const user = useStore((state) => state.currentUser);
     const connectUserWallet = useStore((state) => state.connectUserWallet);
     const [referModalOpen, setReferModalOpen] = React.useState(false);
+    const [searchOpen, setSearchOpen] = React.useState(false);
     const defaultTopBackground = "rgba(36, 36, 36, 1)";
+    const navigate = useNavigate();
 
     return (
         <header className="overflow-hidden relative w-full md:h-[156px] h-[184px] bg-neutral-900">
@@ -48,7 +52,10 @@ export default function Frame() {
                     >
                         <div className="inline-flex items-center justify-center gap-2 relative flex-[0_0_auto]">
                             <Search className="relative w-5 h-5 text-[#858585]" />
-                            <input type="text" placeholder="Search" style={{ backgroundColor: 'transparent', border: 'none', height: 'inherit', width: 'inherit', outline: 'none' }} className="relative w-fit mt-[-1.00px] font-body-base-base-regular font-[number:var(--body-base-base-regular-font-weight)] text-[#858585] text-[length:var(--body-base-base-regular-font-size)] tracking-[var(--body-base-base-regular-letter-spacing)] leading-[var(--body-base-base-regular-line-height)] whitespace-nowrap [font-style:var(--body-base-base-regular-font-style)]" />
+                            <input
+                            onKeyDown={(e)=>e.key==='Enter' && navigate(`${AppRoutes.search.path}?q=${encodeURIComponent(e.target.value)}`)}
+                           
+                            type="text" placeholder="Search" style={{ backgroundColor: 'transparent', border: 'none', height: 'inherit', width: 'inherit', outline: 'none' }} className="relative w-fit mt-[-1.00px] font-body-base-base-regular font-[number:var(--body-base-base-regular-font-weight)] text-[#858585] text-[length:var(--body-base-base-regular-font-size)] tracking-[var(--body-base-base-regular-letter-spacing)] leading-[var(--body-base-base-regular-line-height)] whitespace-nowrap [font-style:var(--body-base-base-regular-font-style)]" />
                         </div>
                     </div>
                 </div>
@@ -124,6 +131,7 @@ export default function Frame() {
                             style={{ background: `var(--defaulttop-background, ${defaultTopBackground})` }}
                             onMouseOver={e => e.currentTarget.style.background = 'rgba(36,36,36,0.8)'}
                             onMouseOut={e => e.currentTarget.style.background = `var(--defaulttop-background, ${defaultTopBackground})`}
+                            onClick={() => setSearchOpen(true)}
                         >
                             <Search className="relative w-5 h-5 text-[#858585]" />
                         </Button>
@@ -161,6 +169,8 @@ export default function Frame() {
                         </Button>
                     </div>
                 </nav>
+                {/* Mobile Search Modal */}
+                <MobileSearchModal open={searchOpen} onOpenChange={setSearchOpen} />
             </div>
             <Separator className=" sm:block   w-full h-px mt-[15px] left-0 bg-white/10" />
             {/* Navigation Bar */}
@@ -212,7 +222,7 @@ export function NavigationBar() {
                                     <img src="/images/dropdown.svg" alt="Dropdown Icon" className=" absolute right-0" />
                                 </Button>
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent align="start">
+                            <DropdownMenuContent  style={DROPDOWN_MENU_CONTENT_STYLE} className="text-sm text-white border-neutral-600" align="start">
                                 {TodayPrices.map((price) => (
                                     <DropdownMenuItem key={price.value} className=" hover:var(--bg-defaulttop-background)">
                                         <div className="flex items-center gap-2" >

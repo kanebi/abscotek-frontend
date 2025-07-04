@@ -76,5 +76,9 @@ export const AppRoutes = {
     path: '/withdrawal',
     name: 'Withdrawal',
   },
+  search: {
+    path: '/search',
+    name: 'Search',
+  },
   // Add more routes here as needed
 };

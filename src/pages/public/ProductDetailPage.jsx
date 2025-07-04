@@ -1,5 +1,5 @@
 import React from "react";
-import Breadcrumb from "../../components/ui/Breadcrumb";
+import Breadcrumb from "../../components/ui/_Breadcrumb";
 import { Card } from "../../components/ui/card";
 import { Button } from "../../components/ui/button";
 import { Separator } from "../../components/ui/separator";
@@ -40,7 +40,7 @@ export default function ProductDetail({ product }) {
     // Responsive layout: mobile and desktop
     return (
         <Layout>
-            <div className="w-[86%] mx-auto flex flex-col gap-10 py-8">
+            <div className="md:w-[86%] w-[94%]  mx-auto flex flex-col gap-10 py-8">
                 <Breadcrumb items={[
                     { label: "Home", to: "/" },
                     { label: "Products", to: "/products" },
