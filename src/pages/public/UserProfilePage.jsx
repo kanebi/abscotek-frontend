@@ -44,7 +44,7 @@ const UserProfilePage = () => {
       {/* Desktop Layout */}
       <div className="hidden md:block  overflow-hidden ">
           {/* Desktop Banner */}
-          <div className="relative h-[307px] bg-[url(../../assets/images/cover.jpg)] bg-cover bg-[50%_50%]">
+          <div className="relative h-[307px] bg-cover bg-[50%_50%]">
             <img
               className="absolute w-full h-[307px] top-0 left-0 object-cover"
               alt="Background image"

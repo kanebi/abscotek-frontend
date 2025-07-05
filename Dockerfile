@@ -17,7 +17,6 @@ COPY . .
 # Build the application
 RUN bun run build
 
-
 # Stage 2: Serve the application with Caddy
 FROM caddy:2-alpine
 
