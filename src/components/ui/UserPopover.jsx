@@ -4,6 +4,7 @@ import {
   DropdownMenuTrigger,
   DropdownMenuContent,
 } from './dropdown-menu';
+import copy from '../../assets/images/solar_copy-linear.svg';
 
 // Mock user for testing
 const mockUser = {
@@ -32,7 +33,8 @@ export default function UserPopover({ user = mockUser, children }) {
                   <div className="self-stretch inline-flex justify-between items-start">
                     <div className="text-center justify-start text-white text-xl font-semibold font-['Mona_Sans'] leading-normal">{user.address}</div>
                     <div className="w-6 h-6 relative overflow-hidden flex items-center justify-center">
-                      <img src="/images/solar_copy-linear.svg" alt="Copy" className="w-5 h-5" />
+                      <img src={copy} alt="Copy" className="w-5 h-5" />
+
                     </div>
                   </div>
                   <a href={user.profileUrl} className="text-center justify-start text-white text-xs font-normal font-['Mona_Sans'] leading-none hover:underline">Open Profile</a>

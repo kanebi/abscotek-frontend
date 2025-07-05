@@ -1,19 +1,23 @@
-import React from 'react';
-import Layout from '../../components/Layout';
+import React, { useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { AppRoutes } from '../../config/routes';
 
 function OrderDetailsPage() {
-  return (
-    <Layout>
-      <div className="w-[86%] mx-auto py-8">
-        <h1 className="text-3xl font-heading-header-2-header-2-bold text-white">
-          Order Details
-        </h1>
-        <p className="text-neutralneutral-400 mt-4">
-          Order details functionality coming soon...
-        </p>
-      </div>
-    </Layout>
-  );
+  const { id } = useParams();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // Redirect to user profile with order ID as query parameter
+    if (id) {
+      navigate(`${AppRoutes.userProfile.path}?orderId=${id}`, { replace: true });
+    } else {
+      // If no order ID, redirect to user profile
+      navigate(AppRoutes.userProfile.path, { replace: true });
+    }
+  }, [id, navigate]);
+
+  // This component will redirect immediately, so we don't need to render anything
+  return null;
 }
 
 export default OrderDetailsPage; 

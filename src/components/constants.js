@@ -23,6 +23,19 @@ export const DRAWER_CONTENT_STYLE = {
     textAlign:'left',
 }
 
+
+export const SELECT_CONTENT_STYLE = {
+    backgroundColor:'#1F1F21',
+    border:'1px solid #ffffff7d',
+    color:'#ffffff',
+    fontSize:'15px',
+    fontWeight:'400',
+    fontFamily:'Mona_Sans-Regular',
+    letterSpacing:'0',
+    lineHeight:'21.6px',
+    textAlign:'left',
+}
+
 export const PAGINATION_ITEM_STYLE = {
     backgroundColor:'inherit',
     color:'#ffffff',
