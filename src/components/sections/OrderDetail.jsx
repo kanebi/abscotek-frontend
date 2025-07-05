@@ -5,7 +5,7 @@ import {
   BreadcrumbSeparator,
   BreadcrumbList
 
-} from "@/components/ui/breadcrumb";
+} from "@/components/ui/breadcrumb.jsx";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import OrderSummary from "@/components/ui/OrderSummary";
