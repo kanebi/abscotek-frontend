@@ -1,5 +1,5 @@
 import React from "react";
-import Breadcrumb from "../../components/ui/_Breadcrumb";
+import Breadcrumb from "../../components/ui/CustomBreadCrumb";
 import { Card } from "../../components/ui/card";
 import { Button } from "../../components/ui/button";
 import { Separator } from "../../components/ui/separator";
