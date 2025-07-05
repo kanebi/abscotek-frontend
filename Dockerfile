@@ -9,7 +9,7 @@ COPY package.json bun.lock* ./
 
 # Install dependencies using bun
 RUN npm install -g bun
-RUN bun install --frozen-lockfile
+RUN bun install --frozen-lockfile 
 
 # Copy the rest of the application source code
 COPY . .
