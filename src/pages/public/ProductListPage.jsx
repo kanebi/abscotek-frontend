@@ -19,6 +19,8 @@ import Layout from "@/components/Layout";
 import { DROPDOWN_MENU_CONTENT_STYLE } from "../../components/constants";
 import { AppRoutes } from "@/config/routes";
 import { useSearchParams } from "react-router-dom";
+import SEO from "@/components/SEO";
+import { getPageSEO, generateBreadcrumbStructuredData } from "@/config/seo";
 
 export default function Desktop() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -36,8 +38,29 @@ export default function Desktop() {
 
   const [resultCount, setResultCount] = useState(52);
 
+  // SEO configuration
+  const seoTitle = category ? `${category} - Tech Products | Abscotek` : 'Tech Products & Electronics - Abscotek';
+  const seoDescription = category 
+    ? `Browse ${category} products at Abscotek. Find premium tech gadgets, electronics, and accessories with USDT payment options.`
+    : 'Browse our extensive collection of premium tech products including smartphones, laptops, tablets, and accessories. Latest models available with USDT payment.';
+  
+  const seoData = getPageSEO('products', {
+    title: seoTitle,
+    description: seoDescription,
+    keywords: category ? `${category}, tech products, electronics, ${category} products, USDT payment` : undefined,
+    path: category ? `/products?category=${category}` : '/products'
+  });
+
+  const breadcrumbStructuredData = generateBreadcrumbStructuredData(
+    breadcrumbItems.map(item => ({ name: item.label, path: item.href }))
+  );
+
   return (
-    <Layout >
+    <Layout>
+      <SEO 
+        {...seoData}
+        structuredData={breadcrumbStructuredData}
+      />
 
     <div className="relative w-[92%] md:w-[86%] m-auto h-[2600px] md:h-[2000px] bg-[#131314] overflow-y-auto overflow-hidden">
 

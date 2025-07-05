@@ -1,3 +1,20 @@
 # https://www.robotstxt.org/robotstxt.html
 User-agent: *
-Disallow:
+Allow: /
+Disallow: /admin/
+Disallow: /checkout/
+Disallow: /profile/
+Disallow: /orders/
+Disallow: /withdrawal/
+
+# Allow product pages and public content
+Allow: /products/
+Allow: /product/
+Allow: /search/
+Allow: /referral/
+
+# Sitemap location
+Sitemap: https://abscotek.io/sitemap.xml
+
+# Crawl delay (optional)
+Crawl-delay: 1

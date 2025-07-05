@@ -4,10 +4,15 @@ import productService from '../../services/productService';
 import Layout from '../../components/Layout';
 import ProductList from '../../components/ProductList';
 import { Separator } from '../../components/ui/separator';
+import SEO from '../../components/SEO';
+import { getPageSEO, structuredDataTemplates } from '../../config/seo';
 
 function HomePage() {
   const [featuredProducts, setFeaturedProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  // SEO configuration for home page
+  const seoData = getPageSEO('home', { path: '/' });
 
   useEffect(() => {
     // const fetchProducts = async () => {
@@ -26,6 +31,14 @@ function HomePage() {
 
   return (
     <Layout>
+      <SEO 
+        {...seoData}
+        structuredData={[
+          structuredDataTemplates.organization,
+          structuredDataTemplates.website,
+          structuredDataTemplates.ecommerce
+        ]}
+      />
       {/* Hero Section Desktop */}
       <div className="hidden md:block w-full h-96 relative bg-neutral-800 overflow-hidden">
         <img className="w-full h-[906px] left-0 top-[-336px] absolute object-cover" src="/images/desktop-2.jpg" />

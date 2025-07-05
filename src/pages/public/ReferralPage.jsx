@@ -5,6 +5,8 @@ import { Card } from '../../components/ui/card';
 import { Separator } from '../../components/ui/separator';
 import AmountCurrency from '../../components/ui/AmountCurrency';
 import { Share, Copy, Users, DollarSign, Gift, CheckCircle } from 'lucide-react';
+import SEO from '../../components/SEO';
+import { getPageSEO } from '../../config/seo';
 
 function ReferralPage() {
   const [referralCode, setReferralCode] = useState('USER123456');
@@ -34,8 +36,12 @@ function ReferralPage() {
     }
   };
 
+  // SEO configuration
+  const seoData = getPageSEO('referral', { path: '/referral' });
+
   return (
     <Layout>
+      <SEO {...seoData} />
       <div className="w-[86%] mx-auto py-8">
         <div className="max-w-4xl mx-auto">
           {/* Header */}

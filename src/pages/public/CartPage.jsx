@@ -9,6 +9,8 @@ import { DeleteCartItemModal } from '../../components/modals';
 import useStore from '../../store/useStore';
 import { AppRoutes } from '../../config/routes';
 import { Minus, Plus, Trash2 } from 'lucide-react';
+import SEO from '../../components/SEO';
+import { getPageSEO } from '../../config/seo';
 
 function CartPage() {
   const [deleteModal, setDeleteModal] = useState({ isOpen: false, item: null });
@@ -58,9 +60,13 @@ function CartPage() {
     navigate(AppRoutes.checkout.path);
   };
 
+  // SEO configuration
+  const seoData = getPageSEO('cart', { path: '/cart' });
+
   if (cartLoading) {
     return (
       <Layout>
+        <SEO {...seoData} />
         <div className="w-[86%] mx-auto py-8">
           <div className="text-center text-white">Loading cart...</div>
         </div>
@@ -71,6 +77,7 @@ function CartPage() {
   if (!cart || !cart.items || cart.items.length === 0) {
     return (
       <Layout>
+        <SEO {...seoData} />
         <div className="w-[86%] mx-auto py-8">
           <h1 className="md:text-2xl text-xl font-semibold font-heading-header-2-header-2-bold text-white mb-8">Shopping Cart</h1>
           
@@ -94,6 +101,7 @@ function CartPage() {
 
   return (
     <Layout>
+      <SEO {...seoData} />
       <div className="w-[86%] mx-auto py-8">
         <h1 className="md:text-3xl text-xl font-heading-header-2-header-2-bold text-white mb-8">Shopping Cart</h1>
         

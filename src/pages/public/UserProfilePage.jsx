@@ -4,10 +4,16 @@ import ProfileHeader from "@/components/sections/ProfileHeader";
 import UserProfileSection from "@/components/sections/UserProfileSection";
 import bannerImg from "@/assets/images/cover.jpg";
 import avatarImg from "@/assets/images/avatar.png";
+import SEO from "@/components/SEO";
+import { getPageSEO } from "@/config/seo";
 
 const UserProfilePage = () => {
+  // SEO configuration
+  const seoData = getPageSEO('profile', { path: '/profile' });
+
   return (
     <Layout>
+      <SEO {...seoData} />
       {/* Mobile Layout */}
       <div className="md:hidden w-full min-h-screen bg-[#131314] flex flex-col">
         {/* Banner Image */}

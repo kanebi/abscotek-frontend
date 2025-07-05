@@ -14,6 +14,8 @@ import { MobileFilterButton } from "@/components/widgets/ProductFilter";
 import { DROPDOWN_MENU_CONTENT_STYLE } from "@/components/constants";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useState } from "react";
+import SEO from "@/components/SEO";
+import { getPageSEO, generateBreadcrumbStructuredData } from "@/config/seo";
 
 function useQuery() {
   const { search } = useLocation();
@@ -29,8 +31,26 @@ export default function SearchResultsPage() {
   ];
   const [resultCount, setResultCount] = useState(52);
 
+  // SEO configuration
+  const seoData = getPageSEO('search', {
+    title: query ? `Search Results for "${query}" - Abscotek` : 'Search Results - Abscotek',
+    description: query 
+      ? `Search results for "${query}" at Abscotek. Find tech products, electronics, and gadgets matching your search.`
+      : 'Search results at Abscotek. Find the perfect tech products and electronics that match your needs.',
+    keywords: query ? `${query}, search results, tech products, electronics, find products` : undefined,
+    path: query ? `/search?q=${encodeURIComponent(query)}` : '/search'
+  });
+
+  const breadcrumbStructuredData = generateBreadcrumbStructuredData(
+    breadcrumbItems.map(item => ({ name: item.label, path: item.href || '' }))
+  );
+
   return (
     <Layout>
+      <SEO 
+        {...seoData}
+        structuredData={breadcrumbStructuredData}
+      />
       <div className="relative w-[92%] md:w-[86%] m-auto h-[2600px] md:h-[2000px] bg-[#131314] overflow-y-auto overflow-hidden">
         <nav className="absolute top-[10px]  md:top-[29px]">
           <Breadcrumb>

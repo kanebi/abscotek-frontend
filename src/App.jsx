@@ -1,5 +1,6 @@
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { HelmetProvider } from 'react-helmet-async';
 
 // Admin Pages
 import AdminDashboard from './pages/admin/AdminDashboard';
@@ -36,11 +37,12 @@ import './App.css';
 
 function App() {
   return (
-    <Router>
-      {/* <AuthProvider> */}
-        <div className="App">
-          <Toast />
-          <Routes>
+    <HelmetProvider>
+      <Router>
+        {/* <AuthProvider> */}
+          <div className="App">
+            <Toast />
+            <Routes>
             {/* Public Routes */}
             <Route path={AppRoutes.home.path} element={<HomePage />} />
             <Route path={AppRoutes.login.path} element={<LoginPage />} />
@@ -67,7 +69,8 @@ function App() {
           </Routes>
         </div>
       {/* </AuthProvider> */}
-    </Router>
+      </Router>
+    </HelmetProvider>
   );
 }
 

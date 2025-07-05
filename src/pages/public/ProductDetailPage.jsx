@@ -9,6 +9,8 @@ import { Minus, Plus } from "lucide-react";
 import { Select, SelectItem, SelectContent, SelectTrigger, SelectValue } from "../../components/ui/select";
 import Carousel from "../../components/ui/Carousel";
 import ProductList from "../../components/ProductList";
+import SEO from "../../components/SEO";
+import { getPageSEO, generateProductStructuredData, generateBreadcrumbStructuredData } from "../../config/seo";
 
 export default function ProductDetail({ product }) {
     // Example product fallback
@@ -37,9 +39,31 @@ export default function ProductDetail({ product }) {
         ]
     };
 
+    // SEO configuration for product page
+    const breadcrumbs = [
+        { name: "Home", path: "/" },
+        { name: "Products", path: "/products" },
+        { name: p.name, path: `/product/${p.id || 'current'}` }
+    ];
+
+    const seoData = getPageSEO('products', {
+        title: `${p.name} - Abscotek`,
+        description: `${p.name} available at Abscotek. ${p.description || 'Premium tech product with latest features.'} Price: ${p.price} ${p.currency}.`,
+        keywords: `${p.name}, tech product, electronics, smartphone, laptop, ${p.currency} payment`,
+        path: `/product/${p.id || 'current'}`,
+        image: p.images?.[0] || '/android-chrome-512x512.png'
+    });
+
     // Responsive layout: mobile and desktop
     return (
         <Layout>
+            <SEO 
+                {...seoData}
+                structuredData={[
+                    generateProductStructuredData(p),
+                    generateBreadcrumbStructuredData(breadcrumbs)
+                ]}
+            />
             <div className="md:w-[86%] w-[94%]  mx-auto flex flex-col gap-10 py-8">
                 <Breadcrumb items={[
                     { label: "Home", to: "/" },

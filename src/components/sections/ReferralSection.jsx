@@ -146,6 +146,8 @@ const ReferralSection = () => {
       <SuccessModal 
         open={showSuccessModal}
         onOpenChange={setShowSuccessModal}
+        title="Withdrawal Successful!"
+        message="You've successfully withdrawn to your wallet address. Please allow up to 24 hours for processing."
       />
     </>
   );

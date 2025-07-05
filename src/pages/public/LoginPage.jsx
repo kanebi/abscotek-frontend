@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import authService from '../../services/authService';
 import { AppRoutes } from '../../config/routes';
+import SEO from '../../components/SEO';
+import { getPageSEO } from '../../config/seo';
 
 function LoginPage() {
   const [email, setEmail] = useState('');
@@ -21,8 +23,16 @@ function LoginPage() {
     }
   };
 
+  // SEO configuration
+  const seoData = getPageSEO('admin', { 
+    path: '/login',
+    title: 'Admin Login - Abscotek',
+    description: 'Admin login portal for Abscotek platform management.'
+  });
+
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+      <SEO {...seoData} />
       <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
         <h2 className="text-2xl font-bold text-center mb-6">Admin Login</h2>
         <form onSubmit={handleLogin} className="space-y-4">
