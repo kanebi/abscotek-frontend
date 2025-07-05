@@ -8,7 +8,7 @@ import {
   BreadcrumbLink,
   BreadcrumbList,
   BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
+} from "@/components/ui/Breadcrumb";
 import { AppRoutes } from "@/config/routes";
 import { MobileFilterButton } from "@/components/widgets/ProductFilter";
 import { DROPDOWN_MENU_CONTENT_STYLE } from "@/components/constants";
