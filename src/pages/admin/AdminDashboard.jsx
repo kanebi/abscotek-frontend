@@ -92,7 +92,7 @@ function AdminDashboard() {
               const IconComponent = item.icon;
               return (
                 <Link key={index} to={item.path}>
-                  <Card className="p-6 hover:scale-105 transition-transform duration-200 cursor-pointer group">
+                  <Card className="p-6 hover:scale-105 transition-transform duration-200 cursor-pointer group bg-neutralneutral-800 border-neutralneutral-700">
                     <div className="flex flex-col items-center text-center">
                       <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-4 ${item.color} group-hover:scale-110 transition-transform duration-200`}>
                         <IconComponent size={32} className="text-white" />
@@ -111,18 +111,26 @@ function AdminDashboard() {
           </div>
 
           {/* Quick Stats or Actions */}
-          <Card className="p-6 mb-8">
+          <Card className="p-6 mb-8 bg-neutralneutral-800 border-neutralneutral-700">
             <h2 className="text-2xl font-heading-header-2-header-2-bold text-white mb-4">
               Quick Actions
             </h2>
             <div className="flex flex-wrap gap-4">
-              <Button className="bg-primaryp-500 hover:bg-primaryp-400">
+              <Button 
+                className="bg-primaryp-500 hover:bg-primaryp-400 text-white border-0"
+              >
                 View Reports
               </Button>
-              <Button variant="outline" className="border-neutralneutral-600 text-neutralneutral-300">
+              <Button 
+                variant="outline" 
+                className="border-neutralneutral-600 text-neutralneutral-300 hover:bg-neutralneutral-700 hover:text-white"
+              >
                 System Settings
               </Button>
-              <Button variant="outline" className="border-neutralneutral-600 text-neutralneutral-300">
+              <Button 
+                variant="outline" 
+                className="border-neutralneutral-600 text-neutralneutral-300 hover:bg-neutralneutral-700 hover:text-white"
+              >
                 Backup Data
               </Button>
             </div>
@@ -132,7 +140,7 @@ function AdminDashboard() {
           <div className="text-center">
             <Button
               onClick={handleLogout}
-              className="bg-dangerd-500 hover:bg-dangerd-400 text-white px-8 py-3"
+              className="bg-dangerd-500 hover:bg-dangerd-400 text-white px-8 py-3 border-0"
             >
               <LogOut size={20} className="mr-2" />
               Logout

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '../../components/Layout';
 import { 
@@ -10,6 +10,7 @@ import {
 } from '../../components/checkout';
 import useStore from '../../store/useStore';
 import { AppRoutes } from '../../config/routes';
+import orderService from '../../services/orderService';
 
 function CheckoutPage() {
   const navigate = useNavigate();
@@ -22,14 +23,14 @@ function CheckoutPage() {
   const [selectedDeliveryMethod, setSelectedDeliveryMethod] = useState(null);
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
   const [orderedSuccess, setOrderedSuccess] = useState(false);
-  const { cart, clearCart } = useStore();
+  const { cart, clearCart, token, getCartTotal } = useStore();
 
   // Redirect if cart is empty
-  React.useEffect(() => {
+  useEffect(() => {
     if (!cart || !cart.items || cart.items.length === 0 && !orderedSuccess) {
       navigate(AppRoutes.cart.path);
     }
-  }, [cart, navigate]);
+  }, [cart, navigate, orderedSuccess]);
 
   const handleSaveAddress = (addressData) => {
     const newAddress = {
@@ -98,32 +99,28 @@ function CheckoutPage() {
         throw new Error('Please select a delivery method');
       }
 
-      // Generate unique order ID
-      const orderId = 'ORD' + Date.now();
-      
-      // Prepare order data
+      const productsForOrder = cart.items.map(item => ({
+        productId: item.product._id,
+        quantity: item.quantity,
+      }));
+
       const orderData = {
-        orderId,
-        address: selectedAddress,
-        deliveryMethod: selectedDeliveryMethod,
-        items: cart.items,
-        timestamp: new Date().toISOString()
+        products: productsForOrder,
+        totalAmount: getCartTotal(),
+        // You might want to include selectedAddress and selectedDeliveryMethod here
+        // depending on how your backend handles them.
+        // For now, assuming backend handles address and delivery method based on user session or other means.
       };
 
-      // Simulate API call for order placement
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      const response = await orderService.createOrder(token, orderData);
       
-      // TODO: Send order data to backend API
-      console.log('Order placed:', orderData);
-      
-      // Clear cart and navigate to success page
       setOrderedSuccess(true);
       clearCart();
-      navigate(AppRoutes.orderSuccess.path.replace(':orderId?', orderId));
+      navigate(AppRoutes.orderSuccess.path.replace(':orderId?', response._id));
           } catch (error) {
         console.error('Error placing order:', error);
         // Show user-friendly error message
-        const errorMessage = error.message || 'Failed to place order. Please try again.';
+        const errorMessage = error.response?.data?.msg || error.message || 'Failed to place order. Please try again.';
         alert(errorMessage);
       } finally {
         setIsPlacingOrder(false);

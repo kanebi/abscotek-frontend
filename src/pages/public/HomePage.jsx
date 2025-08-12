@@ -8,25 +8,51 @@ import SEO from '../../components/SEO';
 import { getPageSEO, structuredDataTemplates } from '../../config/seo';
 
 function HomePage() {
-  const [featuredProducts, setFeaturedProducts] = useState([]);
+  const [topCategoryProducts, setTopCategoryProducts] = useState([]);
+  const [newArrivals, setNewArrivals] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   // SEO configuration for home page
   const seoData = getPageSEO('home', { path: '/' });
 
   useEffect(() => {
-    // const fetchProducts = async () => {
-    //   try {
-    //     const products = await productService.getAllProducts();
-    //     setFeaturedProducts(products.slice(0, 8));
-    //   } catch (error) {
-    //     // Error handled by notification system
-    //   } finally {
-    //     setLoading(false);
-    //   }
-    // };
+    const fetchSections = async () => {
+      try {
+        setLoading(true);
+        // Popular/top products
+        const popular = await productService.getProducts({ limit: 8, sort: 'popularity' });
+        const popularItems = (Array.isArray(popular) ? popular : popular.items || []).map(p => ({
+          image: p.images?.[0] || p.image,
+          name: p.name,
+          price: `${p.price} ${p.currency || 'USDT'}`,
+          badge: p.badge || undefined,
+          outOfStock: !!p.outOfStock,
+          _id:p._id
+        }));
+        setTopCategoryProducts(popularItems);
 
-    // fetchProducts();
+        // New arrivals
+        const newest = await productService.getProducts({ limit: 4, sort: 'newest' });
+        const newestItems = (Array.isArray(newest) ? newest : newest.items || []).map(p => ({
+          image: p.images?.[0] || p.image,
+          name: p.name,
+          price: `${p.price} ${p.currency || 'USDT'}`,
+          badge: p.badge || undefined,
+          outOfStock: !!p.outOfStock,
+          _id:p._id
+
+        }));
+        setNewArrivals(newestItems);
+      } catch (err) {
+        console.error('Failed to load home products', err);
+        setError(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSections();
   }, []);
 
   return (
@@ -62,67 +88,19 @@ function HomePage() {
           <div className="self-stretch justify-start text-white text-[10px] font-normal   leading-[15px]">Discover top gadgets, smartphones, and laptops designed to fit your lifestyle.</div>
         </div>
       </div>
-      {/* Product List Example (replace with real data) */}
+
+      {/* Sections from backend */}
       <ProductList
         title="Top Categories"
-        products={[
-          {
-            image: 'https://placehold.co/538x303',
-            name: 'New Apple iPhone 16 Plus ESIM 128GB',
-            price: '450.36 USDT',
-            badge: 'ESim',
-          },
-          {
-            image: 'https://placehold.co/480x320',
-            name: 'New Apple iPhone 16 Plus ESIM 128GB',
-            price: '450.36 USDT',
-            badge: 'Preowned',
-          },
-          {
-            image: 'https://placehold.co/480x320',
-            name: 'New Apple iPhone 16 Plus ESIM 128GB',
-            price: '450.36 USDT',
-            outOfStock: true,
-          },
-          {
-            image: 'https://placehold.co/465x310',
-            name: 'New Apple iPhone 16 Plus ESIM 128GB',
-            price: '450.36 USDT',
-          },
-        ]}
+        products={loading || error ? [] : topCategoryProducts}
       />
 
       <Separator className="  w-[86%] mx-auto h-px top-[83px] left-0 bg-white/10" />
 
-
       {/* New Arrivals Section */}
       <ProductList
         title="New Arrivals"
-        products={[
-          {
-            image: 'https://placehold.co/540x320',
-            name: 'Samsung Galaxy S24 Ultra 256GB',
-            price: '999.99 USDT',
-            badge: 'New',
-          },
-          {
-            image: 'https://placehold.co/500x300',
-            name: 'Dell XPS 13 Laptop 2024',
-            price: '1200.00 USDT',
-            badge: 'Laptop',
-          },
-          {
-            image: 'https://placehold.co/480x320',
-            name: 'Sony WH-1000XM5 Headphones',
-            price: '299.99 USDT',
-          },
-          {
-            image: 'https://placehold.co/465x310',
-            name: 'Apple Watch Series 9',
-            price: '399.00 USDT',
-            badge: 'Wearable',
-          },
-        ]}
+        products={loading || error ? [] : newArrivals}
       />
       {/* Add more <ProductList title="..." products={...} /> as needed */}
     </Layout>

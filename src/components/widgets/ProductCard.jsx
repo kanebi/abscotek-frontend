@@ -3,13 +3,18 @@ import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import AmountCurrency from "@/components/ui/AmountCurrency";
 import { useNavigate } from "react-router-dom";
 
-// Props: { image, name, price, badge, outOfStock }
+// Props: { image, name, price, badge, outOfStock, _id }
 export default function ProductCard({ image, name, price, badge, outOfStock, _id }) {
-    const navigate = useNavigate()
+    const navigate = useNavigate();
+
+    const handleNavigate = () => {
+      if (!_id) return;
+      navigate(`/product/${_id}`);
+    };
   return (
     <>
       {/* Mobile: 2-column grid, compact card, improved image and spacing */}
-      <div onClick={navigate('/product/'+_id)} className="cursor-pointer  md:hidden w-full flex flex-col gap-3 mb-6">
+      <div onClick={handleNavigate} className="cursor-pointer  md:hidden w-full flex flex-col gap-3 mb-6">
         <div className="w-full h-44 relative bg-white rounded-[10.10px] overflow-hidden">
           <img
             className="absolute left-0 top-0 w-full h-full object-cover object-center"
@@ -42,7 +47,7 @@ export default function ProductCard({ image, name, price, badge, outOfStock, _id
         </div>
       </div>
       {/* Desktop: original card */}
-      <Card onClick={navigate('/product/'+ _id)} className=" cursor-pointer hidden md:flex w-64 flex-col gap-6 border-none rounded-2xl overflow-hidden bg-transparent">
+      <Card onClick={handleNavigate} className=" cursor-pointer hidden md:flex w-64 flex-col gap-6 border-none rounded-2xl overflow-hidden bg-transparent">
         <div className="relative h-56 bg-white rounded-2xl overflow-hidden">
           <img
             className="absolute left-0 top-0 w-full h-full object-cover"

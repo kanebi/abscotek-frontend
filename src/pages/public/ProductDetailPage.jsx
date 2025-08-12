@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
+import { useParams } from 'react-router-dom';
 import Breadcrumb from "../../components/ui/CustomBreadCrumb";
 import { Card } from "../../components/ui/card";
 import { Button } from "../../components/ui/button";
@@ -11,48 +12,69 @@ import Carousel from "../../components/ui/Carousel";
 import ProductList from "../../components/ProductList";
 import SEO from "../../components/SEO";
 import { getPageSEO, generateProductStructuredData, generateBreadcrumbStructuredData } from "../../config/seo";
+import productService from "../../services/productService";
 
-export default function ProductDetail({ product }) {
-    // Example product fallback
-    const p = product || {
-        name: "New Apple iPhone 16 Plus ESIM 128GB",
-        price: 450.36,
-        currency: "USDT",
-        badge: "ESim",
-        outOfStock: true,
-        images: [
-            "https://placehold.co/915x515",
-            "https://placehold.co/185x104",
-            "https://placehold.co/185x104",
-            "https://placehold.co/185x104",
-            "https://placehold.co/185x104"
-        ],
-        description: "Apple iPhone 15 Pro Specifications",
-        specs: [
-            { label: "SIM:", value: "Dual-SIM and eSIM" },
-            { label: "NETWORK:", value: "GSM / CDMA / HSPA / EVDO / LTE / 5G" },
-            { label: "OPERATING SYSTEM:", value: "iOS 17" },
-            { label: "CHIP SET:", value: "Apple A17 Pro (3 nm)" },
-            { label: "CPU:", value: "Hexa-core (2x3.78 GHz + 4x2.11 GHz)" },
-            { label: "MEMORY:", value: "8GB, 512GB" },
-            { label: "DISPLAY:", value: "6.1 inches, 91.3 cm2 (~88.2% screen-to-body ratio) 1179 x 2556 pixels, 19.5:9 ratio (~461 ppi density)" }
-        ]
-    };
+export default function ProductDetail() {
+    const { id } = useParams();
+    const [product, setProduct] = useState(null);
+    const [relatedProducts, setRelatedProducts] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+
+    useEffect(() => {
+        const fetchProduct = async () => {
+            try {
+                setLoading(true);
+                const data = await productService.getProduct(id);
+                setProduct(data);
+                // Fetch related products in parallel
+                try {
+                    const related = await productService.getRelatedProducts(id, 8);
+                    setRelatedProducts(Array.isArray(related) ? related : []);
+                } catch (e) {
+                    console.warn('Failed to fetch related products', e);
+                    setRelatedProducts([]);
+                }
+            } catch (err) {
+                setError(err);
+                console.error("Failed to fetch product:", err);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchProduct();
+    }, [id]);
+
+    if (loading) return <Layout><div>Loading product...</div></Layout>;
+    if (error) return <Layout><div>Error: {error.message}</div></Layout>;
+    if (!product) return <Layout><div>Product not found.</div></Layout>;
+
+    // Use fetched product data
+    const p = product;
 
     // SEO configuration for product page
     const breadcrumbs = [
         { name: "Home", path: "/" },
         { name: "Products", path: "/products" },
-        { name: p.name, path: `/product/${p.id || 'current'}` }
+        { name: p.name, path: `/product/${p._id}` }
     ];
 
     const seoData = getPageSEO('products', {
         title: `${p.name} - Abscotek`,
         description: `${p.name} available at Abscotek. ${p.description || 'Premium tech product with latest features.'} Price: ${p.price} ${p.currency}.`,
         keywords: `${p.name}, tech product, electronics, smartphone, laptop, ${p.currency} payment`,
-        path: `/product/${p.id || 'current'}`,
+        path: `/product/${p._id}`,
         image: p.images?.[0] || '/android-chrome-512x512.png'
     });
+
+    // Helper: map products to ProductList expected props
+    const mapToListItems = (items) => (items || []).map(item => ({
+        image: item.images?.[0] || item.image,
+        name: item.name,
+        price: item.price,
+        currency: item.currency || 'USDT',
+    }));
 
     // Responsive layout: mobile and desktop
     return (
@@ -82,34 +104,32 @@ export default function ProductDetail({ product }) {
                     <div className="self-stretch flex flex-col justify-start items-start gap-6">
                         <div className="self-stretch flex flex-col justify-center items-start gap-6">
                             <div className="self-stretch flex flex-col gap-4">
-                                <div className="self-stretch flex flex-col gap-2">
-                                    <div className="text-gray-200 text-2xl font-medium font-sans leading-loose">{p.name}</div>
-                                    <div className="text-white text-xl font-semibold font-sans leading-relaxed"><AmountCurrency amount={p.price} fromCurrency={p.currency} /></div>
+                                <div className="text-gray-200 text-2xl font-medium font-sans leading-loose">{p.name}</div>
+                                <div className="text-white text-xl font-semibold font-sans leading-relaxed"><AmountCurrency amount={p.price} fromCurrency={p.currency} /></div>
+                            </div>
+                            <div className="flex flex-col gap-6">
+                                {/* Color selector as shadcn/ui select */}
+                                <div className="w-full max-w-xs rounded-lg flex flex-col gap-2">
+                                    <div className="text-gray-200 text-base font-medium font-sans leading-normal">Color</div>
+                                    <Select>
+                                        <SelectTrigger className="w-full px-3.5 py-3 rounded-lg outline outline-1 outline-offset-[-1px] outline-neutral-700 flex items-center gap-2 border-none text-base font-sans">
+                                            <SelectValue defaultValue={'Grey'} placeholder="Select Color" />
+                                        </SelectTrigger>
+                                        <SelectContent className="rounded-lg mt-1">
+                                            <SelectItem value="Grey" className="text-gray-400 text-base font-normal px-4 py-2 cursor-pointer">Grey</SelectItem>
+                                            <SelectItem value="Black" className="text-gray-400 text-base font-normal px-4 py-2 cursor-pointer">Black</SelectItem>
+                                            <SelectItem value="Blue" className="text-gray-400 text-base font-normal px-4 py-2 cursor-pointer">Blue</SelectItem>
+                                        </SelectContent>
+                                    </Select>
                                 </div>
-                                <div className="flex flex-col gap-6">
-                                    {/* Color selector as shadcn/ui select */}
-                                    <div className="w-full max-w-xs rounded-lg flex flex-col gap-2">
-                                        <div className="text-gray-200 text-base font-medium font-sans leading-normal">Color</div>
-                                        <Select>
-                                            <SelectTrigger className="w-full px-3.5 py-3 rounded-lg outline outline-1 outline-offset-[-1px] outline-neutral-700 flex items-center gap-2 border-none text-base font-sans">
-                                                <SelectValue defaultValue={'Grey'} placeholder="Select Color" />
-                                            </SelectTrigger>
-                                            <SelectContent className="rounded-lg mt-1">
-                                                <SelectItem value="Grey" className="text-gray-400 text-base font-normal px-4 py-2 cursor-pointer">Grey</SelectItem>
-                                                <SelectItem value="Black" className="text-gray-400 text-base font-normal px-4 py-2 cursor-pointer">Black</SelectItem>
-                                                <SelectItem value="Blue" className="text-gray-400 text-base font-normal px-4 py-2 cursor-pointer">Blue</SelectItem>
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-                                    {/* Quantity selector */}
-                                    <div className="w-36 flex flex-col gap-2">
-                                        <div className="text-white text-sm font-medium font-sans leading-tight">Quantity</div>
-                                        <div className="p-3 outline outline-1 outline-gray-200 flex flex-col items-center rounded-lg">
-                                            <div className="flex items-end gap-9">
-                                                <button className="w-6 h-6 flex items-center justify-center"><Minus color="#f1f1f1" /></button>
-                                                <span className="text-white text-base font-medium font-sans">1</span>
-                                                <button className="w-6 h-6 flex items-center justify-center"><Plus color="#f1f1f1" /></button>
-                                            </div>
+                                {/* Quantity selector */}
+                                <div className="w-36 flex flex-col gap-2">
+                                    <div className="text-white text-sm font-medium font-sans leading-tight">Quantity</div>
+                                    <div className="p-3 outline outline-1 outline-gray-200 flex flex-col items-center rounded-lg">
+                                        <div className="flex items-end gap-9">
+                                            <button className="w-6 h-6 flex items-center justify-center"><Minus color="#f1f1f1" /></button>
+                                            <span className="text-white text-base font-medium font-sans">1</span>
+                                            <button className="w-6 h-6 flex items-center justify-center"><Plus color="#f1f1f1" /></button>
                                         </div>
                                     </div>
                                 </div>
@@ -137,12 +157,7 @@ export default function ProductDetail({ product }) {
                     </div>
                     {/* You may also like - use ProductList widget */}
                     <div className="w-full">
-                        <ProductList width={'w-full'} title="You may also like" products={Array(4).fill({
-                            image: p.images[0],
-                            name: p.name,
-                            price: p.price,
-                            currency: p.currency
-                        })} />
+                        <ProductList width={'w-full'} title="You may also like" products={mapToListItems(relatedProducts)} />
                     </div>
                 </div>
                 {/* Desktop layout (unchanged) */}
@@ -227,12 +242,7 @@ export default function ProductDetail({ product }) {
                         </div>
                     </div>
                     {/* You may also like */}
-                    <ProductList width={'full'} title="You may also like" products={Array(4).fill({
-                        image: p.images[0],
-                        name: p.name,
-                        price: p.price,
-                        currency: p.currency
-                    })} />
+                    <ProductList width={'full'} title="You may also like" products={mapToListItems(relatedProducts)} />
                 </div>
             </div>
         </Layout>

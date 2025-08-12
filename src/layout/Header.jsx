@@ -4,7 +4,8 @@ import { Search } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import React from "react";
 import useStore from "@/store/useStore";
-import { ChevronDown, TrendingUp } from "lucide-react"
+import WalletConnectButton from "@/components/widgets/WalletConnectButton";
+
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import SliderCart from "@/components/ui/SliderCart";
 import { useNavigate } from 'react-router-dom';
@@ -18,7 +19,7 @@ import MobileSearchModal from "@/components/widgets/MobileSearchModal";
 
 export default function Frame() {
     const user = useStore((state) => state.currentUser);
-    const connectUserWallet = useStore((state) => state.connectUserWallet);
+
     const [referModalOpen, setReferModalOpen] = React.useState(false);
     const [searchOpen, setSearchOpen] = React.useState(false);
     const defaultTopBackground = "rgba(36, 36, 36, 1)";
@@ -89,14 +90,7 @@ export default function Frame() {
                                 </div>
                             </UserPopover>
                         ) : (
-                            <Button
-                                className="inline-flex items-center justify-center gap-2.5 px-7 py-[13px] relative flex-[0_0_auto] bg-primaryp-300 rounded-xl h-auto transition-colors hover:bg-primaryp-300/90"
-                                onClick={connectUserWallet}
-                            >
-                                    <div className="relative w-fit mt-[-1.00px] font-body-base-base-medium font-[number:var(--body-base-base-medium-font-weight)] text-white text-[length:var(--body-base-base-medium-font-size)] tracking-[var(--body-base-base-medium-letter-spacing)] leading-[var(--body-base-base-medium-line-height)] whitespace-nowrap [font-style:var(--body-base-base-medium-font-style)]">
-                                        Connect Wallet
-                                    </div>
-                                </Button>
+                            <WalletConnectButton />
                             )}
                         <SliderCart />
 
@@ -142,14 +136,7 @@ export default function Frame() {
                                 </div>
                             </UserPopover>
                         ) : (
-                            <Button
-                                className="inline-flex items-center justify-center gap-2.5 px-7 py-[13px] relative flex-[0_0_auto] bg-primaryp-300 rounded-xl h-auto transition-colors hover:bg-primaryp-300/90"
-                                onClick={connectUserWallet}
-                            >
-                                <div className="relative w-fit mt-[-1.00px] font-body-base-base-medium font-[number:var(--body-base-base-medium-font-weight)] text-white text-[length:var(--body-base-base-medium-font-size)] tracking-[var(--body-base-base-medium-letter-spacing)] leading-[var(--body-base-base-medium-line-height)] whitespace-nowrap [font-style:var(--body-base-base-medium-font-style)]">
-                                    Connect Wallet
-                                </div>
-                            </Button>
+                            <WalletConnectButton />
                         )}
 
                         <SliderCart />

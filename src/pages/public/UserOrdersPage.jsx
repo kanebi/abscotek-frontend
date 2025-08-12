@@ -8,16 +8,20 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import AmountCurrency from '../../components/ui/AmountCurrency';
 import { AppRoutes } from '../../config/routes';
 import { Package, Eye } from 'lucide-react';
+import useStore from '../../store/useStore';
 
 function UserOrdersPage() {
   const [orders, setOrders] = useState([]);
   const [filteredOrders, setFilteredOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState('all');
+  const { token } = useStore();
 
   useEffect(() => {
-    fetchOrders();
-  }, []);
+    if (token) {
+      fetchOrders();
+    }
+  }, [token]);
 
   useEffect(() => {
     filterOrders();
@@ -25,7 +29,8 @@ function UserOrdersPage() {
 
   const fetchOrders = async () => {
     try {
-      const userOrders = await orderService.getUserOrders();
+      setLoading(true);
+      const userOrders = await orderService.getOrders(token);
       setOrders(userOrders);
     } catch (error) {
       console.error('Error fetching orders:', error);
@@ -38,18 +43,20 @@ function UserOrdersPage() {
     if (statusFilter === 'all') {
       setFilteredOrders(orders);
     } else {
-      setFilteredOrders(orders.filter(order => order.status === statusFilter));
+      setFilteredOrders(orders.filter(order => 
+        order.orderStatus === statusFilter || order.blockchainStatus?.toLowerCase() === statusFilter.toLowerCase()
+      ));
     }
   };
 
   const getStatusColor = (status) => {
-    switch (status) {
-      case 'pending':
-        return 'text-warningw-400 bg-warningw-100/10';
-      case 'processing':
-        return 'text-infoi-400 bg-infoi-100/10';
+    switch (status?.toLowerCase()) {
+      case 'created':
+        return 'text-blue-400 bg-blue-100/10';
+      case 'paid':
+        return 'text-green-400 bg-green-100/10';
       case 'shipped':
-        return 'text-secondarys-400 bg-secondarys-100/10';
+        return 'text-yellow-400 bg-yellow-100/10';
       case 'delivered':
         return 'text-successs-400 bg-successs-100/10';
       case 'cancelled':
@@ -59,8 +66,11 @@ function UserOrdersPage() {
     }
   };
 
-  const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
+  const formatDate = (timestamp) => {
+    if (!timestamp) return 'N/A';
+    // Check if timestamp is a number (blockchain timestamp) or string (MongoDB date)
+    const date = typeof timestamp === 'number' ? new Date(timestamp * 1000) : new Date(timestamp);
+    return date.toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric'
@@ -92,8 +102,8 @@ function UserOrdersPage() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Orders</SelectItem>
-                <SelectItem value="pending">Pending</SelectItem>
-                <SelectItem value="processing">Processing</SelectItem>
+                <SelectItem value="created">Created</SelectItem>
+                <SelectItem value="paid">Paid</SelectItem>
                 <SelectItem value="shipped">Shipped</SelectItem>
                 <SelectItem value="delivered">Delivered</SelectItem>
                 <SelectItem value="cancelled">Cancelled</SelectItem>
@@ -131,8 +141,8 @@ function UserOrdersPage() {
                       <h3 className="text-lg font-body-large-large-bold text-white">
                         Order #{order._id.slice(-8).toUpperCase()}
                       </h3>
-                      <span className={`px-3 py-1 rounded-full text-xs font-body-xsmall-xsmall-bold uppercase ${getStatusColor(order.status)}`}>
-                        {order.status}
+                      <span className={`px-3 py-1 rounded-full text-xs font-body-xsmall-xsmall-bold uppercase ${getStatusColor(order.blockchainStatus || order.orderStatus)}`}>
+                        {order.blockchainStatus || order.orderStatus}
                       </span>
                     </div>
                     
@@ -143,32 +153,46 @@ function UserOrdersPage() {
                       </div>
                       <div>
                         <span className="text-neutralneutral-500">Items:</span>
-                        <span className="ml-2">{order.items?.length || 0} item(s)</span>
+                        <span className="ml-2">{order.products?.length || 0} item(s)</span>
                       </div>
                       <div>
                         <span className="text-neutralneutral-500">Total:</span>
                         <span className="ml-2 text-primaryp-400 font-body-base-base-bold">
-                          <AmountCurrency amount={order.total} fromCurrency="USDT" />
+                          <AmountCurrency amount={order.totalAmount} fromCurrency="USDT" />
                         </span>
                       </div>
-                      <div>
-                        <span className="text-neutralneutral-500">Delivery:</span>
-                        <span className="ml-2">{order.deliveryMethod || 'Standard'}</span>
-                      </div>
+                      {order.blockchainStatus && (
+                        <div>
+                          <span className="text-neutralneutral-500">Blockchain Status:</span>
+                          <span className="ml-2">{order.blockchainStatus}</span>
+                        </div>
+                      )}
+                      {order.blockchainCreatedAt && (
+                        <div>
+                          <span className="text-neutralneutral-500">Blockchain Created:</span>
+                          <span className="ml-2">{formatDate(order.blockchainCreatedAt)}</span>
+                        </div>
+                      )}
+                      {order.blockchainPaidAt && (
+                        <div>
+                          <span className="text-neutralneutral-500">Blockchain Paid:</span>
+                          <span className="ml-2">{formatDate(order.blockchainPaidAt)}</span>
+                        </div>
+                      )}
                     </div>
 
                     {/* Order Items Preview */}
-                    {order.items && order.items.length > 0 && (
+                    {order.products && order.products.length > 0 && (
                       <div className="mt-4">
                         <div className="flex flex-wrap gap-2">
-                          {order.items.slice(0, 3).map((item, index) => (
+                          {order.products.slice(0, 3).map((item, index) => (
                             <span key={index} className="text-xs bg-neutralneutral-800 px-2 py-1 rounded text-neutralneutral-300">
-                              {item.name} x{item.quantity}
+                              {item.product?.name} x{item.quantity}
                             </span>
                           ))}
-                          {order.items.length > 3 && (
+                          {order.products.length > 3 && (
                             <span className="text-xs text-neutralneutral-500">
-                              +{order.items.length - 3} more
+                              +{order.products.length - 3} more
                             </span>
                           )}
                         </div>
@@ -185,13 +209,13 @@ function UserOrdersPage() {
                       </Button>
                     </Link>
                     
-                    {order.status === 'delivered' && (
+                    {order.blockchainStatus?.toLowerCase() === 'delivered' && (
                       <Button className="w-full bg-primaryp-500 hover:bg-primaryp-400">
                         Reorder
                       </Button>
                     )}
                     
-                    {['pending', 'processing'].includes(order.status) && (
+                    {['created', 'paid'].includes(order.blockchainStatus?.toLowerCase() || order.orderStatus?.toLowerCase()) && (
                       <Button variant="outline" className="w-full border-dangerd-400 text-dangerd-400 hover:bg-dangerd-400/10">
                         Cancel Order
                       </Button>

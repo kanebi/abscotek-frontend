@@ -1,0 +1,21 @@
+appkit-connect-button button{
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.625rem; /* 2.5 * 0.25rem */
+    padding-left: 1.75rem; /* 7 * 0.25rem */
+    padding-right: 1.75rem;
+    padding-top: 13px;
+    padding-bottom: 13px;
+    position: relative;
+    flex: 0 0 auto;
+    background-color: var(--primaryp-300)!important;
+    border-radius: 0.75rem!important; /* xl = 12px, but Tailwind uses 0.75rem */
+    height: auto;
+    transition-property: background-color;
+    transition-duration: 150ms;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+.wui-connect-button:hover {
+    background-color: rgba(var(--primaryp-300-rgb), 0.9); /* fallback if using rgb var, else use filter or custom var */
+}

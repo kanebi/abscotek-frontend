@@ -4,12 +4,20 @@ export const AppRoutes = {
     name: 'Home',
   },
   login: {
-    path: '/login',
+    path: '/admin/login',
     name: 'Login',
+  },
+  signup: {
+    path: '/admin/signup',
+    name: 'Sign Up',
   },
   admin: {
     path: '/admin',
     name: 'Admin Dashboard',
+  },
+  vendor: {
+    path: '/vendor',
+    name: 'Vendor Dashboard',
   },
   adminUsers: {
     path: '/admin/users',
@@ -75,6 +83,10 @@ export const AppRoutes = {
   withdrawal: {
     path: '/withdrawal',
     name: 'Withdrawal',
+  },
+  wishlist: {
+    path: '/wishlist',
+    name: 'Wishlist',
   },
   search: {
     path: '/search',

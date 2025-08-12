@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Layout from '../../components/Layout';
 import { Button } from '../../components/ui/button';
@@ -21,12 +21,20 @@ function CartPage() {
     cart, 
     cartLoading, 
     cartUpdating, 
-    userCurrency,
+    token,
+    fetchCart,
+    addToCart,
     updateCartQuantity,
     removeFromCart,
     getCartTotal,
     getCartItemCount
   } = useStore();
+
+  useEffect(() => {
+    if (token) {
+      fetchCart();
+    }
+  }, [token, fetchCart]);
 
   const handleUpdateQuantity = (productId, newQuantity) => {
     updateCartQuantity(productId, newQuantity);
@@ -41,9 +49,7 @@ function CartPage() {
     
     setIsDeleting(true);
     try {
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 500));
-      removeFromCart(deleteModal.item.productId);
+      await removeFromCart(deleteModal.item.product._id);
       setDeleteModal({ isOpen: false, item: null });
     } catch (error) {
       console.error('Error removing item:', error);
@@ -110,14 +116,14 @@ function CartPage() {
           {/* Cart Items - Mobile */}
           <div className="space-y-4 mb-6">
             {cart.items.map((item, index) => (
-              <div key={item.productId}>
+              <div key={item.product._id}>
                 <div className="flex items-start py-4 relative">
                   {/* Product Image */}
                   <div className="w-[90px] h-[90px] bg-neutralneutral-800 rounded-lg flex-shrink-0 mr-4">
-                    {item.image && (
+                    {item.product.image && (
                       <img 
-                        src={item.image} 
-                        alt={item.name}
+                        src={item.product.image} 
+                        alt={item.product.name}
                         className="w-full h-full object-cover rounded-lg"
                       />
                     )}
@@ -125,15 +131,15 @@ function CartPage() {
                   
                   {/* Product Info */}
                   <div className="flex-1 pr-10">
-                    <h3 className="text-white font-medium text-base mb-2">{item.name}</h3>
+                    <h3 className="text-white font-medium text-base mb-2">{item.product.name}</h3>
                     <div className="text-white text-lg font-semibold mb-3">
-                      <AmountCurrency amount={item.price} fromCurrency={userCurrency} />
+                      <AmountCurrency amount={item.product.price} fromCurrency="USDT" />
                     </div>
                     
                     {/* Quantity Controls */}
                     <div className="flex items-center gap-0 border border-[#38383a] rounded-lg w-fit">
                       <button
-                        onClick={() => handleUpdateQuantity(item.productId, item.quantity - 1)}
+                        onClick={() => handleUpdateQuantity(item.product._id, item.quantity - 1)}
                         disabled={cartUpdating || item.quantity <= 1}
                         className="w-8 h-8 flex items-center justify-center hover:bg-neutralneutral-700 disabled:opacity-50 rounded-l-lg"
                       >
@@ -143,7 +149,7 @@ function CartPage() {
                         {item.quantity}
                       </span>
                       <button
-                        onClick={() => handleUpdateQuantity(item.productId, item.quantity + 1)}
+                        onClick={() => handleUpdateQuantity(item.product._id, item.quantity + 1)}
                         disabled={cartUpdating}
                         className="w-8 h-8 flex items-center justify-center hover:bg-neutralneutral-700 disabled:opacity-50 rounded-r-lg"
                       >
@@ -175,13 +181,13 @@ function CartPage() {
                 <div className="flex justify-between text-white">
                   <span>Subtotal</span>
                   <span className="text-sm">
-                    <AmountCurrency amount={getCartTotal()} fromCurrency={userCurrency} />
+                    <AmountCurrency amount={getCartTotal()} fromCurrency="USDT" />
                   </span>
                 </div>
                 <div className="flex justify-between text-white text-lg">
                   <span>Order Total</span>
                   <span className="font-semibold">
-                    <AmountCurrency amount={getCartTotal()} fromCurrency={userCurrency} />
+                    <AmountCurrency amount={getCartTotal()} fromCurrency="USDT" />
                   </span>
                 </div>
               </div>
@@ -202,14 +208,14 @@ function CartPage() {
           {/* Cart Items */}
           <div className="lg:col-span-2 rounded-lg p-6" style={{ backgroundColor: '#1F1F21' }}>
             {cart.items.map((item, index) => (
-              <div key={item.productId}>
+              <div key={item.product._id}>
                 <div className="flex items-center py-6">
                   {/* Product Image */}
                   <div className="w-20 h-20 bg-neutralneutral-800 rounded-lg flex-shrink-0 mr-4">
-                    {item.image && (
+                    {item.product.image && (
                       <img 
-                        src={item.image} 
-                        alt={item.name}
+                        src={item.product.image} 
+                        alt={item.product.name}
                         className="w-full h-full object-cover rounded-lg"
                       />
                     )}
@@ -217,12 +223,12 @@ function CartPage() {
                   
                   {/* Product Info */}
                   <div className="flex-1">
-                    <h3 className="text-white font-medium text-base mb-3">{item.name}</h3>
+                    <h3 className="text-white font-medium text-base mb-3">{item.product.name}</h3>
                     
                     {/* Quantity Controls */}
                     <div className="flex items-center gap-0 border border-[#38383a] rounded-lg w-fit">
                       <button
-                        onClick={() => handleUpdateQuantity(item.productId, item.quantity - 1)}
+                        onClick={() => handleUpdateQuantity(item.product._id, item.quantity - 1)}
                         disabled={cartUpdating || item.quantity <= 1}
                         className="w-10 h-10 flex items-center justify-center hover:bg-neutralneutral-700 disabled:opacity-50 rounded-l-lg"
                       >
@@ -232,7 +238,7 @@ function CartPage() {
                         {item.quantity}
                       </span>
                       <button
-                        onClick={() => handleUpdateQuantity(item.productId, item.quantity + 1)}
+                        onClick={() => handleUpdateQuantity(item.product._id, item.quantity + 1)}
                         disabled={cartUpdating}
                         className="w-10 h-10 flex items-center justify-center hover:bg-neutralneutral-700 disabled:opacity-50 rounded-r-lg"
                       >
@@ -245,7 +251,7 @@ function CartPage() {
                   <div className="flex flex-col items-end gap-2">
                     {/* Price */}
                     <div className="text-white text-lg font-heading-header-3-header-3-semibold">
-                      <AmountCurrency amount={item.price} fromCurrency={userCurrency} />
+                      <AmountCurrency amount={item.product.price} fromCurrency="USDT" />
                     </div>
                     
                     {/* Delete Button */}
@@ -277,13 +283,13 @@ function CartPage() {
                 <div className="flex justify-between text-white">
                   <span>Subtotal</span>
                   <span className="text-sm ">
-                    <AmountCurrency  amount={getCartTotal()} fromCurrency={userCurrency} />
+                    <AmountCurrency  amount={getCartTotal()} fromCurrency="USDT" />
                   </span>
                 </div>
                 <div className="flex justify-between text-white text-lg">
                   <span>Order Total</span>
                   <span className="font-semibold" >
-                    <AmountCurrency amount={getCartTotal()} fromCurrency={userCurrency} />
+                    <AmountCurrency amount={getCartTotal()} fromCurrency="USDT" />
                   </span>
                 </div>
               </div>
@@ -315,7 +321,7 @@ function CartPage() {
         isOpen={deleteModal.isOpen}
         onClose={handleDeleteCancel}
         onConfirm={handleDeleteConfirm}
-        itemName={deleteModal.item?.name}
+        itemName={deleteModal.item?.product.name}
         isDeleting={isDeleting}
       />
     </Layout>

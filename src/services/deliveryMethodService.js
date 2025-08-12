@@ -1,11 +1,11 @@
-import axios from 'axios';
+import apiClient from '@/lib/apiClient';
 
-const API_URL = '/api/delivery-methods';
+const API_URL = '/delivery-methods';
 
 const deliveryMethodService = {
   getAllDeliveryMethods: async () => {
     try {
-      const response = await axios.get(API_URL);
+      const response = await apiClient.get(API_URL);
       return response.data;
     } catch (error) {
       throw error.response.data;
@@ -14,7 +14,7 @@ const deliveryMethodService = {
 
   getDeliveryMethodById: async (id) => {
     try {
-      const response = await axios.get(`${API_URL}/${id}`);
+      const response = await apiClient.get(`${API_URL}/${id}`);
       return response.data;
     } catch (error) {
       throw error.response.data;
@@ -23,7 +23,7 @@ const deliveryMethodService = {
 
   createDeliveryMethod: async (deliveryMethodData) => {
     try {
-      const response = await axios.post(API_URL, deliveryMethodData);
+      const response = await apiClient.post(API_URL, deliveryMethodData);
       return response.data;
     } catch (error) {
       throw error.response.data;
@@ -32,7 +32,7 @@ const deliveryMethodService = {
 
   updateDeliveryMethod: async (id, deliveryMethodData) => {
     try {
-      const response = await axios.put(`${API_URL}/${id}`, deliveryMethodData);
+      const response = await apiClient.put(`${API_URL}/${id}`, deliveryMethodData);
       return response.data;
     } catch (error) {
       throw error.response.data;
@@ -41,7 +41,7 @@ const deliveryMethodService = {
 
   deleteDeliveryMethod: async (id) => {
     try {
-      const response = await axios.delete(`${API_URL}/${id}`);
+      const response = await apiClient.delete(`${API_URL}/${id}`);
       return response.data;
     } catch (error) {
       throw error.response.data;
