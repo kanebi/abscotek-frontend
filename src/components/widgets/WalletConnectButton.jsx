@@ -1,20 +1,52 @@
 import React from 'react';
-import { useAccount } from 'wagmi';
+import { usePrivy } from '@privy-io/react-auth';
+import useStore from '@/store/useStore';
 
-export default function WalletConnectButton({ 
-  className = "", 
-  children = "Connect Wallet",
+export default function WalletConnectButton({
+  className = "",
+  children = "Login/Signup",
   variant = "default", // "default", "primary", "green", "compact"
   disabled = false,
-  ...props 
+  onConnect,
+  ...props
 }) {
+  const { login, authenticated, user } = usePrivy();
+  const { isAuthenticated, currentUser, walletAddress } = useStore();
+
+  const handleClick = () => {
+    if (!authenticated) {
+      login();
+    }
+    if (onConnect) {
+      onConnect();
+    }
+  };
+
+  // Use the same pattern as Header - check Privy's authenticated state
+  const displayName = currentUser?.name || currentUser?.email || user?.email?.address || 'User';
+  const displayWalletAddress = walletAddress || user?.wallet?.address;
+
+  const getDisplayText = () => {
+    if (authenticated) {
+      if (displayWalletAddress && typeof displayWalletAddress === 'string') {
+        return `Connected: ${displayWalletAddress.slice(0, 6)}...${displayWalletAddress.slice(-4)}`;
+      } else if (displayName && typeof displayName === 'string') {
+        return `Connected: ${displayName}`;
+      } else {
+        return 'Connected';
+      }
+    }
+    return children;
+  };
+
   return (
-    <appkit-button
-      className={className}
+    <button
+      className={`px-6 py-3 bg-primaryp-300 text-white rounded-lg hover:bg-primaryp-400 transition-colors ${className}`}
       disabled={disabled}
+      onClick={handleClick}
       {...props}
     >
-      {children}
-    </appkit-button>
+      {getDisplayText()}
+    </button>
   );
-} 
+}

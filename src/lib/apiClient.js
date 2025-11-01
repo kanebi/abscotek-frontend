@@ -3,6 +3,12 @@ import useStore from '@/store/useStore';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5832/api';
 
+// Helper function to mark requests as user actions (will trigger modal on 401)
+export const markAsUserAction = (config) => {
+  config._isUserAction = true;
+  return config;
+};
+
 // Create axios instance
 const apiClient = axios.create({
   baseURL: API_URL,
@@ -22,6 +28,7 @@ apiClient.interceptors.request.use(
     
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
+      config.headers['x-auth-token'] = token;
     }
     
     // Add wallet address to headers for Web3 requests
@@ -71,9 +78,18 @@ apiClient.interceptors.response.use(
       store.setCurrentUser(null);
       store.setWalletAddress(null);
       
-      // Redirect to admin login if not already there
-      if (window.location.pathname !== '/admin/login') {
-        window.location.href = '/admin/login';
+      // Only open connect wallet modal if this is NOT a session validation call
+      // Session validation calls should fail silently without showing modal
+      const isSessionValidation = originalRequest.url?.includes('/users/profile') && 
+                                 originalRequest.method === 'GET' &&
+                                 !originalRequest._isUserAction;
+      
+      if (!isSessionValidation) {
+        // Open the connect wallet modal only for actual user actions
+        store.setConnectWalletModalOpen(true);
+        console.log('Opening connect wallet modal due to 401 error');
+      } else {
+        console.log('Session validation failed, not opening modal');
       }
     }
     

@@ -47,6 +47,17 @@ const deliveryMethodService = {
       throw error.response.data;
     }
   },
+
+  syncDeliveryMethods: async (frontendMethods) => {
+    try {
+      const response = await apiClient.post(`${API_URL}/sync`, {
+        frontendMethods
+      });
+      return response.data;
+    } catch (error) {
+      throw error.response.data;
+    }
+  },
 };
 
 export default deliveryMethodService;

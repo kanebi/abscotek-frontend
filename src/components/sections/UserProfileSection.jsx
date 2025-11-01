@@ -14,7 +14,7 @@ import OrderCard from "../widgets/OrderCard";
 import { OrderDetailsSection } from "./OrderDetail";
 import ReferralSection from "./ReferralSection";
 import { ACTIVE_PAGINATION_ITEM_STYLE, PAGINATION_ITEM_STYLE, SELECT_CONTENT_STYLE } from "@/components/constants";
-
+import orderService from "@/services/orderService";
 
 export default function UserProfileSection() {
   const navigate = useNavigate();
@@ -22,101 +22,136 @@ export default function UserProfileSection() {
   const [orderCategory, setOrderCategory] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedOrderId, setSelectedOrderId] = useState(null);
-  const totalPages = 3;
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [totalPages, setTotalPages] = useState(1);
+  const [paginationData, setPaginationData] = useState({});
+  const ordersPerPage = 10;
 
-  // Mock order data
-  const mockOrders = [
-    {
-      id: 1,
-      date: "2024-07-25 15:19:28",
-      number: "O-NG240725234276",
-      status: "Transaction Complete",
-      product: {
-        name: "New Apple iPhone 16 Plus ESIM 128GB",
-        color: "Blue",
-        image: "/images/desktop-1.png",
-        price: "450.36 USDT",
-        quantity: 1,
-      },
-      total: "450.36 USDT",
-      pricing: {
-        subtotal: "450.36 USDT",
-        delivery: "0 USDT",
-        total: "450.36 USDT",
-      },
-      shipping: {
-        name: "Salisu Oluwaseun",
-        email: "oluwaseunsalisu1@gmail.com",
-        phone: "+2348135384788",
-        address: "54, Sholanke Street, Bajulaiye, Shomolu, Lagos",
-      },
-      delivery: {
-        method: "Lagos",
-        timeframe: "1 - 2 days",
-      },
-    },
-    {
-      id: 2,
-      date: "2024-07-24 12:30:15",
-      number: "O-NG240724123456",
-      status: "Waiting for Delivery",
-      product: {
-        name: "Samsung Galaxy S24 Ultra 256GB",
-        color: "Titanium Gray",
-        image: "/images/desktop-2.jpg",
-        price: "380.50 USDT",
-        quantity: 2,
-      },
-      total: "761.00 USDT",
-      pricing: {
-        subtotal: "761.00 USDT",
-        delivery: "0 USDT",
-        total: "761.00 USDT",
-      },
-      shipping: {
-        name: "John Doe",
-        email: "john.doe@gmail.com",
-        phone: "+2348123456789",
-        address: "123 Main Street, Victoria Island, Lagos",
-      },
-      delivery: {
-        method: "Lagos",
-        timeframe: "1 - 2 days",
-      },
-    },
-    {
-      id: 3,
-      date: "2024-07-23 09:45:32",
-      number: "O-NG240723098765",
-      status: "Out for delivery",
-      product: {
-        name: "MacBook Pro 14-inch M3 512GB",
-        color: "Space Gray",
-        image: "/images/mobile-1.png",
-        price: "1250.75 USDT",
-        quantity: 1,
-      },
-      total: "1250.75 USDT",
-      pricing: {
-        subtotal: "1250.75 USDT",
-        delivery: "0 USDT",
-        total: "1250.75 USDT",
-      },
-      shipping: {
-        name: "Jane Smith",
-        email: "jane.smith@gmail.com",
-        phone: "+2348098765432",
-        address: "456 Oak Avenue, Ikeja, Lagos",
-      },
-      delivery: {
-        method: "Lagos",
-        timeframe: "1 - 2 days",
-      },
-    },
-  ];
+  // Fetch orders from backend with pagination and filtering
+  useEffect(() => {
+    const fetchOrders = async () => {
+      try {
+        setLoading(true);
+        // Use paginated endpoint with category filtering
+        const response = await orderService.getOrdersPaginated(currentPage, ordersPerPage, orderCategory);
+        setOrders(response.orders || []);
+        setTotalPages(response.pagination?.totalPages || 0);
+        setPaginationData(response.pagination || {});
+      } catch (error) {
+        console.error('Error fetching orders:', error);
+        // Fallback to old method if paginated endpoint fails
+        try {
+          const data = await orderService.getOrders(orderCategory);
+          setOrders(data);
+          setTotalPages(Math.ceil(data.length / ordersPerPage));
+          setPaginationData({});
+        } catch (fallbackError) {
+          console.error('Error in fallback order fetch:', fallbackError);
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  // For demo purposes, set hasOrders to true to show order list
-  const hasOrders = mockOrders.length > 0;
+    fetchOrders();
+  }, [currentPage, orderCategory]);
+
+  // Reset to first page when category changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [orderCategory]);
+
+  // Orders are already filtered and paginated from backend
+  const paginatedOrders = orders;
+
+  // Transform backend order data to match UI format
+  const transformedOrders = paginatedOrders.map(order => {
+    const firstItem = order.items?.[0];
+    if (!firstItem) return null;
+
+    // Debug logging to see the actual data structure
+    console.log('Order item data:', {
+      orderId: order._id,
+      productId: firstItem.product?._id,
+      productName: firstItem.product?.name,
+      productImage: firstItem.productImage, // Direct image field
+      hasImages: !!firstItem.product?.images,
+      imagesLength: firstItem.product?.images?.length || 0,
+      hasVariants: !!firstItem.product?.variants,
+      variantsLength: firstItem.product?.variants?.length || 0,
+      hasFirstImage: !!firstItem.product?.firstImage,
+      firstImage: firstItem.product?.firstImage
+    });
+
+    // Get the appropriate image - use direct productImage field first, then fallback to populated data
+    let productImages = [];
+    
+    // First priority: Use direct productImage field from OrderItem
+    if (firstItem.productImage) {
+      productImages = [firstItem.productImage];
+    }
+    // Second priority: Check if we have variant data and product variants
+    else if (firstItem.variant?.name && firstItem.product?.variants) {
+      // Find the variant in the product and get its images
+      const variant = firstItem.product.variants.find(v => v.name === firstItem.variant.name);
+      if (variant?.images?.length > 0) {
+        productImages = variant.images;
+      }
+    }
+    // Third priority: Fallback to product images if no variant images
+    else if (firstItem.product?.images?.length > 0) {
+      productImages = firstItem.product.images;
+    }
+    // Fourth priority: Check for firstImage virtual field
+    else if (firstItem.product?.firstImage) {
+      productImages = [firstItem.product.firstImage];
+    }
+    // Fifth priority: Check if product data is directly on the item (old schema)
+    else if (firstItem.product && typeof firstItem.product === 'object' && firstItem.product.images) {
+      productImages = firstItem.product.images;
+    }
+    // Check if there's a product field that's a string (unpopulated)
+    else if (typeof firstItem.product === 'string') {
+      console.warn('Product not populated for order item:', firstItem._id);
+    }
+
+    console.log('Final productImages:', productImages);
+
+    // If still no images, use a placeholder or default
+    if (productImages.length === 0) {
+      productImages = ['/images/desktop-1.png']; // Default placeholder
+    }
+
+    return {
+      id: order._id,
+      date: new Date(order.orderDate || order.createdAt).toLocaleString(),
+      number: order.orderNumber || order._id,
+      status: order.status,
+      product: {
+        name: firstItem.product?.name || 'Product',
+        variant: firstItem.variant?.attributes?.length > 0
+          ? firstItem.variant.attributes.map(attr => `${attr.name}: ${attr.value}`).join(', ')
+          : 'N/A',
+        images: productImages, // Use images array instead of single image
+        price: `${firstItem.unitPrice || 0} ${firstItem.product?.currency || order.currency}`,
+        quantity: firstItem.quantity || 1,
+      },
+      total: `${order.totalAmount} ${order.currency}`,
+      pricing: {
+        subtotal: `${order.subTotal} ${order.currency}`,
+        delivery: `${order.deliveryFee} ${order.currency}`,
+        total: `${order.totalAmount} ${order.currency}`,
+      },
+      shipping: order.shipping || order.shippingAddress || {},
+      delivery: order.delivery || order.deliveryMethod || {},
+    };
+  }).filter(Boolean); // Remove null entries
+
+
+  // Use only real orders from backend
+  const displayOrders = transformedOrders;
+  const hasOrders = displayOrders.length > 0;
 
   // Order category options
   const categories = [
@@ -148,66 +183,125 @@ export default function UserProfileSection() {
   };
 
   // Get selected order data
-  const selectedOrder = selectedOrderId ? mockOrders.find(order => order.id === selectedOrderId) : null;
+  const selectedOrder = selectedOrderId ? displayOrders.find(order => order.id === selectedOrderId) : null;
 
-  // Order progress steps
-  const getProgressSteps = (status) => {
+  // Order progress steps - now using backend stages data
+  const getProgressSteps = (order) => {
+    // Use stages from backend if available, otherwise fallback to old logic
+    if (order && order.stages) {
+      return order.stages;
+    }
+
+    // Fallback logic for backward compatibility
     const steps = [
-      { id: 1, name: "Submit Order", completed: true },
-      { id: 2, name: "Waiting for Delivery", completed: status !== "Submit Order" },
-      { id: 3, name: "Out for delivery", completed: status === "Out for delivery" || status === "Transaction Complete" },
-      { id: 4, name: "Transaction Complete", completed: status === "Transaction Complete" },
+      { id: 1, name: "Submit Order", completed: true, active: false },
+      { id: 2, name: "Waiting for Delivery", completed: false, active: false },
+      { id: 3, name: "Out for delivery", completed: false, active: false },
+      { id: 4, name: "Transaction Complete", completed: false, active: false },
     ];
+
+    // Determine completion based on status
+    const status = order?.status || '';
+    switch (status) {
+      case 'confirmed':
+      case 'processing':
+        steps[0].completed = true;
+        steps[1].completed = true;
+        steps[1].active = true;
+        break;
+      case 'shipped':
+        steps[0].completed = true;
+        steps[1].completed = true;
+        steps[2].completed = true;
+        steps[2].active = true;
+        break;
+      case 'delivered':
+        steps.forEach(step => {
+          step.completed = true;
+          step.active = false;
+        });
+        steps[3].active = true;
+        break;
+      default:
+        steps[0].active = true;
+    }
+
     return steps;
   };
 
   const OrderListWithPagination = () => (
     <div className="flex flex-col items-center justify-center gap-6 md:gap-12 relative w-full">
-      <div className="flex flex-col w-full max-w-[1021px] items-start gap-4 md:gap-6 relative">
-        {mockOrders.map((order) => (
-          <OrderCard 
-            key={order.id} 
-            order={order} 
-            onViewOrder={() => handleOrderSelect(order.id)}
-          />
-        ))}
-      </div>
+      {loading ? (
+        <div className="flex items-center justify-center py-12">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primaryp-300"></div>
+        </div>
+      ) : (
+        <>
+          <div className="flex flex-col w-full max-w-[1021px] items-start gap-4 md:gap-6 relative">
+            {displayOrders.map((order) => (
+              <OrderCard
+                key={order.id}
+                order={order}
+                onViewOrder={() => handleOrderSelect(order.id)}
+              />
+            ))}
+          </div>
+        </>
+      )}
 
-      {/* Pagination */}
-      <Pagination className="inline-flex items-center gap-3 relative flex-[0_0_auto]">
-        <PaginationPrevious
-          label={'  '}
-          className="relative bg-[url('/images/mdi_arrow-backward.svg')] bg-no-repeat bg-center w-6 h-6 hover:bg-primaryp-300 hover:text-white overflow-hidden flex items-center justify-center [font-family:'Mona_Sans-SemiBold',Helvetica] font-semibold text-defaultgrey-2 text-lg tracking-[0] leading-[21.6px]"
-          onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-          disabled={currentPage === 1}
-        >
-          {' '}
-        </PaginationPrevious>
+      {/* Pagination - Only show if there are orders */}
+      {totalPages > 1 && (
+        <Pagination className="inline-flex items-center gap-3 relative flex-[0_0_auto]">
+          <PaginationPrevious
+            label={'  '}
+            className="relative bg-[url('/images/mdi_arrow-backward.svg')] bg-no-repeat bg-center w-6 h-6 hover:bg-primaryp-300 hover:text-white overflow-hidden flex items-center justify-center [font-family:'Mona_Sans-SemiBold',Helvetica] font-semibold text-defaultgrey-2 text-lg tracking-[0] leading-[21.6px]"
+            onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+            disabled={!paginationData.hasPrevPage}
+          >
+            {' '}
+          </PaginationPrevious>
 
-        <PaginationContent className="inline-flex items-center gap-2 relative flex-[0_0_auto]">
-          {[...Array(totalPages)].map((item, index) => (
-            <PaginationItem style={index===currentPage?ACTIVE_PAGINATION_ITEM_STYLE:PAGINATION_ITEM_STYLE} className="rounded-full"
-              key={index}
-            >
-              <PaginationLink 
-                className="relative hover:bg-primaryp-300 hover:text-white overflow-hidden flex items-center justify-center [font-family:'Mona_Sans-SemiBold',Helvetica] font-semibold text-defaultgrey-2 text-lg tracking-[0] leading-[21.6px]"
-                onClick={() => setCurrentPage(index + 1)}
-              >
-                {index + 1}
-              </PaginationLink>
-            </PaginationItem>
-          ))}
-        </PaginationContent>
+          <PaginationContent className="inline-flex items-center gap-2 relative flex-[0_0_auto]">
+            {[...Array(Math.min(totalPages, 5))].map((item, index) => {
+              // Show pages around current page
+              let pageNumber;
+              if (totalPages <= 5) {
+                pageNumber = index + 1;
+              } else if (currentPage <= 3) {
+                pageNumber = index + 1;
+              } else if (currentPage >= totalPages - 2) {
+                pageNumber = totalPages - 4 + index;
+              } else {
+                pageNumber = currentPage - 2 + index;
+              }
 
-        <PaginationNext
-          className="relative bg-[url('/images/mdi_arrow-forward.svg')] bg-no-repeat bg-center w-6 h-6 hover:bg-primaryp-300 hover:text-white overflow-hidden flex items-center justify-center [font-family:'Mona_Sans-SemiBold',Helvetica] font-semibold text-defaultgrey-2 text-lg tracking-[0] leading-[21.6px]"
-          aria-label="Go to next page"
-          label={'  '}
-          onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-          disabled={currentPage === totalPages}
-        >
-        </PaginationNext>
-      </Pagination>
+              return (
+                <PaginationItem
+                  style={pageNumber === currentPage ? ACTIVE_PAGINATION_ITEM_STYLE : PAGINATION_ITEM_STYLE}
+                  className="rounded-full"
+                  key={pageNumber}
+                >
+                  <PaginationLink
+                    className="relative hover:bg-primaryp-300 hover:text-white overflow-hidden flex items-center justify-center [font-family:'Mona_Sans-SemiBold',Helvetica] font-semibold text-defaultgrey-2 text-lg tracking-[0] leading-[21.6px]"
+                    onClick={() => setCurrentPage(pageNumber)}
+                  >
+                    {pageNumber}
+                  </PaginationLink>
+                </PaginationItem>
+              );
+            })}
+          </PaginationContent>
+
+          <PaginationNext
+            className="relative bg-[url('/images/mdi_arrow-forward.svg')] bg-no-repeat bg-center w-6 h-6 hover:bg-primaryp-300 hover:text-white overflow-hidden flex items-center justify-center [font-family:'Mona_Sans-SemiBold',Helvetica] font-semibold text-defaultgrey-2 text-lg tracking-[0] leading-[21.6px]"
+            aria-label="Go to next page"
+            label={'  '}
+            onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+            disabled={!paginationData.hasNextPage}
+          >
+          </PaginationNext>
+        </Pagination>
+      )}
     </div>
   );
 
@@ -282,7 +376,8 @@ export default function UserProfileSection() {
                 </div>
 
                 <RadioGroup
-                  defaultValue="all"
+                  value={orderCategory}
+                  onValueChange={setOrderCategory}
                   className="inline-flex flex-col items-start gap-6"
                 >
                   {categories.map((category) => (
@@ -316,7 +411,7 @@ export default function UserProfileSection() {
               <div className="md:hidden flex items-center gap-3 mb-4 float-right justify-end">
                 <div className="flex items-center gap-3">
                   <span className="text-sm font-body-large-large-medium text-white">Category</span>
-                  <Select defaultValue="all" onValueChange={setOrderCategory}>
+                  <Select value={orderCategory} onValueChange={setOrderCategory}>
                     <SelectTrigger className="inline-flex items-center justify-center gap-2.5 px-2.5 py-2 h-9 w-[110px] rounded-lg border border-solid border-neutralneutral-300 bg-transparent text-sm text-white">
                       <SelectValue placeholder="All Order" />
                     </SelectTrigger>

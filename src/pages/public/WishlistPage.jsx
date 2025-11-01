@@ -11,8 +11,9 @@ import SEO from '../../components/SEO';
 import { getPageSEO } from '../../config/seo';
 
 function WishlistPage() {
-  const { token, wishlist, fetchWishlist, removeFromWishlist } = useStore();
+  const { token, wishlist, fetchWishlist, removeFromWishlist, addToCart } = useStore();
   const [isRemoving, setIsRemoving] = useState(false);
+  const [addingToCart, setAddingToCart] = useState(null);
 
   useEffect(() => {
     if (token) {
@@ -28,6 +29,20 @@ function WishlistPage() {
       console.error('Failed to remove from wishlist:', error);
     } finally {
       setIsRemoving(false);
+    }
+  };
+
+  const handleAddToCart = async (productId) => {
+    if (!productId) return;
+    setAddingToCart(productId);
+    try {
+      await addToCart(productId, 1);
+      setTimeout(() => {
+        setAddingToCart(null);
+      }, 2000);
+    } catch (error) {
+      console.error("Failed to add to cart:", error);
+      setAddingToCart(null);
     }
   };
 
@@ -78,8 +93,8 @@ function WishlistPage() {
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {wishlist.items.map((item) => (
-            <Card key={item.product._id} className="bg-[#1F1F21] rounded-xl p-4 flex flex-col">
-              <Link to={`${AppRoutes.productDetail.path}/${item.product._id}`}>
+            <div key={item.product._id} className="bg-[#1F1F21] rounded-xl p-4 flex flex-col">
+              <Link to={`/product/${item.product._id}`}>
                 <img 
                   src={item.product.image} 
                   alt={item.product.name}
@@ -87,6 +102,7 @@ function WishlistPage() {
                 />
               </Link>
               <h3 className="text-white font-medium text-lg mb-2">{item.product.name}</h3>
+              <p className="text-gray-400 text-sm mb-4 h-12 overflow-hidden text-ellipsis">{item.product.description}</p>
               <div className="text-white text-xl font-semibold mb-4">
                 <AmountCurrency amount={item.product.price} fromCurrency="USDT" />
               </div>
@@ -99,11 +115,14 @@ function WishlistPage() {
                 >
                   <Trash2 size={18} /> Remove
                 </Button>
-                <Link to={`${AppRoutes.productDetail.path}/${item.product._id}`}>
-                  <Button>View Product</Button>
-                </Link>
+                <Button 
+                  onClick={() => handleAddToCart(item.product._id)}
+                  disabled={addingToCart === item.product._id}
+                >
+                  {addingToCart === item.product._id ? 'Adding...' : 'Add to Cart'}
+                </Button>
               </div>
-            </Card>
+            </div>
           ))}
         </div>
       </div>

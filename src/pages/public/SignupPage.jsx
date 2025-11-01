@@ -68,7 +68,7 @@ function SignupPage() {
     }
 
     try {
-      const response = await authService.signup(formData);
+      const response = await authService.adminSignup(formData);
       setIsAuthenticated(true);
       setToken(response.token);
       setCurrentUser(response.user);

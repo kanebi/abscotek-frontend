@@ -59,21 +59,21 @@ function DeliveryAddressList({
       ) : (
         <div className="space-y-4">
           {addresses.map((address, index) => (
-            <div key={address.id}>
+            <div key={address._id}>
               <div 
                 className={`w-full p-5 rounded-xl border cursor-pointer transition-all ${
-                  selectedAddressId === address.id 
+                  selectedAddressId === address._id 
                     ? 'bg-zinc-800 outline outline-1 outline-offset-[-1px] outline-rose-500' 
                     : 'border-[#2C2C2E] hover:border-neutralneutral-500 bg-zinc-800'
                 }`}
-                onClick={() => handleSelectAddress(address.id)}
+                onClick={() => handleSelectAddress(address._id)}
               >
                 <div className="flex items-start justify-between w-full">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-3">
                       <div 
                         className={`w-4 h-4 rounded-full border-2 ${
-                          selectedAddressId === address.id 
+                          selectedAddressId === address._id 
                             ? 'border-[#FF5059] bg-[#FF5059]' 
                             : 'border-neutralneutral-400'
                         }`}
@@ -124,7 +124,7 @@ function DeliveryAddressList({
                     <Button
                       onClick={(e) => {
                         e.stopPropagation();
-                        onDelete && onDelete(address.id);
+                        onDelete && onDelete(address._id);
                       }}
                       variant="ghost"
                       size="sm"

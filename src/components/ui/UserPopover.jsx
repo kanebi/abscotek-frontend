@@ -5,15 +5,36 @@ import {
   DropdownMenuContent,
 } from './dropdown-menu';
 import copy from '../../assets/images/solar_copy-linear.svg';
+import useStore from '@/store/useStore';
+import { usePrivy } from '@privy-io/react-auth';
 
-// Mock user for testing
-const mockUser = {
-  address: '0xCbdc...3432',
-  avatar: '/images/0e48610f4fecc933e17441d93f63ddcc9c4d1943 (1).png',
-  profileUrl: '#',
-};
+export default function UserPopover({ children }) {
+  const { currentUser, walletAddress } = useStore();
+  const { user: privyUser, logout } = usePrivy();
+  
+  // Get user data from store or Privy (same pattern as Header)
+  const displayName = currentUser?.name || currentUser?.email || privyUser?.email || 'User';
+  const displayAddress = walletAddress || privyUser?.wallet?.address;
+  
+  // Create safe user object
+  const safeUser = {
+    address: displayAddress || displayName,
+    avatar: '/images/0e48610f4fecc933e17441d93f63ddcc9c4d1943 (1).png',
+    profileUrl: '/profile',
+  };
 
-export default function UserPopover({ user = mockUser, children }) {
+  const handleCopyAddress = async () => {
+    if (displayAddress) {
+      try {
+        await navigator.clipboard.writeText(displayAddress);
+        // You could add a toast notification here
+        console.log('Address copied to clipboard');
+      } catch (err) {
+        console.error('Failed to copy address:', err);
+      }
+    }
+  };
+  
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -26,18 +47,20 @@ export default function UserPopover({ user = mockUser, children }) {
               <div className="flex-1 flex justify-start items-start gap-2">
                 <div className="w-12 h-12 relative bg-gray-600 rounded-xl overflow-hidden">
                   <div className="w-14 h-14 left-[-2.17px] top-0 absolute">
-                    <img className="w-14 h-14 left-0 top-0 absolute rounded-full" src={user.avatar} alt="User avatar" />
+                    <img className="w-14 h-14 left-0 top-0 absolute rounded-full" src={safeUser.avatar} alt="User avatar" />
                   </div>
                 </div>
                 <div className="flex-1 inline-flex flex-col justify-center items-start gap-1">
                   <div className="self-stretch inline-flex justify-between items-start">
-                    <div className="text-center justify-start text-white text-xl font-semibold font-['Mona_Sans'] leading-normal">{user.address}</div>
-                    <div className="w-6 h-6 relative overflow-hidden flex items-center justify-center">
+                    <div className=" justify-start text-white text-xl font-semibold font-['Mona_Sans'] leading-normal">{safeUser.address}</div>
+                    <button 
+                      onClick={handleCopyAddress}
+                      className="w-6 h-6 relative overflow-hidden flex items-center justify-center hover:bg-gray-700 rounded"
+                    >
                       <img src={copy} alt="Copy" className="w-5 h-5" />
-
-                    </div>
+                    </button>
                   </div>
-                  <a href={user.profileUrl} className="text-center justify-start text-white text-xs font-normal font-['Mona_Sans'] leading-none hover:underline">Open Profile</a>
+                  <a href={safeUser.profileUrl} className="text-center justify-start text-white text-xs font-normal font-['Mona_Sans'] leading-none hover:underline">Open Profile</a>
                 </div>
               </div>
             </div>
@@ -50,7 +73,10 @@ export default function UserPopover({ user = mockUser, children }) {
                   <div className="justify-start text-gray-200 text-base font-medium font-['Mona_Sans'] leading-normal">Referral Bous</div>
                 </div>
                 <div className="self-stretch h-0 outline outline-1 outline-offset-[-0.50px] outline-neutral-700"></div>
-                <button className="inline-flex justify-start items-center gap-2 w-full group">
+                <button 
+                  onClick={logout}
+                  className="inline-flex justify-start items-center gap-2 w-full group"
+                >
                   <img src="/images/majesticons_logout.svg" alt="Logout" className="w-6 h-6" />
                   <span className="justify-start text-rose-500 text-base font-medium font-['Mona_Sans'] leading-normal group-hover:underline">Disconnect</span>
                 </button>

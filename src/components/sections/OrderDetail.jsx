@@ -12,25 +12,48 @@ import OrderSummary from "@/components/ui/OrderSummary";
 import React from "react";
 
 export const OrderDetailsSection = ({ order, onBackToList }) => {
-  // Order progress steps based on status
-  const getProgressSteps = (status) => {
+  // Order progress steps based on status - now using backend stages data
+  const getProgressSteps = (order) => {
+    // Use stages from backend if available, otherwise fallback to old logic
+    if (order && order.stages) {
+      return order.stages;
+    }
+
+    // Fallback logic for backward compatibility
     const steps = [
-      { id: 1, name: "Submit Order", completed: true },
-      { id: 2, name: "Waiting for Delivery", completed: false },
-      { id: 3, name: "Out for delivery", completed: false },
-      { id: 4, name: "Transaction Complete", completed: false },
+      { id: 1, name: "Submit Order", completed: true, active: false },
+      { id: 2, name: "Waiting for Delivery", completed: false, active: false },
+      { id: 3, name: "Out for delivery", completed: false, active: false },
+      { id: 4, name: "Transaction Complete", completed: false, active: false },
     ];
 
+    // Determine completion based on status
+    const status = order?.status || '';
     switch (status) {
-      case "Transaction Complete":
-        return steps.map(step => ({ ...step, completed: true }));
-      case "Out for delivery":
-        return steps.map((step, index) => ({ ...step, completed: index < 3 }));
-      case "Waiting for Delivery":
-        return steps.map((step, index) => ({ ...step, completed: index < 2 }));
+      case "confirmed":
+      case "processing":
+        steps[0].completed = true;
+        steps[1].completed = true;
+        steps[1].active = true;
+        break;
+      case "shipped":
+        steps[0].completed = true;
+        steps[1].completed = true;
+        steps[2].completed = true;
+        steps[2].active = true;
+        break;
+      case "delivered":
+        steps.forEach(step => {
+          step.completed = true;
+          step.active = false;
+        });
+        steps[3].active = true;
+        break;
       default:
-        return steps;
+        steps[0].active = true;
     }
+
+    return steps;
   };
 
   const progressSteps = getProgressSteps(order.status);
@@ -107,36 +130,7 @@ export const OrderDetailsSection = ({ order, onBackToList }) => {
             <div className="inline-flex items-start gap-[35.72px] relative flex-[0_0_auto]">
               <div className="absolute w-[280px] h-px top-1.5 left-5 bg-[#3f3f3f]" />
 
-              {progressSteps.map((step, index) => (
-                <div
-                  key={index}
-                  className="inline-flex flex-col items-center gap-[5.36px] relative flex-[0_0_auto]"
-                >
-                  <div
-                    className={`relative w-[12.5px] h-[12.5px] ${step.completed ? "bg-primaryp-300" : "bg-neutralneutral-200"} rounded-[4465.08px] overflow-hidden flex items-center justify-center`}
-                  >
-                    <svg
-                      className="w-[9px] h-[9px]"
-                      viewBox="0 0 20 20"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        d="M16.6663 5L7.49967 14.1667L3.33301 10"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                  </div>
-                  <div
-                    className={`relative w-fit ${step.completed ? "[font-family:'Mona_Sans-Medium',Helvetica] font-medium text-defaultwhite" : "[font-family:'Mona_Sans-Regular',Helvetica] font-normal text-neutralneutral-200"} text-[7.1px] tracking-[0] leading-[10.7px] whitespace-nowrap`}
-                  >
-                    {step.name}
-                  </div>
-                </div>
-              ))}
+            
             </div>
           </CardContent>
         </Card>
@@ -240,11 +234,17 @@ export const OrderDetailsSection = ({ order, onBackToList }) => {
             <div className="flex flex-col w-full max-w-[913px] px-4 items-end justify-center gap-5">
               <div className="flex h-[127px] items-start gap-5 w-full">
                 <div className="relative w-[127px] h-[127px] bg-white rounded-[10.16px] overflow-hidden">
-                  <img
-                    className="absolute w-[127px] h-[127px] top-0 left-0 object-cover"
-                    alt={order.product.name}
-                    src={order.product.image}
-                  />
+                  {order.product.images && order.product.images.length > 0 ? (
+                    <img
+                      className="absolute w-[127px] h-[127px] top-0 left-0 object-cover"
+                      alt={order.product.name}
+                      src={order.product.images[0]}
+                    />
+                  ) : (
+                    <div className="absolute w-[127px] h-[127px] top-0 left-0 bg-neutralneutral-800 rounded-lg flex items-center justify-center">
+                      <span className="text-neutralneutral-400 text-sm">No Image</span>
+                    </div>
+                  )}
                 </div>
 
                 <div className="flex flex-col items-end justify-center gap-5 flex-1">
@@ -254,7 +254,7 @@ export const OrderDetailsSection = ({ order, onBackToList }) => {
                         {order.product.name}
                       </div>
                       <div className="font-body-large-large-medium text-[#b9babb]">
-                        {order.product.color}
+                        {order.product.variant}
                       </div>
                     </div>
                     <div className="w-[74px] font-body-large-large-semibold text-defaultwhite text-center">

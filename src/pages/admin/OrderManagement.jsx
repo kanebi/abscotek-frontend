@@ -19,8 +19,6 @@ import {
 
 function OrderManagement() {
   const [orders, setOrders] = useState([]);
-  const [newOrder, setNewOrder] = useState({ productId: '' });
-  const [editingOrder, setEditingOrder] = useState(null);
   const [errorMessage, setErrorMessage] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -40,7 +38,7 @@ function OrderManagement() {
     clearMessages();
     setLoading(true);
     try {
-      const data = await orderService.getAllOrders();
+      const data = await orderService.adminGetAllOrders();
       setOrders(data);
     } catch (error) {
       console.error('Error fetching orders:', error);
@@ -50,45 +48,16 @@ function OrderManagement() {
     }
   };
 
-  const handleDelete = async (id) => {
-    clearMessages();
-    if (window.confirm('Are you sure you want to delete this order?')) {
-      try {
-        await orderService.deleteOrder(id);
-        fetchOrders();
-        setSuccessMessage('Order deleted successfully!');
-      } catch (error) {
-        console.error('Error deleting order:', error);
-        setErrorMessage('Failed to delete order.');
-      }
-    }
-  };
-
-  const handleCreate = async (e) => {
-    e.preventDefault();
+  const handleStatusChange = async (orderId, newStatus) => {
     clearMessages();
     try {
-      await orderService.createOrder(newOrder);
-      setNewOrder({ productId: '' });
+      await orderService.updateOrderStatus(orderId, newStatus);
+      setSuccessMessage(`Order ${orderId} status updated to ${newStatus}.`);
+      // Refetch orders to show the change immediately
       fetchOrders();
-      setSuccessMessage('Order created successfully!');
     } catch (error) {
-      console.error('Error creating order:', error);
-      setErrorMessage('Failed to create order.');
-    }
-  };
-
-  const handleUpdate = async (e) => {
-    e.preventDefault();
-    clearMessages();
-    try {
-      await orderService.updateOrder(editingOrder._id, editingOrder);
-      setEditingOrder(null);
-      fetchOrders();
-      setSuccessMessage('Order updated successfully!');
-    } catch (error) {
-      console.error('Error updating order:', error);
-      setErrorMessage('Failed to update order.');
+      console.error('Error updating order status:', error);
+      setErrorMessage('Failed to update order status.');
     }
   };
 
@@ -146,34 +115,8 @@ function OrderManagement() {
             </Card>
           )}
 
-          {/* Create New Order Form */}
-          <Card className="p-6 mb-6">
-            <div className="flex items-center gap-2 mb-6">
-              <Plus size={20} className="text-primaryp-400" />
-              <h2 className="text-xl font-heading-header-3-header-3-bold text-white">
-                Create New Order
-              </h2>
-            </div>
-            
-            <form onSubmit={handleCreate} className="space-y-4">
-              <input
-                type="text"
-                placeholder="Product ID (for simple order)"
-                value={newOrder.productId}
-                onChange={(e) => setNewOrder({ ...newOrder, productId: e.target.value })}
-                className="w-full p-3 bg-neutralneutral-800 border border-neutralneutral-600 rounded-lg text-white placeholder-neutralneutral-400"
-                required
-              />
-              
-              <Button type="submit" className="bg-successs-500 hover:bg-successs-400">
-                <Plus size={16} className="mr-2" />
-                Add Order
-              </Button>
-            </form>
-          </Card>
-
           {/* Edit Order Form */}
-          {editingOrder && (
+          {/* {editingOrder && (
             <Card className="p-6 mb-6 border-warningw-400">
               <div className="flex items-center gap-2 mb-6">
                 <Edit size={20} className="text-warningw-400" />
@@ -205,43 +148,9 @@ function OrderManagement() {
                     />
                   </div>
                 </div>
-                
-                <div>
-                  <label className="block text-neutralneutral-300 text-sm mb-2">Status:</label>
-                  <Select 
-                    value={editingOrder.status} 
-                    onValueChange={(value) => setEditingOrder({ ...editingOrder, status: value })}
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Select status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="pending">Pending</SelectItem>
-                      <SelectItem value="processing">Processing</SelectItem>
-                      <SelectItem value="shipped">Shipped</SelectItem>
-                      <SelectItem value="delivered">Delivered</SelectItem>
-                      <SelectItem value="cancelled">Cancelled</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <div className="flex gap-4">
-                  <Button type="submit" className="bg-warningw-500 hover:bg-warningw-400">
-                    <Edit size={16} className="mr-2" />
-                    Update Order
-                  </Button>
-                  <Button 
-                    type="button" 
-                    onClick={() => setEditingOrder(null)}
-                    variant="outline"
-                    className="border-neutralneutral-600 text-neutralneutral-300"
-                  >
-                    Cancel
-                  </Button>
-                </div>
               </form>
             </Card>
-          )}
+          )} */}
 
           {/* Orders List */}
           <Card className="p-6">
@@ -326,23 +235,22 @@ function OrderManagement() {
                       </div>
                       
                       {/* Actions */}
-                      <div className="flex gap-2">
-                        <Button
-                          onClick={() => setEditingOrder(order)}
-                          size="sm"
-                          className="bg-warningw-500 hover:bg-warningw-400"
+                      <div className="flex items-center gap-2">
+                        <Select
+                          value={order.status}
+                          onValueChange={(newStatus) => handleStatusChange(order._id, newStatus)}
                         >
-                          <Edit size={14} className="mr-1" />
-                          Edit
-                        </Button>
-                        <Button
-                          onClick={() => handleDelete(order._id)}
-                          size="sm"
-                          className="bg-dangerd-500 hover:bg-dangerd-400"
-                        >
-                          <Trash2 size={14} className="mr-1" />
-                          Delete
-                        </Button>
+                          <SelectTrigger className="w-36 bg-neutralneutral-700 border-neutralneutral-600 text-white">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="pending">Pending</SelectItem>
+                            <SelectItem value="paid">Paid</SelectItem>
+                            <SelectItem value="shipped">Shipped</SelectItem>
+                            <SelectItem value="delivered">Delivered</SelectItem>
+                            <SelectItem value="cancelled">Cancelled</SelectItem>
+                          </SelectContent>
+                        </Select>
                       </div>
                     </div>
                   </div>

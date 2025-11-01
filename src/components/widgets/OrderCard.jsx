@@ -34,11 +34,17 @@ const OrderCard = ({ order, onViewOrder }) => {
           <div className="flex mt-3 flex-col items-start gap-5 relative self-stretch w-full flex-[0_0_auto]">
             <div className="flex items-start gap-5 relative self-stretch w-full flex-[0_0_auto]">
               <div className="relative w-16 h-16 bg-white rounded-[5.12px] overflow-hidden">
-                <img
-                  className="absolute w-16 h-16 top-0 left-0 object-cover"
-                  alt={`${order.product.name} in ${order.product.color}`}
-                  src={order.product.image}
-                />
+                {order.product.images && order.product.images.length > 0 ? (
+                  <img
+                    className="absolute w-16 h-16 top-0 left-0 object-cover"
+                    alt={`${order.product.name}${order.product.variant !== 'N/A' ? ` - ${order.product.variant}` : ''}`}
+                    src={order.product.images[0]}
+                  />
+                ) : (
+                  <div className="absolute w-16 h-16 top-0 left-0 bg-neutralneutral-800 rounded-lg flex items-center justify-center">
+                    <span className="text-neutralneutral-400 text-xs">No Image</span>
+                  </div>
+                )}
               </div>
 
               <div className="flex flex-col items-start gap-3 relative flex-1 grow">
@@ -47,7 +53,7 @@ const OrderCard = ({ order, onViewOrder }) => {
                     {order.product.name}
                   </h3>
                   <p className="relative w-fit font-body-large-large-medium font-[number:var(--body-large-large-medium-font-weight)] text-neutralneutral-100 text-[length:var(--body-large-large-medium-font-size)] tracking-[var(--body-large-large-medium-letter-spacing)] leading-[var(--body-large-large-medium-line-height)] whitespace-nowrap [font-style:var(--body-large-large-medium-font-style)]">
-                    {order.product.color}
+                    {order.product.variant}
                   </p>
                 </div>
 
@@ -116,11 +122,17 @@ const OrderCard = ({ order, onViewOrder }) => {
           <div className="flex flex-col md:flex-row h-auto md:h-[127px] items-start gap-3 md:gap-5 relative self-stretch w-full">
             {/* Product Image */}
             <div className="relative w-full md:w-[127px] h-[200px] md:h-[127px] bg-white rounded-[10.16px] overflow-hidden flex-shrink-0">
-              <img
-                className="absolute w-full h-full top-0 left-0 object-cover"
-                alt={`${order.product.name} in ${order.product.color}`}
-                src={order.product.image}
-              />
+              {order.product.images && order.product.images.length > 0 ? (
+                <img
+                  className="absolute w-full h-full top-0 left-0 object-cover"
+                  alt={`${order.product.name}${order.product.variant !== 'N/A' ? ` - ${order.product.variant}` : ''}`}
+                  src={order.product.images[0]}
+                />
+              ) : (
+                <div className="absolute w-full h-full top-0 left-0 bg-neutralneutral-800 rounded-lg flex items-center justify-center">
+                  <span className="text-neutralneutral-400 text-sm">No Image</span>
+                </div>
+              )}
             </div>
 
             {/* Product Details */}
@@ -132,7 +144,7 @@ const OrderCard = ({ order, onViewOrder }) => {
                     {order.product.name}
                   </h3>
                   <p className="relative w-full font-body-large-large-medium font-[number:var(--body-large-large-medium-font-weight)] text-neutralneutral-100 text-xs md:text-[length:var(--body-large-large-medium-font-size)] tracking-[var(--body-large-large-medium-letter-spacing)] leading-[16px] md:leading-[var(--body-large-large-medium-line-height)] truncate [font-style:var(--body-large-large-medium-font-style)]">
-                    {order.product.color}
+                    {order.product.variant}
                   </p>
                 </div>
 

@@ -313,13 +313,13 @@ function ProductManagement() {
               <Plus size={20} className="text-primaryp-400" />
               <h2 className="text-xl font-heading-header-3-header-3-bold text-white">Create New Product</h2>
             </div>
-
+            
             {createStep === 1 && (
               <form onSubmit={handleCreateDetails} className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <input type="text" placeholder="Product Name" value={newProduct.name} onChange={(e) => setNewProduct({ ...newProduct, name: e.target.value })} className="p-3 bg-neutralneutral-800 border border-neutralneutral-600 rounded-lg text-white placeholder-neutralneutral-400" required />
                   <input type="number" placeholder="Price (USDT)" value={newProduct.price} onChange={(e) => setNewProduct({ ...newProduct, price: e.target.value })} className="p-3 bg-neutralneutral-800 border border-neutralneutral-600 rounded-lg text-white placeholder-neutralneutral-400" required />
-                </div>
+              </div>
                 <textarea placeholder="Product Description" value={newProduct.description} onChange={(e) => setNewProduct({ ...newProduct, description: e.target.value })} className="w-full p-3 bg-neutralneutral-800 border border-neutralneutral-600 rounded-lg text-white placeholder-neutralneutral-400" rows="3" />
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <input type="text" placeholder="Badge (optional)" value={newProduct.badge} onChange={(e) => setNewProduct({ ...newProduct, badge: e.target.value })} className="p-3 bg-neutralneutral-800 border border-neutralneutral-600 rounded-lg text-white placeholder-neutralneutral-400" />
@@ -511,7 +511,7 @@ function ProductManagement() {
                         ))}
                         <Button onClick={() => setEditUrls(prev => [...prev, ''])} className="bg-primaryp-500 hover:bg-primaryp-400"><Plus size={14} className="mr-2" /> Add URL</Button>
                       </div>
-
+                      
                       <div className="mt-3 flex justify-end">
                         <Button onClick={uploadMoreInEdit} disabled={isEditUploading} className="bg-successs-500 hover:bg-successs-400"><Upload size={14} className="mr-2" /> {isEditUploading ? 'Updating...' : 'Upload New'}</Button>
                       </div>
@@ -524,8 +524,8 @@ function ProductManagement() {
                   <Button onClick={saveEdit} disabled={isSavingEdit} className="bg-secondarys-500 hover:bg-secondarys-400">{isSavingEdit ? 'Saving...' : 'Save Changes'}</Button>
                 </div>
               </div>
-            </div>
-          )}
+              </div>
+            )}
         </div>
       </div>
     </Layout>

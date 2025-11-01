@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/select";
 import React, { useState, useEffect, useMemo } from "react";
 import ProductGridSection from "../components/ProductGridSection";
-import { MobileFilterButton } from "@/components/widgets/ProductFilter";
+import { MobileFilterButton, ProductFilter } from "@/components/widgets/ProductFilter";
 import Layout from "@/components/Layout";
 import { DROPDOWN_MENU_CONTENT_STYLE } from "../../components/constants";
 import { AppRoutes } from "@/config/routes";
@@ -55,7 +55,22 @@ export default function Desktop() {
     const fetchProducts = async () => {
       try {
         setLoading(true);
-        const params = { category, page, limit: 12, sort };
+        // Get all filter params from URL
+        const filterParams = {};
+        for (let [key, value] of searchParams.entries()) {
+          if (['category', 'color', 'size', 'minPrice', 'maxPrice', 'brand'].includes(key)) {
+            filterParams[key] = value;
+          }
+        }
+
+        const params = {
+          category,
+          page,
+          limit: 12,
+          sort,
+          ...filterParams
+        };
+
         const data = await productService.getProducts(params);
         if (Array.isArray(data)) {
           setProducts(data);
@@ -75,7 +90,7 @@ export default function Desktop() {
     };
 
     fetchProducts();
-  }, [category, page, sort]);
+  }, [category, page, sort, searchParams]);
 
   const [resultCount, setResultCount] = useState(0);
   useEffect(() => { setResultCount(products.length); }, [products]);
@@ -155,7 +170,7 @@ export default function Desktop() {
 
       <div className="inline-flex md:absolute md:w-[80%]  justify-between items-center w-full md:gap-0 gap-2 mt-[100px] right-[0]">
       <div className="md:w-[20%] w-[50%]">
-        <MobileFilterButton />
+        <MobileFilterButton onFiltersChange={() => {}} />
       </div>
       <div className=" flex flex-row gap-3 md:w-[30%] w-[50%] justify-end items-center">
         <div className=" text-end md:w-20 w-[30%] font-sm font-body-large-large-medium text-sm text-white text-[length:var(--body-large-large-medium-font-size)] tracking-[var(--body-large-large-medium-letter-spacing)] leading-[var(--body-large-large-medium-line-height)] [font-style:var(--body-large-large-medium-font-style)]">
@@ -181,6 +196,11 @@ export default function Desktop() {
         Shopping Options ({resultCount} Results)
       </h2>
 
+      {/* Desktop Filter Panel */}
+      <div className="hidden md:block absolute left-0 top-[156px] w-[20%]">
+          {/* <ProductFilter /> */}
+      </div>
+
       {showEmpty ? (
         <div className="absolute top-[156px] w-full md:w-[73%] md:right-0 md:ml-1 p-4">
           <EmptyProducts
@@ -188,6 +208,11 @@ export default function Desktop() {
               const next = new URLSearchParams(searchParams);
               next.delete('category');
               next.delete('sort');
+              next.delete('color');
+              next.delete('size');
+              next.delete('minPrice');
+              next.delete('maxPrice');
+              next.delete('brand');
               next.set('page', '1');
               setSearchParams(next);
             }}
@@ -195,8 +220,8 @@ export default function Desktop() {
           />
         </div>
       ) : (
-        <ProductGridSection 
-          products={products} 
+        <ProductGridSection
+          products={products}
           activePage={page}
           totalPages={totalPages}
           onPageChange={onPageChange}

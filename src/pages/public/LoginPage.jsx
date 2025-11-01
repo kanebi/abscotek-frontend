@@ -23,7 +23,7 @@ function LoginPage() {
     setLoading(true);
     
     try {
-      const response = await authService.login(email, password);
+      const response = await authService.adminLogin(email, password);
       setIsAuthenticated(true);
       setToken(response.token);
       setCurrentUser(response.user);

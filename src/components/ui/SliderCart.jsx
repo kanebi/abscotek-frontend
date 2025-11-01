@@ -20,10 +20,18 @@ export default function SliderCart({ triggerClassName = ""}) {
     updateCartQuantity,
     removeFromCart,
     getCartTotal,
-    getCartItemCount
+    getCartItemCount,
+    loadGuestCart,
+    token
   } = useStore();
   
   const defaultTopBackground = "rgba(36, 36, 36, 1)";
+
+  useEffect(() => {
+    if (!token) {
+      loadGuestCart();
+    }
+  }, [token, loadGuestCart]);
 
   useEffect(() => {
     if (isOpen) {
@@ -48,13 +56,15 @@ export default function SliderCart({ triggerClassName = ""}) {
   };
 
   const handleDeleteConfirm = async () => {
+    console.log('handleDeleteConfirm deleteModal.item', deleteModal.item);
     if (!deleteModal.item) return;
     
     setIsDeleting(true);
     try {
       // Simulate API delay
       await new Promise(resolve => setTimeout(resolve, 500));
-      removeFromCart(deleteModal.item.productId);
+      const productIdToDelete = deleteModal.item.product._id;
+      removeFromCart(productIdToDelete);
       setDeleteModal({ isOpen: false, item: null });
     } catch (error) {
       console.error('Error removing item:', error);
@@ -168,24 +178,26 @@ export default function SliderCart({ triggerClassName = ""}) {
              /* Cart Items */
              <div className="p-6 space-y-6">
                {cart.items.map((item) => (
-                 <div key={item.productId} className="flex items-start gap-4">
+                 <div key={item.product._id} className="flex items-start gap-4">
                    {/* Product Image */}
                    <div className="w-20 h-20 bg-neutralneutral-800 rounded-lg flex-shrink-0 overflow-hidden">
-                     <img 
-                       src={item.image} 
-                       alt={item.name}
-                       className="w-full h-full object-cover"
-                     />
+                     {item.product.images && item.product.images.length > 0 && (
+                       <img 
+                         src={item.product.images[0]} 
+                         alt={item.product.name}
+                         className="w-full h-full object-cover"
+                       />
+                     )}
                    </div>
 
                    {/* Product Info */}
                    <div className="flex-1 min-w-0">
                      <h3 className="text-white font-medium text-base mb-2 leading-tight">
-                       {item.name}
+                       {item.product.name}
                      </h3>
                      
                      <div className="text-white font-bold text-lg mb-4">
-                       <AmountCurrency amount={item.price} fromCurrency="USDT" />
+                       <AmountCurrency amount={item.product.price} fromCurrency="USDT" />
                      </div>
                      
                      {/* Quantity Controls and Delete Button Row */}
@@ -193,7 +205,7 @@ export default function SliderCart({ triggerClassName = ""}) {
                        {/* Quantity Controls */}
                        <div className="flex items-center gap-0 border border-neutralneutral-600 rounded-lg w-fit">
                          <button
-                           onClick={() => handleUpdateQuantity(item.productId, item.quantity - 1)}
+                           onClick={() => handleUpdateQuantity(item.product._id, item.quantity - 1)}
                            disabled={cartUpdating || item.quantity <= 1}
                            className="w-10 h-10 flex items-center justify-center hover:bg-neutralneutral-800 disabled:opacity-50 rounded-l-lg"
                          >
@@ -203,7 +215,7 @@ export default function SliderCart({ triggerClassName = ""}) {
                            {item.quantity}
                          </span>
                          <button
-                           onClick={() => handleUpdateQuantity(item.productId, item.quantity + 1)}
+                           onClick={() => handleUpdateQuantity(item.product._id, item.quantity + 1)}
                            disabled={cartUpdating}
                            className="w-10 h-10 flex items-center justify-center hover:bg-neutralneutral-800 disabled:opacity-50 rounded-r-lg"
                          >
@@ -277,7 +289,7 @@ export default function SliderCart({ triggerClassName = ""}) {
         isOpen={deleteModal.isOpen}
         onClose={handleDeleteCancel}
         onConfirm={handleDeleteConfirm}
-        itemName={deleteModal.item?.name}
+        itemName={deleteModal.item?.product.name}
         isDeleting={isDeleting}
       />
     </>

@@ -13,6 +13,8 @@ import ProductList from "../../components/ProductList";
 import SEO from "../../components/SEO";
 import { getPageSEO, generateProductStructuredData, generateBreadcrumbStructuredData } from "../../config/seo";
 import productService from "../../services/productService";
+import wishlistService from "../../services/wishlistService";
+import useStore from "../../store/useStore";
 
 export default function ProductDetail() {
     const { id } = useParams();
@@ -20,6 +22,12 @@ export default function ProductDetail() {
     const [relatedProducts, setRelatedProducts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [quantity, setQuantity] = useState(1);
+    const [selectedColor, setSelectedColor] = useState(null);
+    const [addingToWishlist, setAddingToWishlist] = useState(false);
+    const [totalPrice, setTotalPrice] = useState(null);
+
+    const { addToCart, cartUpdating } = useStore();
 
     useEffect(() => {
         const fetchProduct = async () => {
@@ -27,6 +35,10 @@ export default function ProductDetail() {
                 setLoading(true);
                 const data = await productService.getProduct(id);
                 setProduct(data);
+                setTotalPrice(data.price);
+                if (data.variants && data.variants.length > 0) {
+                    setSelectedColor(data.variants[0].name);
+                }
                 // Fetch related products in parallel
                 try {
                     const related = await productService.getRelatedProducts(id, 8);
@@ -45,6 +57,39 @@ export default function ProductDetail() {
 
         fetchProduct();
     }, [id]);
+
+    useEffect(() => {
+        if (product && product.variants) {
+            const selectedVariant = product.variants.find(v => v.name === selectedColor);
+            if (selectedVariant) {
+                setTotalPrice(product.price + selectedVariant.additionalPrice);
+            }
+        }
+    }, [selectedColor, product]);
+
+    const handleQuantityChange = (amount) => {
+        setQuantity(prev => Math.max(1, prev + amount));
+    };
+
+    const handleAddToCart = () => {
+        if (product) {
+            addToCart(product._id, quantity, product.currency, selectedColor);
+        }
+    };
+
+    const handleAddToWishlist = async () => {
+        if (!product) return;
+        setAddingToWishlist(true);
+        try {
+            await wishlistService.addToWishlist({ productId: product._id });
+            setTimeout(() => {
+                setAddingToWishlist(false);
+            }, 2000);
+        } catch (error) {
+            console.error("Failed to add to wishlist:", error);
+            setAddingToWishlist(false);
+        }
+    };
 
     if (loading) return <Layout><div>Loading product...</div></Layout>;
     if (error) return <Layout><div>Error: {error.message}</div></Layout>;
@@ -74,6 +119,8 @@ export default function ProductDetail() {
         name: item.name,
         price: item.price,
         currency: item.currency || 'USDT',
+        description: item.description,
+        _id: item._id
     }));
 
     // Responsive layout: mobile and desktop
@@ -105,31 +152,40 @@ export default function ProductDetail() {
                         <div className="self-stretch flex flex-col justify-center items-start gap-6">
                             <div className="self-stretch flex flex-col gap-4">
                                 <div className="text-gray-200 text-2xl font-medium font-sans leading-loose">{p.name}</div>
-                                <div className="text-white text-xl font-semibold font-sans leading-relaxed"><AmountCurrency amount={p.price} fromCurrency={p.currency} /></div>
+                                <div className="text-white text-xl font-semibold font-sans leading-relaxed"><AmountCurrency amount={totalPrice} fromCurrency={p.currency} /></div>
                             </div>
                             <div className="flex flex-col gap-6">
-                                {/* Color selector as shadcn/ui select */}
-                                <div className="w-full max-w-xs rounded-lg flex flex-col gap-2">
-                                    <div className="text-gray-200 text-base font-medium font-sans leading-normal">Color</div>
-                                    <Select>
-                                        <SelectTrigger className="w-full px-3.5 py-3 rounded-lg outline outline-1 outline-offset-[-1px] outline-neutral-700 flex items-center gap-2 border-none text-base font-sans">
-                                            <SelectValue defaultValue={'Grey'} placeholder="Select Color" />
-                                        </SelectTrigger>
-                                        <SelectContent className="rounded-lg mt-1">
-                                            <SelectItem value="Grey" className="text-gray-400 text-base font-normal px-4 py-2 cursor-pointer">Grey</SelectItem>
-                                            <SelectItem value="Black" className="text-gray-400 text-base font-normal px-4 py-2 cursor-pointer">Black</SelectItem>
-                                            <SelectItem value="Blue" className="text-gray-400 text-base font-normal px-4 py-2 cursor-pointer">Blue</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                </div>
+                                {/* Variant selector as shadcn/ui select */}
+                                {p.variants && p.variants.length > 0 && (
+                                    <div className="w-full max-w-xs rounded-lg flex flex-col gap-2">
+                                        <div className="text-gray-200 text-base font-medium font-sans leading-normal">Variant</div>
+                                        <Select value={selectedColor} onValueChange={setSelectedColor}>
+                                            <SelectTrigger className="w-full px-3.5 py-3 rounded-lg outline outline-1 outline-offset-[-1px] outline-neutral-700 flex items-center gap-2 border-none text-base font-sans">
+                                                <SelectValue placeholder="Select Variant" />
+                                            </SelectTrigger>
+                                            <SelectContent className="rounded-lg mt-1">
+                                                {p.variants.map((variant) => (
+                                                    <SelectItem key={variant.name} value={variant.name} className="text-gray-400 text-base font-normal px-4 py-2 cursor-pointer">
+                                                        {variant.name}
+                                                        {variant.attributes && variant.attributes.length > 0 && (
+                                                            <span className="text-xs text-gray-500 ml-2">
+                                                                ({variant.attributes.map(attr => `${attr.name}: ${attr.value}`).join(', ')})
+                                                            </span>
+                                                        )}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                )}
                                 {/* Quantity selector */}
                                 <div className="w-36 flex flex-col gap-2">
                                     <div className="text-white text-sm font-medium font-sans leading-tight">Quantity</div>
                                     <div className="p-3 outline outline-1 outline-gray-200 flex flex-col items-center rounded-lg">
                                         <div className="flex items-end gap-9">
-                                            <button className="w-6 h-6 flex items-center justify-center"><Minus color="#f1f1f1" /></button>
-                                            <span className="text-white text-base font-medium font-sans">1</span>
-                                            <button className="w-6 h-6 flex items-center justify-center"><Plus color="#f1f1f1" /></button>
+                                            <button onClick={() => handleQuantityChange(-1)} className="w-6 h-6 flex items-center justify-center"><Minus color="#f1f1f1" /></button>
+                                            <span className="text-white text-base font-medium font-sans">{quantity}</span>
+                                            <button onClick={() => handleQuantityChange(1)} className="w-6 h-6 flex items-center justify-center"><Plus color="#f1f1f1" /></button>
                                         </div>
                                     </div>
                                 </div>
@@ -142,11 +198,11 @@ export default function ProductDetail() {
                                 )}
                                 {p && p.outOfStock ? (<div className="inline-flex flex-col justify-start items-start gap-4">
                                     <div className="justify-start text-white text-base font-semibold font-['Mona_Sans'] leading-normal">Out of stock</div>
-                                    <div className="w-full px-7 py-3 bg-rose-500 rounded-xl inline-flex justify-center items-center gap-2.5">
-                                        <div className="justify-start text-white text-sm font-medium font-['Mona_Sans'] leading-tight">Add Reminder</div>
-                                    </div>
+                                    <Button onClick={handleAddToWishlist} disabled={addingToWishlist} className="w-full px-7 py-3 bg-rose-500 rounded-xl inline-flex justify-center items-center gap-2.5">
+                                        <div className="justify-start text-white text-sm font-medium font-['Mona_Sans'] leading-tight">{addingToWishlist ? 'Adding...' : 'Add to Wishlist'}</div>
+                                    </Button>
                                 </div>) :
-                            <Button className="w-full max-w-xs px-7 py-4 bg-rose-500 rounded-xl flex justify-center items-center gap-2.5 text-white text-sm font-medium font-sans leading-tight">Add To Cart</Button>
+                            <Button onClick={handleAddToCart} disabled={cartUpdating} className="w-full max-w-xs px-7 py-4 bg-rose-500 rounded-xl flex justify-center items-center gap-2.5 text-white text-sm font-medium font-sans leading-tight">{cartUpdating ? 'Adding...' : 'Add To Cart'}</Button>
                         }
                         
                         </div>
@@ -173,32 +229,41 @@ export default function ProductDetail() {
                                     <div className="flex flex-col gap-4">
                                         <h1 className="text-white text-[32px] font-semibold    leading-10">{p.name}</h1>
                                         <div className="text-white text-[28px] font-semibold    leading-[44px]">
-                                            <AmountCurrency amount={p.price} fromCurrency={p.currency} />
+                                            <AmountCurrency amount={totalPrice} fromCurrency={p.currency} />
                                         </div>
                                     </div>
                                     <div className="flex flex-col gap-6">
-                                        {/* Color selector as shadcn/ui dropdown */}
-                                        <div className="w-64 rounded-lg flex flex-col gap-2">
-                                            <div className="text-gray-200 text-base font-medium   ">Color</div>
-                                            <Select>
-                                                <SelectTrigger className="self-stretch px-3.5 py-5 rounded-lg outline outline-1 outline-offset-[-1px] outline-neutral-700 inline-flex flex-col justify-start items-start gap-2.5 border-none">
-                                                    <SelectValue defaultValue={'Grey'} placeholder="Select Color" />
-                                                </SelectTrigger>
-                                                <SelectContent className=" rounded-lg mt-1 ">
-                                                    <SelectItem value="Grey" className="text-gray-400 text-base font-normal    px-4 py-2 cursor-pointer">Grey</SelectItem>
-                                                    <SelectItem value="Black" className="text-gray-400 text-base font-normal    px-4 py-2 cursor-pointer">Black</SelectItem>
-                                                    <SelectItem value="Blue" className="text-gray-400 text-base font-normal    px-4 py-2 cursor-pointer">Blue</SelectItem>
-                                                </SelectContent>
-                                            </Select>
-                                        </div>
+                                        {/* Variant selector as shadcn/ui dropdown */}
+                                        {p.variants && p.variants.length > 0 && (
+                                            <div className="w-64 rounded-lg flex flex-col gap-2">
+                                                <div className="text-gray-200 text-base font-medium   ">Variant</div>
+                                                <Select value={selectedColor} onValueChange={setSelectedColor}>
+                                                    <SelectTrigger className="self-stretch px-3.5 py-5 rounded-lg outline outline-1 outline-offset-[-1px] outline-neutral-700 inline-flex flex-col justify-start items-start gap-2.5 border-none">
+                                                        <SelectValue placeholder="Select Variant" />
+                                                    </SelectTrigger>
+                                                    <SelectContent className=" rounded-lg mt-1 ">
+                                                        {p.variants.map((variant) => (
+                                                            <SelectItem key={variant.name} value={variant.name} className="text-gray-400 text-base font-normal    px-4 py-2 cursor-pointer">
+                                                                {variant.name}
+                                                                {variant.attributes && variant.attributes.length > 0 && (
+                                                                    <span className="text-xs text-gray-500 ml-2">
+                                                                        ({variant.attributes.map(attr => `${attr.name}: ${attr.value}`).join(', ')})
+                                                                    </span>
+                                                                )}
+                                                            </SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
+                                            </div>
+                                        )}
                                         {/* Quantity selector (static for now) */}
                                         <div className="w-36 flex flex-col gap-2">
                                             <div className="text-white text-sm font-medium   ">Quantity</div>
                                             <div className="p-3 outline outline-1 outline-gray-300 flex flex-col items-center rounded-lg">
                                                 <div className="flex items-end gap-9">
-                                                    <button className="w-6 h-6 flex items-center justify-center"><Minus color="#f1f1f1" /></button>
-                                                    <span className="text-white text-base font-medium   ">1</span>
-                                                    <button className="w-6 h-6 flex items-center justify-center"><Plus color="#f1f1f1" /></button>
+                                                    <button onClick={() => handleQuantityChange(-1)} className="w-6 h-6 flex items-center justify-center"><Minus color="#f1f1f1" /></button>
+                                                    <span className="text-white text-base font-medium   ">{quantity}</span>
+                                                    <button onClick={() => handleQuantityChange(1)} className="w-6 h-6 flex items-center justify-center"><Plus color="#f1f1f1" /></button>
                                                 </div>
                                             </div>
                                         </div>
@@ -211,11 +276,11 @@ export default function ProductDetail() {
                                 )}
                                 {p && p.outOfStock ? (<div className="inline-flex flex-col justify-start items-start gap-4">
                                     <div className="justify-start text-white text-base font-semibold font-['Mona_Sans'] leading-normal">Out of stock</div>
-                                    <div className="w-96 px-7 py-3 bg-rose-500 rounded-xl inline-flex justify-center items-center gap-2.5">
-                                        <div className="justify-start text-white text-sm font-medium font-['Mona_Sans'] leading-tight">Add Reminder</div>
-                                    </div>
+                                    <Button onClick={handleAddToWishlist} disabled={addingToWishlist} className="w-96 px-7 py-3 bg-rose-500 rounded-xl inline-flex justify-center items-center gap-2.5">
+                                        <div className="justify-start text-white text-sm font-medium font-['Mona_Sans'] leading-tight">{addingToWishlist ? 'Adding...' : 'Add to Wishlist'}</div>
+                                    </Button>
                                 </div>) :
-                                    <Button className="w-[400px] h-12 bg-rose-500 rounded-xl text-white text-base font-medium   ">Add To Cart</Button>
+                                    <Button onClick={handleAddToCart} disabled={cartUpdating} className="w-[400px] h-12 bg-rose-500 rounded-xl text-white text-base font-medium   ">{cartUpdating ? 'Adding...' : 'Add To Cart'}</Button>
                                 }
                             </div>
                             <div className="flex flex-col gap-3">
@@ -230,9 +295,9 @@ export default function ProductDetail() {
                             <div className="text-rose-500 text-xl font-semibold    leading-relaxed">Description</div>
                         </div>
                         <div className="flex flex-col gap-8">
-                            <div className="text-white text-2xl font-semibold    leading-loose">{p.description}</div>
+                            <div className="text-white text-2xl font-semibold    leading-loose whitespace-pre-wrap break-words max-w-full">{p.description}</div>
                             <div className="flex flex-col gap-6">
-                                {p.specs.map((spec, idx) => (
+                                {p.specs && p.specs.map((spec, idx) => (
                                     <div key={idx} className="flex gap-2">
                                         <div className="w-28 text-white text-base font-medium   ">{spec.label}</div>
                                         <div className="flex-1 text-white text-base font-normal   ">{spec.value}</div>

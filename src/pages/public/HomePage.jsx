@@ -28,7 +28,8 @@ function HomePage() {
           price: `${p.price} ${p.currency || 'USDT'}`,
           badge: p.badge || undefined,
           outOfStock: !!p.outOfStock,
-          _id:p._id
+          _id:p._id,
+          description: p.description
         }));
         setTopCategoryProducts(popularItems);
 
@@ -40,7 +41,8 @@ function HomePage() {
           price: `${p.price} ${p.currency || 'USDT'}`,
           badge: p.badge || undefined,
           outOfStock: !!p.outOfStock,
-          _id:p._id
+          _id:p._id,
+          description: p.description
 
         }));
         setNewArrivals(newestItems);
@@ -89,20 +91,47 @@ function HomePage() {
         </div>
       </div>
 
+      {/* Loading State */}
+      {loading && (
+        <div className="flex justify-center items-center py-20">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-500"></div>
+        </div>
+      )}
+      
+      {/* Error State */}
+      {error && (
+        <div className="text-center py-20">
+          <p className="text-red-400 mb-4">Failed to load products</p>
+          <button 
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+          >
+            Try Again
+          </button>
+        </div>
+      )}
+      
       {/* Sections from backend */}
-      <ProductList
-        title="Top Categories"
-        products={loading || error ? [] : topCategoryProducts}
-      />
+      {!loading && !error && (
+        <>
+          <ProductList
+            title="Top Categories"
+            products={topCategoryProducts}
+            hideAddToCart={true}
+            hideDescription={true}
+          />
 
-      <Separator className="  w-[86%] mx-auto h-px top-[83px] left-0 bg-white/10" />
+          <Separator className="w-[86%] mx-auto h-px bg-white/10" />
 
-      {/* New Arrivals Section */}
-      <ProductList
-        title="New Arrivals"
-        products={loading || error ? [] : newArrivals}
-      />
-      {/* Add more <ProductList title="..." products={...} /> as needed */}
+          {/* New Arrivals Section */}
+          <ProductList
+            title="New Arrivals"
+            products={newArrivals}
+            hideAddToCart={true}
+            hideDescription={true}
+          />
+        </>
+      )}
     </Layout>
   );
 }

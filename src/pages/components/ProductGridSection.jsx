@@ -9,21 +9,26 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 import { Separator } from "@/components/ui/separator";
-import React from "react";
+import React, { useState } from "react";
 import ProductFilter from "@/components/widgets/ProductFilter";
 import { ACTIVE_PAGINATION_ITEM_STYLE, PAGINATION_ITEM_STYLE } from "@/components/constants";
 import { useNavigate } from "react-router-dom";
 import { AppRoutes } from "@/config/routes";
 import AmountCurrency from "@/components/ui/AmountCurrency";
+import cartService from "@/services/cartService";
+import useStore from "@/store/useStore";
 
 const ProductGridSection = ({ products = [], activePage = 1, totalPages = 1, onPageChange }) => {
   const navigate = useNavigate();
+  const [addingToCart, setAddingToCart] = useState(null);
+  const { addToCart } = useStore();
 
   // Normalize incoming products to UI shape without changing visual UI
   const normalized = (products || []).map((p) => ({
     id: p?._id || p?.id || p?.slug,
     name: p?.name,
     price: p?.price,
+    description: p?.description,
     currency: p?.currency || "USDT",
     image: p?.images?.[0] || p?.image || "https://via.placeholder.com/300x240",
   }));
@@ -31,6 +36,20 @@ const ProductGridSection = ({ products = [], activePage = 1, totalPages = 1, onP
   const handleNavigate = (id) => {
     if (!id) return;
     navigate(AppRoutes.productDetail.path.replace(":id", id));
+  };
+
+  const handleAddToCart = async (productId) => {
+    if (!productId) return;
+    setAddingToCart(productId);
+    try {
+      await addToCart(productId, 1);
+      setTimeout(() => {
+        setAddingToCart(null);
+      }, 2000);
+    } catch (error) {
+      console.error("Failed to add to cart:", error);
+      setAddingToCart(null);
+    }
   };
 
   return (
@@ -51,12 +70,11 @@ const ProductGridSection = ({ products = [], activePage = 1, totalPages = 1, onP
           <div className="grid grid-cols-2 md:gap-6 gap-3 md:grid-cols-3 relative flex-[0_0_auto] w-full ">
             {normalized.map((product) => (
               <Card
-                onClick={() => handleNavigate(product.id)}
                 key={product.id}
                 className="flex   w-[100%] p-0  flex-col  items-start gap-4 relative bg-transparent border-none"
               >
                 <CardContent style={{ padding: "0px" }} className="p-0">
-                  <div className="relative self-stretch w-full h-[230px] md:h-[267.2px]  bg-neutral-800 rounded-[15.95px] overflow-hidden">
+                  <div className="relative self-stretch w-full h-[230px] md:h-[267.2px]  bg-neutral-800 rounded-[15.95px] overflow-hidden" onClick={() => handleNavigate(product.id)}>
                     <img
                       className="absolute w-[296px] h-[267px] top-0 left-0 object-cover"
                       alt={product.name}
@@ -66,8 +84,11 @@ const ProductGridSection = ({ products = [], activePage = 1, totalPages = 1, onP
 
                   <div className="flex flex-col items-start gap-4 relative self-stretch w-full flex-[0_0_auto] mt-4">
                     <div className="flex flex-col w-full items-start gap-[9.57px] relative flex-[0_0_auto]">
-                      <div className="relative self-stretch mt-[-0.80px] [font-family:'Mona_Sans-Regular',Helvetica] font-normal text-defaultwhite text-[17.6px] tracking-[0] leading-[21.1px]">
+                      <div className="relative self-stretch mt-[-0.80px] [font-family:'Mona_Sans-Regular',Helvetica] font-normal text-defaultwhite text-[17.6px] tracking-[0] leading-[21.1px] truncate" onClick={() => handleNavigate(product.id)}>
                         {product.name}
+                      </div>
+                      <div className="relative self-stretch [font-family:'Mona_Sans-Regular',Helvetica] font-normal text-defaultwhite text-[14px] tracking-[0] leading-[18px] h-[15px] overflow-hidden whitespace-nowrap text-ellipsis max-w-[156px] md:max-w-[236px]" onClick={() => handleNavigate(product.id)}>
+                        {product.description}
                       </div>
 
                       <div className="relative self-stretch [font-family:'Mona_Sans-SemiBold',Helvetica] font-semibold text-defaultwhite text-[17.6px] tracking-[0] leading-[21.1px]">
@@ -75,9 +96,13 @@ const ProductGridSection = ({ products = [], activePage = 1, totalPages = 1, onP
                       </div>
                     </div>
 
-                    <Button className="flex items-center justify-center gap-2.5 px-7 py-[13px] relative self-stretch w-full flex-[0_0_auto] bg-primaryp-300 rounded-xl h-auto">
+                    <Button
+                      onClick={() => handleAddToCart(product.id)}
+                      className="flex items-center justify-center gap-2.5 px-7 py-[13px] relative self-stretch w-full flex-[0_0_auto] bg-primaryp-300 rounded-xl h-auto"
+                      disabled={addingToCart === product.id}
+                    >
                       <span className="font-body-base-base-medium font-[number:var(--body-base-base-medium-font-weight)] text-white text-[length:var(--body-base-base-medium-font-size)] tracking-[var(--body-base-base-medium-letter-spacing)] leading-[var(--body-base-base-medium-line-height)] whitespace-nowrap [font-style:var(--body-base-base-medium-font-style)]">
-                        Add To Cart
+                        {addingToCart === product.id ? "Adding..." : "Add To Cart"}
                       </span>
                     </Button>
                   </div>

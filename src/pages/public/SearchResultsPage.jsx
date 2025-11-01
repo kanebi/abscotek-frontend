@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import Layout from "@/components/Layout";
 import ProductGridSection from "../components/ProductGridSection";
@@ -13,9 +13,9 @@ import { AppRoutes } from "@/config/routes";
 import { MobileFilterButton } from "@/components/widgets/ProductFilter";
 import { DROPDOWN_MENU_CONTENT_STYLE } from "@/components/constants";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useState } from "react";
 import SEO from "@/components/SEO";
 import { getPageSEO, generateBreadcrumbStructuredData } from "@/config/seo";
+import productService from "@/services/productService";
 
 function useQuery() {
   const { search } = useLocation();
@@ -24,12 +24,47 @@ function useQuery() {
 
 export default function SearchResultsPage() {
   const query = useQuery().get("q") || "";
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [totalPages, setTotalPages] = useState(1);
+  const [page, setPage] = useState(1);
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        setLoading(true);
+        const params = { q: query, page, limit: 12 };
+        const data = await productService.getProducts(params);
+        if (Array.isArray(data)) {
+          setProducts(data);
+          setTotalPages(1);
+        } else {
+          setProducts(data.items || []);
+          const total = data.total || (data.items || []).length;
+          const limit = data.limit || 12;
+          setTotalPages(Math.max(1, Math.ceil(total / limit)));
+        }
+      } catch (err) {
+        setError(err);
+        console.error("Failed to fetch products:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, [query, page]);
+
+  const onPageChange = (nextPage) => {
+    setPage(nextPage);
+  };
+
   const breadcrumbItems = [
     { label: "Home", href: AppRoutes.home.path },
     { label: "Products", href: AppRoutes.productList.path },
     { label: `Search Result: ${query}` },
   ];
-  const [resultCount, setResultCount] = useState(52);
 
   // SEO configuration
   const seoData = getPageSEO('search', {
@@ -114,17 +149,18 @@ export default function SearchResultsPage() {
 
       {/* Shopping count - moved to bottom on mobile */}
       <h2 className=" absolute top-[100px] text-sm text-defaultgrey-2 md:block hidden">
-        Shopping Options ({resultCount} Results)
+        Shopping Options ({products.length} Results)
       </h2>
-        <ProductGridSection />
+        <ProductGridSection products={products} activePage={page} totalPages={totalPages} onPageChange={onPageChange} />
       </div>
       
       {/* Mobile Shopping count at bottom */}
       <div className="md:hidden absolute block top-[240px]  left-4 right-0 ">
         <h2 className="text-sm text-defaultgrey-2">
-          Shopping Options ({resultCount})
+          Shopping Options ({products.length})
         </h2>
       </div>
     </Layout>
   );
-} 
+}
+ 

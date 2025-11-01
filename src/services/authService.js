@@ -1,6 +1,7 @@
 import apiClient from '@/lib/apiClient';
 
-const login = async (email, password) => {
+// Admin authentication
+const adminLogin = async (email, password) => {
   const response = await apiClient.post('/admin/login', { email, password });
   if (response.data.token) {
     localStorage.setItem('token', response.data.token);
@@ -8,7 +9,7 @@ const login = async (email, password) => {
   return response.data;
 };
 
-const signup = async (userData) => {
+const adminSignup = async (userData) => {
   const response = await apiClient.post('/admin/signup', {
     name: userData.name,
     email: userData.email,
@@ -23,14 +24,84 @@ const signup = async (userData) => {
   return response.data;
 };
 
-const requestSignature = async (walletAddress) => {
-  const response = await apiClient.post('/auth/web3/request-signature', { walletAddress });
+// Regular user authentication
+const login = async (email, password) => {
+  const response = await apiClient.post('/auth', { email, password });
+  if (response.data.token) {
+    localStorage.setItem('token', response.data.token);
+    if (response.data.user) {
+      localStorage.setItem('userInfo', JSON.stringify(response.data.user));
+    }
+  }
   return response.data;
 };
 
-const verifySignature = async (walletAddress, signature) => {
-  const response = await apiClient.post('/auth/web3/verify-signature', { walletAddress, signature });
-  return response.data; // Now expects { token, user }
+const signup = async (userData) => {
+  // Fix signup to use correct fields and endpoint
+  const response = await apiClient.post('/users', {
+    name: `${userData.firstName || ''} ${userData.lastName || ''}`.trim(),
+    email: userData.email,
+    password: userData.password,
+    phoneNumber: userData.phoneNumber,
+    referralCode: userData.referralCode
+  });
+  if (response.data.token) {
+    localStorage.setItem('token', response.data.token);
+    if (response.data.user) {
+      localStorage.setItem('userInfo', JSON.stringify(response.data.user));
+    }
+  }
+  return response.data;
+};
+
+// Get current user
+const getCurrentUser = async () => {
+  const response = await apiClient.get('/auth');
+  return response.data;
+};
+
+// Get admin profile
+const getAdminProfile = async () => {
+  const response = await apiClient.get('/admin/profile');
+  return response.data;
+};
+
+// Update admin profile
+const updateAdminProfile = async (profileData) => {
+  const response = await apiClient.put('/admin/profile', profileData);
+  return response.data;
+};
+
+// Change admin password
+const changeAdminPassword = async (currentPassword, newPassword) => {
+  const response = await apiClient.put('/admin/change-password', {
+    currentPassword,
+    newPassword
+  });
+  return response.data;
+};
+
+// Get user profile
+const getUserProfile = async () => {
+  const response = await apiClient.get('/users/profile');
+  return response.data;
+};
+
+// Update user profile
+const updateUserProfile = async (profileData) => {
+  const response = await apiClient.put('/users/profile', profileData);
+  return response.data;
+};
+
+const authenticateWithPrivy = async (privyAccessToken) => {
+  const response = await apiClient.post('/auth/privy', { accessToken: privyAccessToken });
+  if (response.data.token) {
+    localStorage.setItem('token', response.data.token);
+    if (response.data.user) {
+      localStorage.setItem('userInfo', JSON.stringify(response.data.user));
+    }
+  }
+  return response.data;
 };
 
 const logout = () => {
@@ -57,4 +128,18 @@ const extractErrorMessage = (error) => {
   }
 };
 
-export default { login, signup, requestSignature, verifySignature, logout, extractErrorMessage };
+export default {
+  login,
+  signup,
+  adminLogin,
+  adminSignup,
+  getCurrentUser,
+  getAdminProfile,
+  updateAdminProfile,
+  changeAdminPassword,
+  getUserProfile,
+  updateUserProfile,
+  authenticateWithPrivy,
+  logout,
+  extractErrorMessage
+};

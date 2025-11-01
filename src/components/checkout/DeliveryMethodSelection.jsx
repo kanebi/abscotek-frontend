@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { Separator } from '../ui/separator';
 import AmountCurrency from '../ui/AmountCurrency';
 
-const deliveryMethods = [
+// Default frontend delivery methods
+const defaultDeliveryMethods = [
   {
     id: 'lagos',
     name: 'Lagos: 1-2 days',
@@ -17,9 +18,13 @@ const deliveryMethods = [
   }
 ];
 
-function DeliveryMethodSelection({ selectedMethod, onMethodChange }) {
+function DeliveryMethodSelection({ 
+  selectedMethod, 
+  onMethodChange, 
+  methods = defaultDeliveryMethods // Allow passing methods from parent
+}) {
   const handleMethodSelect = (methodId) => {
-    const method = deliveryMethods.find(m => m.id === methodId);
+    const method = methods.find(m => m.id === methodId);
     onMethodChange && onMethodChange(method);
   };
 
@@ -29,7 +34,7 @@ function DeliveryMethodSelection({ selectedMethod, onMethodChange }) {
       <Separator className="mb-6 bg-[#38383a]" />
       
       <div className="space-y-4">
-        {deliveryMethods.map((method) => (
+        {methods.map((method) => (
           <div 
             key={method.id}
             className={`p-4 rounded-lg border cursor-pointer transition-all ${

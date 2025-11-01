@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React from "react";
 import Layout from "@/components/Layout";
 import ProfileHeader from "@/components/sections/ProfileHeader";
 import UserProfileSection from "@/components/sections/UserProfileSection";
@@ -6,37 +6,8 @@ import bannerImg from "@/assets/images/cover.jpg";
 import avatarImg from "@/assets/images/avatar.png";
 import SEO from "@/components/SEO";
 import { getPageSEO } from "@/config/seo";
-import useStore from "@/store/useStore";
-import userService from "@/services/userService";
 
-export default function UserProfilePage() {
-  const { token, currentUser, setCurrentUser } = useStore();
-
-  useEffect(() => {
-    const fetchUserProfile = async () => {
-      try {
-        const user = await userService.getUser();
-        setCurrentUser(user);
-      } catch (error) {
-        console.error("Failed to fetch user profile:", error);
-        // Handle error, e.g., redirect to login or show a message
-      }
-    };
-
-    fetchUserProfile();
-  }, [setCurrentUser]);
-
-  const handleProfileUpdate = async (userData) => {
-    try {
-      const updatedUser = await userService.updateUser(userData);
-      setCurrentUser(updatedUser);
-      // Optionally show a success message
-    } catch (error) {
-      console.error("Failed to update user profile:", error);
-      // Handle error, e.g., show an error message
-    }
-  };
-
+const UserProfilePage = () => {
   // SEO configuration
   const seoData = getPageSEO('profile', { path: '/profile' });
 
@@ -65,8 +36,8 @@ export default function UserProfilePage() {
 
         {/* Profile Header and Content */}
         <div className="flex flex-col w-full px-4 mt-4 gap-6">
-          <ProfileHeader user={currentUser} />
-          <UserProfileSection user={currentUser} onUpdate={handleProfileUpdate} />
+          <ProfileHeader />
+          <UserProfileSection />
         </div>
       </div>
 
@@ -94,11 +65,13 @@ export default function UserProfilePage() {
 
           {/* Desktop Profile Header and Content */}
           <div className="flex flex-col gap-10 mx-auto min-h-[500px] pb-4">
-            <ProfileHeader user={currentUser} />
-            <UserProfileSection user={currentUser} onUpdate={handleProfileUpdate} />
+            <ProfileHeader />
+            <UserProfileSection />
           </div>
         </div>
       </div>
     </Layout>
   );
 };
+
+export default UserProfilePage;

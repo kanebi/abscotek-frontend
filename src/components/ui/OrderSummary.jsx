@@ -6,9 +6,9 @@ export default function OrderSummary({ order }) {
   const orderDetails = {
     product: {
       name: order.product.name,
-      color: order.product.color,
+      variant: order.product.variant,
       quantity: order.product.quantity,
-      image: order.product.image,
+      image: order.product.images?.[0] || order.product.image || '/images/desktop-1.png',
     },
     pricing: [
       { label: "Subtotal", value: order.pricing.subtotal },
@@ -22,11 +22,17 @@ export default function OrderSummary({ order }) {
       <CardContent className="flex flex-col items-end justify-center gap-5 px-4 py-0 relative self-stretch w-full flex-[0_0_auto]">
         <div className="flex items-start gap-5 relative self-stretch w-full flex-[0_0_auto]">
           <div className="relative w-[77.14px] h-[77.14px] bg-white rounded-[6.17px] overflow-hidden">
-            <img
-              className="absolute w-[77px] h-[77px] top-0 left-0 object-cover"
-              alt={`${orderDetails.product.name} in ${orderDetails.product.color} color`}
-              src={orderDetails.product.image}
-            />
+            {orderDetails.product.images && orderDetails.product.images.length > 0 ? (
+              <img
+                className="absolute w-[77px] h-[77px] top-0 left-0 object-cover"
+                alt={`${orderDetails.product.name}${orderDetails.product.variant !== 'N/A' ? ` - ${orderDetails.product.variant}` : ''}`}
+                src={orderDetails.product.images[0]}
+              />
+            ) : (
+              <div className="absolute w-[77px] h-[77px] top-0 left-0 bg-neutralneutral-800 rounded-lg flex items-center justify-center">
+                <span className="text-neutralneutral-400 text-xs">No Image</span>
+              </div>
+            )}
           </div>
 
           <div className="flex items-center justify-end gap-5 relative flex-1 grow">
@@ -37,7 +43,7 @@ export default function OrderSummary({ order }) {
                 </h3>
 
                 <p className="relative w-fit font-body-base-base-medium font-[number:var(--body-base-base-medium-font-weight)] text-neutralneutral-100 text-[length:var(--body-base-base-medium-font-size)] tracking-[var(--body-base-base-medium-letter-spacing)] leading-[var(--body-base-base-medium-line-height)] whitespace-nowrap [font-style:var(--body-base-base-medium-font-style)]">
-                  {orderDetails.product.color}
+                  {orderDetails.product.variant}
                 </p>
               </div>
 

@@ -30,7 +30,7 @@ function UserOrdersPage() {
   const fetchOrders = async () => {
     try {
       setLoading(true);
-      const userOrders = await orderService.getOrders(token);
+      const userOrders = await orderService.getOrders();
       setOrders(userOrders);
     } catch (error) {
       console.error('Error fetching orders:', error);

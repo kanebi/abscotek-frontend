@@ -2,9 +2,11 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Search } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import React from "react";
+import React, { useEffect } from "react";
 import useStore from "@/store/useStore";
 import WalletConnectButton from "@/components/widgets/WalletConnectButton";
+import { usePrivy } from '@privy-io/react-auth';
+import { useWeb3Auth } from "@/hooks/useWeb3Auth";
 
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import SliderCart from "@/components/ui/SliderCart";
@@ -19,6 +21,10 @@ import MobileSearchModal from "@/components/widgets/MobileSearchModal";
 
 export default function Frame() {
     const user = useStore((state) => state.currentUser);
+    const setUser = useStore((state) => state.setCurrentUser);
+    const setToken = useStore((state) => state.setToken);
+    const { authenticated, user: privyUser } = usePrivy();
+    const { authenticateAndLogin } = useWeb3Auth();
 
     const [referModalOpen, setReferModalOpen] = React.useState(false);
     const [searchOpen, setSearchOpen] = React.useState(false);
@@ -83,15 +89,15 @@ export default function Frame() {
                                 </div>
                             </Button>
                         </div>
-                        {user ? (
+                        {authenticated ? (
                             <UserPopover user={user}>
                                 <div className="cursor-pointer">
                                     <AvatarBlock user={user} />
                                 </div>
                             </UserPopover>
                         ) : (
-                            <WalletConnectButton />
-                            )}
+                            <WalletConnectButton onConnect={authenticateAndLogin} />
+                        )}
                         <SliderCart />
 
                     </div>
@@ -129,15 +135,15 @@ export default function Frame() {
                         >
                             <Search className="relative w-5 h-5 text-[#858585]" />
                         </Button>
-                        {user ? (
+                        {authenticated ? (
                             <UserPopover user={user}>
                                 <div className="cursor-pointer">
                                     <AvatarBlock user={user} />
                                 </div>
                             </UserPopover>
                         ) : (
-                            <WalletConnectButton />
-                        )}
+                            <WalletConnectButton onConnect={authenticateAndLogin} />
+                            )}
 
                         <SliderCart />
                         <Button

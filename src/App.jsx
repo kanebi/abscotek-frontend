@@ -1,7 +1,6 @@
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
-import ReownProvider from './context/ReownProvider';
 
 // Admin Pages
 import AdminDashboard from './pages/admin/AdminDashboard';
@@ -34,6 +33,7 @@ import SearchResultsPage from './pages/public/SearchResultsPage';
 
 // Components
 import PrivateRoute from './components/PrivateRoute';
+import ConnectWalletModal from './components/widgets/ConnectWalletModal';
 import Toast from './components/Toast';
 import Layout from './components/Layout';
 import Web3AuthProvider from './components/Web3AuthProvider';
@@ -44,13 +44,13 @@ import './App.css';
 
 function App() {
   return (
-    <ReownProvider>
-      <Web3AuthProvider>
-        <HelmetProvider>
-          <Router>
-            <div className="App">
-              <Toast />
-              <Routes>
+    <Web3AuthProvider>
+      <HelmetProvider>
+        <Router>
+          <div className="App">
+            <Toast />
+            <ConnectWalletModal />
+            <Routes>
               {/* Public Routes */}
               <Route path={AppRoutes.home.path} element={<HomePage />} />
               <Route path={AppRoutes.login.path} element={<LoginPage />} />
@@ -125,11 +125,10 @@ function App() {
                 element={<PrivateRoute><WishlistManagement /></PrivateRoute>}
               />
                           </Routes>
-            </div>
-          </Router>
-        </HelmetProvider>
-      </Web3AuthProvider>
-    </ReownProvider>
+          </div>
+        </Router>
+      </HelmetProvider>
+    </Web3AuthProvider>
   );
 }
 

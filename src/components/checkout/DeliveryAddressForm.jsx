@@ -45,11 +45,11 @@ function DeliveryAddressForm({ onSave, onCancel, showCancel = false, editingAddr
     setIsLoading(true);
     
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      onSave && onSave(formData);
+      // Call the real API through the parent component
+      await onSave(formData);
     } catch (error) {
       console.error('Error saving address:', error);
+      // Handle error (could add error state/toast here)
     } finally {
       setIsLoading(false);
     }
