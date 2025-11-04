@@ -1,17 +1,25 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Layout from '../../components/Layout';
 import { Button } from '../../components/ui/button';
 import { Card } from '../../components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select';
 import AmountCurrency from '../../components/ui/AmountCurrency';
 import { DollarSign, Wallet, Clock, CheckCircle } from 'lucide-react';
+import useStore from '../../store/useStore';
 
 function WithdrawalPage() {
-  const [availableBalance, setAvailableBalance] = useState(245.80);
+  const { currentUser } = useStore();
+  const [availableBalance, setAvailableBalance] = useState(currentUser?.platformBalance || 0);
+
+  useEffect(() => {
+    if (currentUser?.platformBalance !== undefined) {
+      setAvailableBalance(currentUser.platformBalance);
+    }
+  }, [currentUser?.platformBalance]);
   const [withdrawalAmount, setWithdrawalAmount] = useState('');
   const [withdrawalMethod, setWithdrawalMethod] = useState('');
   const [loading, setLoading] = useState(false);
-  const [withdrawalHistory] = useState([
+  const [withdrawalHistory, setWithdrawalHistory] = useState([
     {
       id: 'WD001',
       amount: 150.00,
@@ -33,7 +41,8 @@ function WithdrawalPage() {
   const withdrawalMethods = [
     { id: 'bank', name: 'Bank Transfer', fee: 5.00, minAmount: 50 },
     { id: 'usdt', name: 'USDT Wallet', fee: 2.00, minAmount: 20 },
-    { id: 'paypal', name: 'PayPal', fee: 3.50, minAmount: 25 }
+    { id: 'paypal', name: 'PayPal', fee: 3.50, minAmount: 25 },
+    { id: 'crypto', name: 'Crypto Wallet', fee: 1.50, minAmount: 10 }
   ];
 
   const selectedMethod = withdrawalMethods.find(m => m.id === withdrawalMethod);
@@ -60,13 +69,33 @@ function WithdrawalPage() {
 
     setLoading(true);
     try {
+      // Check if user has sufficient balance
+      if (amount > availableBalance) {
+        alert('Insufficient balance for withdrawal.');
+        return;
+      }
+
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 2000));
-      
+
+      // Update balance and add to history
+      const newWithdrawal = {
+        id: `WD${Date.now()}`,
+        amount: amount,
+        method: withdrawalMethod === 'bank' ? 'Bank Transfer' :
+                withdrawalMethod === 'usdt' ? 'USDT Wallet' :
+                withdrawalMethod === 'paypal' ? 'PayPal' :
+                withdrawalMethod === 'crypto' ? 'Crypto Wallet' : 'Unknown',
+        status: 'pending',
+        date: new Date().toISOString().split('T')[0],
+        fee: selectedMethod?.fee || 0
+      };
+
+      setWithdrawalHistory(prev => [newWithdrawal, ...prev]);
       setAvailableBalance(prev => prev - amount);
       setWithdrawalAmount('');
       setWithdrawalMethod('');
-      
+
       alert('Withdrawal request submitted successfully!');
     } catch (error) {
       alert('Failed to process withdrawal. Please try again.');
@@ -189,12 +218,12 @@ function WithdrawalPage() {
                   </div>
 
                   {/* Submit */}
-                  <Button 
-                    type="submit" 
-                    disabled={loading || !withdrawalAmount || !withdrawalMethod}
-                    className="w-full bg-primaryp-500 hover:bg-primaryp-400"
+                  <Button
+                    type="submit"
+                    disabled={loading || !withdrawalAmount || !withdrawalMethod || availableBalance <= 0}
+                    className="w-full bg-primaryp-500 hover:bg-primaryp-400 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    {loading ? 'Processing...' : 'Submit Withdrawal Request'}
+                    {availableBalance <= 0 ? 'Insufficient Balance' : loading ? 'Processing...' : 'Submit Withdrawal Request'}
                   </Button>
                 </form>
               </Card>

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { X, Minus, Plus } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "./button";
 import { Separator } from "./separator";
 import AmountCurrency from "./AmountCurrency";
@@ -11,11 +12,12 @@ export default function SliderCart({ triggerClassName = ""}) {
   const [isOpen, setIsOpen] = useState(false);
   const [deleteModal, setDeleteModal] = useState({ isOpen: false, item: null });
   const [isDeleting, setIsDeleting] = useState(false);
-  
-  const { 
-    cart, 
-    cartLoading, 
-    cartUpdating, 
+  const navigate = useNavigate();
+
+  const {
+    cart,
+    cartLoading,
+    cartUpdating,
     userCurrency,
     updateCartQuantity,
     removeFromCart,
@@ -56,22 +58,22 @@ export default function SliderCart({ triggerClassName = ""}) {
   };
 
   const handleDeleteConfirm = async () => {
-    console.log('handleDeleteConfirm deleteModal.item', deleteModal.item);
-    if (!deleteModal.item) return;
-    
-    setIsDeleting(true);
-    try {
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 500));
-      const productIdToDelete = deleteModal.item.product._id;
-      removeFromCart(productIdToDelete);
-      setDeleteModal({ isOpen: false, item: null });
-    } catch (error) {
-      console.error('Error removing item:', error);
-    } finally {
-      setIsDeleting(false);
-    }
-  };
+console.log('handleDeleteConfirm deleteModal.item', deleteModal.item);
+if (!deleteModal.item) return;
+
+setIsDeleting(true);
+try {
+  // Simulate API delay
+  await new Promise(resolve => setTimeout(resolve, 500));
+  const productIdToDelete = deleteModal.item.product?._id || deleteModal.item.productId;
+  removeFromCart(productIdToDelete);
+  setDeleteModal({ isOpen: false, item: null });
+} catch (error) {
+  console.error('Error removing item:', error);
+} finally {
+  setIsDeleting(false);
+}
+};
 
   const handleDeleteCancel = () => {
     setDeleteModal({ isOpen: false, item: null });
@@ -177,27 +179,31 @@ export default function SliderCart({ triggerClassName = ""}) {
                      ) : (
              /* Cart Items */
              <div className="p-6 space-y-6">
-               {cart.items.map((item) => (
-                 <div key={item.product._id} className="flex items-start gap-4">
+               {cart.items.map((item, index) => (
+                 <div key={item.product?._id || item.productId || index} className="flex items-start gap-4">
                    {/* Product Image */}
                    <div className="w-20 h-20 bg-neutralneutral-800 rounded-lg flex-shrink-0 overflow-hidden">
-                     {item.product.images && item.product.images.length > 0 && (
-                       <img 
-                         src={item.product.images[0]} 
+                     {item.product && item.product.images && item.product.images.length > 0 ? (
+                       <img
+                         src={item.product.images[0]}
                          alt={item.product.name}
                          className="w-full h-full object-cover"
                        />
+                     ) : (
+                       <div className="w-full h-full flex items-center justify-center text-neutralneutral-400 text-xs">
+                         No Image
+                       </div>
                      )}
                    </div>
 
                    {/* Product Info */}
                    <div className="flex-1 min-w-0">
                      <h3 className="text-white font-medium text-base mb-2 leading-tight">
-                       {item.product.name}
+                       {item.product?.name || item.name || 'Product'}
                      </h3>
-                     
+
                      <div className="text-white font-bold text-lg mb-4">
-                       <AmountCurrency amount={item.product.price} fromCurrency="USDT" />
+                       <AmountCurrency amount={item.product?.price || item.price || item.unitPrice} fromCurrency="USDT" />
                      </div>
                      
                      {/* Quantity Controls and Delete Button Row */}
@@ -205,7 +211,7 @@ export default function SliderCart({ triggerClassName = ""}) {
                        {/* Quantity Controls */}
                        <div className="flex items-center gap-0 border border-neutralneutral-600 rounded-lg w-fit">
                          <button
-                           onClick={() => handleUpdateQuantity(item.product._id, item.quantity - 1)}
+                           onClick={() => handleUpdateQuantity(item.product?._id || item.productId, item.quantity - 1)}
                            disabled={cartUpdating || item.quantity <= 1}
                            className="w-10 h-10 flex items-center justify-center hover:bg-neutralneutral-800 disabled:opacity-50 rounded-l-lg"
                          >
@@ -215,7 +221,7 @@ export default function SliderCart({ triggerClassName = ""}) {
                            {item.quantity}
                          </span>
                          <button
-                           onClick={() => handleUpdateQuantity(item.product._id, item.quantity + 1)}
+                           onClick={() => handleUpdateQuantity(item.product?._id || item.productId, item.quantity + 1)}
                            disabled={cartUpdating}
                            className="w-10 h-10 flex items-center justify-center hover:bg-neutralneutral-800 disabled:opacity-50 rounded-r-lg"
                          >
@@ -229,9 +235,9 @@ export default function SliderCart({ triggerClassName = ""}) {
                          disabled={cartUpdating}
                          className="p-2 hover:bg-neutralneutral-800 rounded-lg disabled:opacity-50"
                        >
-                         <img 
-                           src="/images/fluent_delete-20-regular.svg" 
-                           alt="Delete" 
+                         <img
+                           src="/images/fluent_delete-20-regular.svg"
+                           alt="Delete"
                            className="w-6 h-6"
                          />
                        </button>
@@ -257,26 +263,26 @@ export default function SliderCart({ triggerClassName = ""}) {
                
                {/* Buttons */}
                <div className="space-y-3">
-                 <Button 
-                   variant="outline" 
+                 <Button
+                   variant="outline"
                    className="w-full border border-red-500 text-white hover:bg-neutralneutral-800 bg-transparent py-6 rounded-xl font-medium text-base h-14"
                    onClick={() => {
                      closeDrawer();
-                     window.location.href = '/cart';
+                     navigate('/cart');
                    }}
                  >
                    View Cart
                  </Button>
-                 
-                 <Button 
+
+                 <Button
                    className="w-full bg-red-500 hover:bg-red-600 text-white py-6 rounded-xl font-medium text-base h-14 border-0"
                    onClick={() => {
                      closeDrawer();
                      // Navigate to funding or checkout page
-                     window.location.href = '/checkout';
+                     navigate('/checkout');
                    }}
                  >
-                   Fund Required
+                   Checkout
                  </Button>
                </div>
              </div>
@@ -289,7 +295,7 @@ export default function SliderCart({ triggerClassName = ""}) {
         isOpen={deleteModal.isOpen}
         onClose={handleDeleteCancel}
         onConfirm={handleDeleteConfirm}
-        itemName={deleteModal.item?.product.name}
+        itemName={deleteModal.item?.product?.name || deleteModal.item?.name || 'Product'}
         isDeleting={isDeleting}
       />
     </>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '../ui/button';
 import { Separator } from '../ui/separator';
 
@@ -15,6 +15,13 @@ function DeliveryAddressForm({ onSave, onCancel, showCancel = false, editingAddr
   });
 
   const [isLoading, setIsLoading] = useState(false);
+  const [citySuggestions, setCitySuggestions] = useState([]);
+  const [stateSuggestions, setStateSuggestions] = useState([]);
+  const [showCitySuggestions, setShowCitySuggestions] = useState(false);
+  const [showStateSuggestions, setShowStateSuggestions] = useState(false);
+
+  const cityInputRef = useRef(null);
+  const stateInputRef = useRef(null);
 
   // Pre-populate form when editing
   useEffect(() => {
@@ -38,6 +45,129 @@ function DeliveryAddressForm({ onSave, onCancel, showCancel = false, editingAddr
       ...prev,
       [name]: value
     }));
+
+    // Handle autocomplete for city and state
+    if (name === 'city') {
+      handleCityInput(value);
+    } else if (name === 'state') {
+      handleStateInput(value);
+    }
+  };
+
+  // Google Places API integration
+  const loadGooglePlacesScript = () => {
+    if (window.google && window.google.maps && window.google.maps.places) {
+      return Promise.resolve();
+    }
+
+    return new Promise((resolve, reject) => {
+      if (document.querySelector('script[src*="maps.googleapis.com"]')) {
+        resolve();
+        return;
+      }
+
+      const script = document.createElement('script');
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${import.meta.env.VITE_GOOGLE_PLACES_API_KEY}&libraries=places`;
+      script.async = true;
+      script.defer = true;
+      script.onload = resolve;
+      script.onerror = reject;
+      document.head.appendChild(script);
+    });
+  };
+
+  const handleCityInput = async (value) => {
+    if (!value.trim()) {
+      setCitySuggestions([]);
+      setShowCitySuggestions(false);
+      return;
+    }
+
+    try {
+      await loadGooglePlacesScript();
+
+      const service = new window.google.maps.places.AutocompleteService();
+      service.getPlacePredictions(
+        {
+          input: value,
+          types: ['(cities)'],
+          componentRestrictions: { country: 'ng' } // Restrict to Nigeria
+        },
+        (predictions, status) => {
+          if (status === window.google.maps.places.PlacesServiceStatus.OK && predictions) {
+            const cities = predictions.map(prediction => ({
+              description: prediction.description,
+              placeId: prediction.place_id
+            }));
+            setCitySuggestions(cities);
+            setShowCitySuggestions(true);
+          } else {
+            setCitySuggestions([]);
+            setShowCitySuggestions(false);
+          }
+        }
+      );
+    } catch (error) {
+      console.error('Error loading Google Places:', error);
+      setCitySuggestions([]);
+      setShowCitySuggestions(false);
+    }
+  };
+
+  const handleStateInput = async (value) => {
+    if (!value.trim()) {
+      setStateSuggestions([]);
+      setShowStateSuggestions(false);
+      return;
+    }
+
+    try {
+      await loadGooglePlacesScript();
+
+      const service = new window.google.maps.places.AutocompleteService();
+      service.getPlacePredictions(
+        {
+          input: value,
+          types: ['administrative_area_level_1'],
+          componentRestrictions: { country: 'ng' } // Restrict to Nigeria
+        },
+        (predictions, status) => {
+          if (status === window.google.maps.places.PlacesServiceStatus.OK && predictions) {
+            const states = predictions.map(prediction => ({
+              description: prediction.description,
+              placeId: prediction.place_id
+            }));
+            setStateSuggestions(states);
+            setShowStateSuggestions(true);
+          } else {
+            setStateSuggestions([]);
+            setShowStateSuggestions(false);
+          }
+        }
+      );
+    } catch (error) {
+      console.error('Error loading Google Places:', error);
+      setStateSuggestions([]);
+      setShowStateSuggestions(false);
+    }
+  };
+
+  const handleCitySelect = (suggestion) => {
+    setFormData(prev => ({
+      ...prev,
+      city: suggestion.description
+    }));
+    setCitySuggestions([]);
+    setShowCitySuggestions(false);
+  };
+
+  const handleStateSelect = (suggestion) => {
+    setFormData(prev => ({
+      ...prev,
+      state: suggestion.description
+    }));
+    setStateSuggestions([]);
+    setShowStateSuggestions(false);
   };
 
   const handleSubmit = async (e) => {
@@ -162,53 +292,65 @@ function DeliveryAddressForm({ onSave, onCancel, showCancel = false, editingAddr
 
           {/* City and State */}
           <div className="grid grid-cols-2 gap-4">
-            <div>
+            <div className="relative">
               <label className="block text-white text-base font-medium mb-2">
                 City <span className="text-red-500">*</span>
               </label>
-              <select
+              <input
+                type="text"
                 name="city"
                 value={formData.city}
                 onChange={handleInputChange}
+                onFocus={() => formData.city && setShowCitySuggestions(true)}
+                onBlur={() => setTimeout(() => setShowCitySuggestions(false), 200)}
+                ref={cityInputRef}
                 required
-                className="w-full px-4 py-2.5 bg-[#1F1F21] border border-[#2C2C2E] rounded-lg text-white focus:outline-none focus:border-primaryp-500 appearance-none text-base"
-                style={{
-                  backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e")`,
-                  backgroundPosition: 'right 12px center',
-                  backgroundRepeat: 'no-repeat',
-                  backgroundSize: '16px'
-                }}
-              >
-                <option value="">Select City</option>
-                <option value="lagos">Lagos</option>
-                <option value="abuja">Abuja</option>
-                <option value="port-harcourt">Port Harcourt</option>
-                <option value="kano">Kano</option>
-              </select>
+                placeholder="Start typing city name..."
+                className="w-full px-4 py-2.5 bg-[#1F1F21] border border-[#2C2C2E] rounded-lg text-white focus:outline-none focus:border-primaryp-500 text-base"
+              />
+              {showCitySuggestions && citySuggestions.length > 0 && (
+                <div className="absolute z-50 w-full mt-1 bg-[#1F1F21] border border-[#2C2C2E] rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                  {citySuggestions.map((suggestion, index) => (
+                    <div
+                      key={index}
+                      className="px-4 py-2 hover:bg-[#2C2C2E] cursor-pointer text-white text-sm"
+                      onClick={() => handleCitySelect(suggestion)}
+                    >
+                      {suggestion.description}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
-            <div>
+            <div className="relative">
               <label className="block text-white text-base font-medium mb-2">
                 State <span className="text-red-500">*</span>
               </label>
-              <select
+              <input
+                type="text"
                 name="state"
                 value={formData.state}
                 onChange={handleInputChange}
+                onFocus={() => formData.state && setShowStateSuggestions(true)}
+                onBlur={() => setTimeout(() => setShowStateSuggestions(false), 200)}
+                ref={stateInputRef}
                 required
-                className="w-full px-4 py-2.5 bg-[#1F1F21] border border-[#2C2C2E] rounded-lg text-white focus:outline-none focus:border-primaryp-500 appearance-none text-base"
-                style={{
-                  backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e")`,
-                  backgroundPosition: 'right 12px center',
-                  backgroundRepeat: 'no-repeat',
-                  backgroundSize: '16px'
-                }}
-              >
-                <option value="">Select State</option>
-                <option value="lagos">Lagos</option>
-                <option value="fct">FCT - Abuja</option>
-                <option value="rivers">Rivers</option>
-                <option value="kano">Kano</option>
-              </select>
+                placeholder="Start typing state name..."
+                className="w-full px-4 py-2.5 bg-[#1F1F21] border border-[#2C2C2E] rounded-lg text-white focus:outline-none focus:border-primaryp-500 text-base"
+              />
+              {showStateSuggestions && stateSuggestions.length > 0 && (
+                <div className="absolute z-50 w-full mt-1 bg-[#1F1F21] border border-[#2C2C2E] rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                  {stateSuggestions.map((suggestion, index) => (
+                    <div
+                      key={index}
+                      className="px-4 py-2 hover:bg-[#2C2C2E] cursor-pointer text-white text-sm"
+                      onClick={() => handleStateSelect(suggestion)}
+                    >
+                      {suggestion.description}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </form>
@@ -316,53 +458,65 @@ function DeliveryAddressForm({ onSave, onCancel, showCancel = false, editingAddr
 
           {/* City and State */}
           <div className="grid grid-cols-2 gap-4">
-            <div>
+            <div className="relative">
               <label className="block text-white text-base font-medium mb-2">
                 City <span className="text-red-500">*</span>
               </label>
-              <select
+              <input
+                type="text"
                 name="city"
                 value={formData.city}
                 onChange={handleInputChange}
+                onFocus={() => formData.city && setShowCitySuggestions(true)}
+                onBlur={() => setTimeout(() => setShowCitySuggestions(false), 200)}
+                ref={cityInputRef}
                 required
-                className="w-full px-4 py-2.5 bg-[#1F1F21] border border-[#2C2C2E] rounded-lg text-white focus:outline-none focus:border-primaryp-500 appearance-none text-base"
-                style={{
-                  backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e")`,
-                  backgroundPosition: 'right 12px center',
-                  backgroundRepeat: 'no-repeat',
-                  backgroundSize: '16px'
-                }}
-              >
-                <option value="">Select City</option>
-                <option value="lagos">Lagos</option>
-                <option value="abuja">Abuja</option>
-                <option value="port-harcourt">Port Harcourt</option>
-                <option value="kano">Kano</option>
-              </select>
+                placeholder="Start typing city name..."
+                className="w-full px-4 py-2.5 bg-[#1F1F21] border border-[#2C2C2E] rounded-lg text-white focus:outline-none focus:border-primaryp-500 text-base"
+              />
+              {showCitySuggestions && citySuggestions.length > 0 && (
+                <div className="absolute z-50 w-full mt-1 bg-[#1F1F21] border border-[#2C2C2E] rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                  {citySuggestions.map((suggestion, index) => (
+                    <div
+                      key={index}
+                      className="px-4 py-2 hover:bg-[#2C2C2E] cursor-pointer text-white text-sm"
+                      onClick={() => handleCitySelect(suggestion)}
+                    >
+                      {suggestion.description}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
-            <div>
+            <div className="relative">
               <label className="block text-white text-base font-medium mb-2">
                 State <span className="text-red-500">*</span>
               </label>
-              <select
+              <input
+                type="text"
                 name="state"
                 value={formData.state}
                 onChange={handleInputChange}
+                onFocus={() => formData.state && setShowStateSuggestions(true)}
+                onBlur={() => setTimeout(() => setShowStateSuggestions(false), 200)}
+                ref={stateInputRef}
                 required
-                className="w-full px-4 py-2.5 bg-[#1F1F21] border border-[#2C2C2E] rounded-lg text-white focus:outline-none focus:border-primaryp-500 appearance-none text-base"
-                style={{
-                  backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e")`,
-                  backgroundPosition: 'right 12px center',
-                  backgroundRepeat: 'no-repeat',
-                  backgroundSize: '16px'
-                }}
-              >
-                <option value="">Select State</option>
-                <option value="lagos">Lagos</option>
-                <option value="fct">FCT - Abuja</option>
-                <option value="rivers">Rivers</option>
-                <option value="kano">Kano</option>
-              </select>
+                placeholder="Start typing state name..."
+                className="w-full px-4 py-2.5 bg-[#1F1F21] border border-[#2C2C2E] rounded-lg text-white focus:outline-none focus:border-primaryp-500 text-base"
+              />
+              {showStateSuggestions && stateSuggestions.length > 0 && (
+                <div className="absolute z-50 w-full mt-1 bg-[#1F1F21] border border-[#2C2C2E] rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                  {stateSuggestions.map((suggestion, index) => (
+                    <div
+                      key={index}
+                      className="px-4 py-2 hover:bg-[#2C2C2E] cursor-pointer text-white text-sm"
+                      onClick={() => handleStateSelect(suggestion)}
+                    >
+                      {suggestion.description}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </form>

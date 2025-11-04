@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import productService from '../../services/productService';
 import Layout from '../../components/Layout';
 import ProductList from '../../components/ProductList';
@@ -12,6 +12,7 @@ function HomePage() {
   const [newArrivals, setNewArrivals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const navigate = useNavigate();
 
   // SEO configuration for home page
   const seoData = getPageSEO('home', { path: '/' });
@@ -102,8 +103,8 @@ function HomePage() {
       {error && (
         <div className="text-center py-20">
           <p className="text-red-400 mb-4">Failed to load products</p>
-          <button 
-            onClick={() => window.location.reload()}
+          <button
+            onClick={() => navigate(0)}
             className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
           >
             Try Again

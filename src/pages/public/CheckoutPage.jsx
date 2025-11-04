@@ -24,10 +24,57 @@ import currencyConversionService from '../../services/currencyConversionService'
 import WalletConnectButton from '../../components/widgets/WalletConnectButton';
 import useNotificationStore from '../../store/notificationStore';
 
+// Import Web3Modal for alternative wallet connection (fallback if not available)
+// let web3ModalHook = null;
+// try {
+//   web3ModalHook = require('@web3modal/ethers5/react').useWeb3Modal;
+// } catch (error) {
+//   console.warn('Web3Modal not available, using Privy only for wallet connection');
+// }
+
+// Web3Modal configuration (only if available)
+// let web3Modal = null;
+// try {
+//   const { createWeb3Modal, defaultConfig } = require('@web3modal/ethers5/react');
+//
+//   const projectId = process.env.REACT_APP_WALLETCONNECT_PROJECT_ID || 'your-project-id';
+//   const metadata = {
+//     name: 'AbscoTek',
+//     description: 'Crypto payment platform',
+//     url: window.location.origin,
+//     icons: ['https://walletconnect.com/walletconnect-logo.png']
+//   };
+//
+//   const ethersConfig = defaultConfig({
+//     metadata,
+//     defaultChainId: 1, // Ethereum mainnet
+//     enableEIP6963: true,
+//     enableInjected: true,
+//     enableCoinbase: true,
+//     rpcUrl: 'https://cloudflare-eth.com'
+//   });
+//
+//   web3Modal = createWeb3Modal({
+//     ethersConfig,
+//     chains: [1, 56, 137], // Ethereum, BSC, Polygon
+//     projectId,
+//     enableAnalytics: true
+//   });
+// } catch (error) {
+//   console.warn('Web3Modal not available, using Privy only for wallet connection');
+// }
+
 function CheckoutPage() {
   const navigate = useNavigate();
   const { isAuthenticated, authenticateAndLogin, balance } = useWeb3Auth();
-  const { authenticated, user: privyUser } = usePrivy();
+  const { authenticated, user: privyUser, login } = usePrivy();
+
+  // Web3Modal hook (only if available)
+  // const { open } = web3ModalHook ? web3ModalHook() : { open: () => {} };
+  const openWeb3Modal = () => {
+    // Fallback implementation if Web3Modal is not available
+    addNotification("Alternative wallet connection not available. Please use Privy wallet.", "info");
+  };
   
   const [userAddresses, setUserAddresses] = useState([]);
   const [deliveryMethods, setDeliveryMethods] = useState([]);
@@ -251,7 +298,7 @@ function CheckoutPage() {
           localStorage.removeItem('token');
           localStorage.removeItem('userInfo');
           localStorage.removeItem('walletAddress');
-          window.location.reload();
+          navigate('/login');
         }
       } else {
         addNotification("Failed to save address. Please try again.", "error");
@@ -326,7 +373,7 @@ function CheckoutPage() {
           localStorage.removeItem('token');
           localStorage.removeItem('userInfo');
           localStorage.removeItem('walletAddress');
-          window.location.reload();
+          navigate('/login');
         }
       } else if (error.response?.status === 404) {
         addNotification("Address not found. It may have already been deleted.", "error");
@@ -375,10 +422,15 @@ function CheckoutPage() {
     }
 
     // Check wallet balance only if using wallet payment
-    if (paymentMethod === 'wallet' && userWalletAddress) {
-      // For now, we'll skip balance check since we don't have wallet balance integration
-      // In a real implementation, you'd check the user's wallet balance here
-      console.log('Wallet payment selected, balance check would go here');
+    if (paymentMethod === 'wallet') {
+      if (!userWalletAddress) {
+        // For USDT payments, if no wallet is connected, show error and don't proceed
+        // The user should connect wallet first before attempting payment
+        addNotification("Please connect your wallet to pay with USDT.", "error");
+        return;
+      }
+      // For USDT wallet payments, we'll use the platform balance check in the backend
+      console.log('USDT wallet payment selected, balance check will be done in backend');
     }
 
     setIsPlacingOrder(true);
@@ -394,6 +446,30 @@ function CheckoutPage() {
         convertedAmount: convertedAmount, // Include converted amount
       };
 
+      // For USDT payments, use the USDT wallet payment endpoint
+      if (paymentMethod === 'wallet' && selectedCurrency === 'USDT') {
+        // For USDT wallet payments, we process the payment using platform balance
+        // This should trigger a crypto payment flow, not Paystack
+        console.log('Processing USDT wallet payment with platform balance');
+
+        const response = await orderService.checkout(orderData); // Use regular checkout for now
+        console.log('USDT wallet payment response:', response);
+
+        setOrderedSuccess(true);
+        await clearCart();
+
+        const orderNumber = response.orderNumber || response.order?.orderNumber;
+        if (!orderNumber) {
+          console.error('No order number found in USDT wallet payment response:', response);
+          throw new Error('No order number found in response');
+        }
+
+        console.log('USDT wallet payment order number:', orderNumber);
+        navigate(AppRoutes.orderSuccess.path.replace(':orderId?', orderNumber));
+        return;
+      }
+
+      // For non-USDT wallet payments or Paystack payments, use the regular checkout endpoint
       const response = await orderService.checkout(orderData);
       console.log('Checkout response:', response);
       console.log('Response structure:', {
@@ -403,8 +479,8 @@ function CheckoutPage() {
         responseKeys: Object.keys(response)
       });
 
-      // For wallet payments, the order is created immediately
-      if (paymentMethod === 'wallet') {
+      // For wallet payments (non-USDT), the order is created immediately
+      if (paymentMethod === 'wallet' && selectedCurrency !== 'USDT') {
       setOrderedSuccess(true);
         await clearCart();
 
@@ -627,14 +703,24 @@ function CheckoutPage() {
               </div>
               <div className="flex-1">
                 <div className="text-white font-medium">
-                  {userWalletAddress ? 'Crypto Wallet (USDT)' : 'Connect Wallet'}
+                  {userWalletAddress ? 'Crypto Wallet (USDT)' : 'Connect Wallet for USDT Payment'}
                 </div>
                 <div className="text-neutral-400 text-sm">
-                  {userWalletAddress 
+                  {userWalletAddress
                     ? `Pay with your connected wallet (${userWalletAddress.slice(0, 6)}...${userWalletAddress.slice(-4)})`
                     : 'Connect your crypto wallet to pay with USDT'
                   }
                 </div>
+                {!userWalletAddress && (
+                  <div className="mt-2">
+                    <WalletConnectButton
+                      onConnect={authenticateAndLogin}
+                      className="bg-primaryp-300 hover:bg-primaryp-400 text-white px-4 py-2 rounded text-sm w-full"
+                    >
+                      Connect Wallet for USDT Payment
+                    </WalletConnectButton>
+                  </div>
+                )}
               </div>
             </div>
           ) : (
@@ -807,6 +893,9 @@ function CheckoutPage() {
           </div>
         </div>
       )}
+
+      {/* Web3Modal (only if available) */}
+      {/* {web3Modal && <w3m-button />} */}
     </Layout>
   );
 }

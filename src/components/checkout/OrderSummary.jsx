@@ -125,12 +125,16 @@ function OrderSummary({
               <div className="flex items-center gap-3">
                 {/* Product Image */}
                 <div className="w-20 h-20 bg-neutralneutral-800 rounded-lg flex-shrink-0 overflow-hidden">
-                  {(item.image || item.product?.images?.[0]) && (
+                  {(item.image || item.product?.images?.[0]) ? (
                     <img
                       src={item.image || item.product?.images?.[0]}
                       alt={item.name || item.product?.name}
                       className="w-full h-full object-cover rounded-lg"
                     />
+                  ) : (
+                    <div className="w-full h-full bg-neutralneutral-800 rounded-lg flex items-center justify-center">
+                      <span className="text-neutralneutral-400 text-xs">No Image</span>
+                    </div>
                   )}
                 </div>
                 

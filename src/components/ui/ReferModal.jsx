@@ -8,7 +8,7 @@ import { Loader2 } from 'lucide-react';
 import referralService from '@/services/referralService';
 import copySVG from '@/assets/images/solar_copy-linear.svg'
 
-const REFERRAL_REWARD_AMOUNT = 10.36; // This should ideally come from backend config
+const REFERRAL_REWARD_AMOUNT = 4; // This should ideally come from backend config
 
 export default function ReferModal({ open, onClose }) {
   const { currentUser, token } = useStore();

@@ -48,6 +48,12 @@ const updateOrderStatus = async (id, status) => {
   return response.data;
 };
 
+// Cancel order and request refund
+const cancelOrder = async (id) => {
+  const response = await apiClient.post(`/orders/${id}/cancel`);
+  return response.data;
+};
+
 // --- Admin --- //
 
 // List all orders (admin)
@@ -74,6 +80,12 @@ const verifyPaymentAndCreateOrder = async (orderData) => {
   return response.data;
 };
 
+// Process USDT payment using Privy wallet
+const processUSDTWalletPayment = async (paymentData) => {
+  const response = await apiClient.post('/orders/usdt-payment', paymentData);
+  return response.data;
+};
+
 export default {
   createOrder,
   checkout,
@@ -83,7 +95,9 @@ export default {
   getOrderByNumber,
   getOrderByPaystackReference,
   verifyPaymentAndCreateOrder,
+  processUSDTWalletPayment,
   updateOrderStatus,
+  cancelOrder,
   adminGetAllOrders,
   adminGetOrderById,
   adminUpdateOrder,

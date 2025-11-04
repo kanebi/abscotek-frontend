@@ -18,7 +18,7 @@ export default function UserPopover({ children }) {
   
   // Create safe user object
   const safeUser = {
-    address: displayAddress || displayName,
+    address: typeof (displayAddress || displayName) === 'string' ? (displayAddress || displayName) : 'User',
     avatar: '/images/0e48610f4fecc933e17441d93f63ddcc9c4d1943 (1).png',
     profileUrl: '/profile',
   };

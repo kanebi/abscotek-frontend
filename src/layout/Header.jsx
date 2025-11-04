@@ -97,7 +97,7 @@ export default function Frame() {
                             </UserPopover>
                         ) : (
                             <WalletConnectButton onConnect={authenticateAndLogin} />
-                        )}
+                            )}
                         <SliderCart />
 
                     </div>
@@ -143,7 +143,7 @@ export default function Frame() {
                             </UserPopover>
                         ) : (
                             <WalletConnectButton onConnect={authenticateAndLogin} />
-                            )}
+                        )}
 
                         <SliderCart />
                         <Button
@@ -179,6 +179,7 @@ export default function Frame() {
 
 export function NavigationBar() {
     const navigate = useNavigate();
+    const user = useStore((state) => state.currentUser);
     const navItems = ["Computer", "Phone", "Web3 Accessories", "Web3 Gaming", "Smartwatches", "Tablets", "Audio"]
     const TodayPrices = [
         { Label: "USDT: $1.01", value: "usdt", rate: "1.01", iconSrc: "/images/usdt-icon.svg", bg: '#00A478' },
@@ -201,7 +202,7 @@ export function NavigationBar() {
                     <div className="flex items-center gap-2">
                         {/* <TrendingUp className="w-4 h-4 text-primaryp-300" /> */}
                         <DropdownMenu modal >
-                            <DropdownMenuTrigger asChild>
+                            <DropdownMenuTrigger asChild disabled>
                                 <Button
                                     variant="ghost"
                                     className={`text-defaultwhite w-36 relative hover:text-defaultwhite hover:bg-defaulttop-background h-auto font-normal outline-none border-none hover:outline-none flex items-center gap-1 `}
@@ -214,8 +215,8 @@ export function NavigationBar() {
                                     <span className="pl-3 text-sm font-medium">{selectedPrice.Label}</span>
                                     <img src="/images/dropdown.svg" alt="Dropdown Icon" className=" absolute right-0" />
                                 </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent  style={DROPDOWN_MENU_CONTENT_STYLE} className="text-sm text-white border-neutral-600" align="start">
+                            </DropdownMenuTrigger >
+                            <DropdownMenuContent   style={DROPDOWN_MENU_CONTENT_STYLE} className="text-sm text-white border-neutral-600" align="start">
                                 {TodayPrices.map((price) => (
                                     <DropdownMenuItem key={price.value} className=" hover:var(--bg-defaulttop-background)">
                                         <div className="flex items-center gap-2" >

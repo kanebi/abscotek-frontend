@@ -22,11 +22,11 @@ export default function OrderSummary({ order }) {
       <CardContent className="flex flex-col items-end justify-center gap-5 px-4 py-0 relative self-stretch w-full flex-[0_0_auto]">
         <div className="flex items-start gap-5 relative self-stretch w-full flex-[0_0_auto]">
           <div className="relative w-[77.14px] h-[77.14px] bg-white rounded-[6.17px] overflow-hidden">
-            {orderDetails.product.images && orderDetails.product.images.length > 0 ? (
+            {orderDetails.product.image ? (
               <img
                 className="absolute w-[77px] h-[77px] top-0 left-0 object-cover"
                 alt={`${orderDetails.product.name}${orderDetails.product.variant !== 'N/A' ? ` - ${orderDetails.product.variant}` : ''}`}
-                src={orderDetails.product.images[0]}
+                src={orderDetails.product.image}
               />
             ) : (
               <div className="absolute w-[77px] h-[77px] top-0 left-0 bg-neutralneutral-800 rounded-lg flex items-center justify-center">

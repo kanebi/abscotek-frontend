@@ -75,10 +75,12 @@ export const useWeb3Auth = () => {
         });
 
         // Load user-specific data after successful auth
+        console.log('useWeb3Auth - Loading user data after auth...');
         await Promise.all([
           fetchCart(),
           fetchWishlist()
         ]);
+        console.log('useWeb3Auth - User data loaded successfully');
 
         // Merge guest cart after successful login
         await cartService.mergeGuestCart();
@@ -103,6 +105,12 @@ export const useWeb3Auth = () => {
       if (isValid) {
         console.log('useWeb3Auth - Session validated, user data already loaded by validateSession');
         // Note: validateSession already loads user data, so we don't need to fetch again
+        // But we should still fetch cart for authenticated users
+        const { isAuthenticated, fetchCart } = useStore.getState();
+        if (isAuthenticated) {
+          console.log('useWeb3Auth - Fetching cart for validated session...');
+          await fetchCart();
+        }
       } else {
         console.log('useWeb3Auth - No valid session found');
       }

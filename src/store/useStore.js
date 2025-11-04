@@ -174,21 +174,28 @@ const useStore = create((set, get) => {
     set({ cartLoading: true });
     try {
       const { isAuthenticated } = get();
+      console.log('fetchCart - isAuthenticated:', isAuthenticated);
       if (isAuthenticated) {
+        console.log('fetchCart - Fetching authenticated user cart...');
         const response = await cartService.getCart();
+        console.log('fetchCart - Cart response:', response);
         set({ cart: response });
+        console.log('fetchCart - Cart set in store');
       } else {
+        console.log('fetchCart - User not authenticated, loading guest cart...');
         // For non-authenticated users, get guest cart
         const guestCart = localStorage.getItem('guestCart');
         if (guestCart) {
           try {
             const parsedCart = JSON.parse(guestCart);
+            console.log('fetchCart - Guest cart loaded:', parsedCart);
             set({ cart: parsedCart });
           } catch (error) {
             console.error('Error parsing guest cart:', error);
             set({ cart: { items: [], total: 0, subtotal: 0 } });
           }
         } else {
+          console.log('fetchCart - No guest cart found, setting empty cart');
           set({ cart: { items: [], total: 0, subtotal: 0 } });
         }
       }

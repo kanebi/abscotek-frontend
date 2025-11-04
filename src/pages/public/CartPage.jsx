@@ -42,6 +42,22 @@ function CartPage() {
     }
   }, [token, fetchCart, loadGuestCart]);
 
+  // Debug cart data
+  useEffect(() => {
+    if (cart && cart.items) {
+      console.log('Frontend - Cart data:', {
+        itemCount: cart.items.length,
+        firstItem: cart.items[0] ? {
+          name: cart.items[0].name,
+          hasImage: !!cart.items[0].image,
+          image: cart.items[0].image,
+          imagesCount: cart.items[0].images?.length || 0,
+          product: cart.items[0].product
+        } : null
+      });
+    }
+  }, [cart]);
+
   // For now, assume sufficient funds for guest checkout or handle differently
   const isSufficientFunds = true;
 
@@ -133,12 +149,16 @@ function CartPage() {
                 <div className="flex items-start py-4 relative">
                   {/* Product Image */}
                   <div className="w-[90px] h-[90px] bg-neutralneutral-800 rounded-lg flex-shrink-0 mr-4">
-                    {item.product.images && item.product.images.length > 0 && (
-                      <img 
-                        src={item.product.images[0]} 
+                    {item.product.images && item.product.images.length > 0 ? (
+                      <img
+                        src={item.product.images[0]}
                         alt={item.product.name}
                         className="w-full h-full object-cover rounded-lg"
                       />
+                    ) : (
+                      <div className="w-full h-full bg-neutralneutral-800 rounded-lg flex items-center justify-center">
+                        <span className="text-neutralneutral-400 text-xs">No Image</span>
+                      </div>
                     )}
                   </div>
                   
@@ -226,12 +246,16 @@ function CartPage() {
                 <div className="flex items-center py-6">
                   {/* Product Image */}
                   <div className="w-20 h-20 bg-neutralneutral-800 rounded-lg flex-shrink-0 mr-4">
-                    {item.product.images && item.product.images.length > 0 && (
-                      <img 
-                        src={item.product.images[0]} 
+                    {item.product.images && item.product.images.length > 0 ? (
+                      <img
+                        src={item.product.images[0]}
                         alt={item.product.name}
                         className="w-full h-full object-cover rounded-lg"
                       />
+                    ) : (
+                      <div className="w-full h-full bg-neutralneutral-800 rounded-lg flex items-center justify-center">
+                        <span className="text-neutralneutral-400 text-xs">No Image</span>
+                      </div>
                     )}
                   </div>
                   
