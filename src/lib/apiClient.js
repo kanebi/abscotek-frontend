@@ -1,7 +1,7 @@
 import axios from 'axios';
 import useStore from '@/store/useStore';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5832/api';
+const API_URL = 'https://abscotek-backend-544864766736.europe-west1.run.app/api' || 'http://localhost:5832/api';
 
 // Helper function to mark requests as user actions (will trigger modal on 401)
 export const markAsUserAction = (config) => {
