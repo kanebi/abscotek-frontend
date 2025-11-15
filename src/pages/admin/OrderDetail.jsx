@@ -169,44 +169,52 @@ function OrderDetail() {
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    {order.items.map((item, index) => (
-                      <div key={index} className="flex gap-4 p-4 bg-neutralneutral-800 rounded-lg">
-                        {(item.productImage || item.product?.images?.[0]) && (
+                    {order.items.map((item, index) => {
+                      // Get product image with multiple fallbacks
+                      const productImage = item.product?.images?.[0] || item.productImage || '/images/desktop-1.png';
+                      const productName = item.product?.name || item.productName || 'Product';
+                      
+                      return (
+                        <div key={index} className="flex gap-4 p-4 bg-neutralneutral-800 rounded-lg">
                           <img 
-                            src={item.productImage || item.product.images[0]} 
-                            alt={item.productName || item.product?.name}
+                            src={productImage} 
+                            alt={productName}
                             className="w-20 h-20 object-cover rounded"
+                            onError={(e) => {
+                              e.target.onerror = null;
+                              e.target.src = '/images/desktop-1.png';
+                            }}
                           />
-                        )}
-                        <div className="flex-1">
-                          <h3 className="text-white font-body-large-large-bold mb-1">
-                            {item.productName || item.product?.name || 'Product'}
-                          </h3>
-                          {item.variant?.name && (
-                            <p className="text-neutralneutral-400 text-sm mb-1">
-                              Variant: {item.variant.name}
+                          <div className="flex-1">
+                            <h3 className="text-white font-body-large-large-bold mb-1">
+                              {productName}
+                            </h3>
+                            {item.variant?.name && (
+                              <p className="text-neutralneutral-400 text-sm mb-1">
+                                Variant: {item.variant.name}
+                              </p>
+                            )}
+                            <p className="text-neutralneutral-400 text-sm">
+                              Quantity: {item.quantity}
                             </p>
-                          )}
-                          <p className="text-neutralneutral-400 text-sm">
-                            Quantity: {item.quantity}
-                          </p>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-white font-body-large-large-bold">
+                              <AmountCurrency 
+                                amount={item.totalPrice || (item.unitPrice * item.quantity)} 
+                                fromCurrency={item.currency || order.currency || 'USDT'} 
+                              />
+                            </p>
+                            <p className="text-neutralneutral-400 text-sm">
+                              <AmountCurrency 
+                                amount={item.unitPrice} 
+                                fromCurrency={item.currency || order.currency || 'USDT'} 
+                              /> each
+                            </p>
+                          </div>
                         </div>
-                        <div className="text-right">
-                          <p className="text-white font-body-large-large-bold">
-                            <AmountCurrency 
-                              amount={item.totalPrice || (item.unitPrice * item.quantity)} 
-                              fromCurrency={item.currency || order.currency || 'USDT'} 
-                            />
-                          </p>
-                          <p className="text-neutralneutral-400 text-sm">
-                            <AmountCurrency 
-                              amount={item.unitPrice} 
-                              fromCurrency={item.currency || order.currency || 'USDT'} 
-                            /> each
-                          </p>
-                        </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
 

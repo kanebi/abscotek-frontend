@@ -25,14 +25,31 @@ const validateSession = async () => {
 };
 
 const useStore = create((set, get) => {
-  // Initialize with guest cart loaded from localStorage
+  // Initialize with data from localStorage if available
+  const storedToken = localStorage.getItem('token');
+  const storedUserInfo = localStorage.getItem('userInfo');
+  const storedWalletAddress = localStorage.getItem('walletAddress');
+  
+  let initialUser = null;
+  let initialCurrency = 'USDT';
+  
+  if (storedUserInfo) {
+    try {
+      initialUser = JSON.parse(storedUserInfo);
+      initialCurrency = initialUser?.preferences?.currency || 'USDT';
+    } catch (error) {
+      console.error('Error parsing stored user info:', error);
+      localStorage.removeItem('userInfo');
+    }
+  }
+  
   const initialState = {
-    token: null,
-    walletAddress: null,
-    currentUser: null,
-    isAuthenticated: false,
+    token: storedToken,
+    walletAddress: storedWalletAddress,
+    currentUser: initialUser,
+    isAuthenticated: !!storedToken && !!initialUser,
     isLoading: false,
-    userCurrency: 'USDT',
+    userCurrency: initialCurrency,
     isSessionValidating: false,
     cart: (() => {
       const cart = localStorage.getItem('guestCart');
@@ -49,7 +66,7 @@ const useStore = create((set, get) => {
   };
 
   return {
-  // User state
+  // User state (initialize from localStorage)
   isAuthenticated: initialState.isAuthenticated,
   token: initialState.token,
   currentUser: initialState.currentUser,

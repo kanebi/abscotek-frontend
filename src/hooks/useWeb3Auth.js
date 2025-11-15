@@ -105,11 +105,14 @@ export const useWeb3Auth = () => {
       if (isValid) {
         console.log('useWeb3Auth - Session validated, user data already loaded by validateSession');
         // Note: validateSession already loads user data, so we don't need to fetch again
-        // But we should still fetch cart for authenticated users
-        const { isAuthenticated, fetchCart } = useStore.getState();
+        // But we should still fetch cart and wishlist for authenticated users
+        const { isAuthenticated, fetchCart, fetchWishlist } = useStore.getState();
         if (isAuthenticated) {
-          console.log('useWeb3Auth - Fetching cart for validated session...');
-          await fetchCart();
+          console.log('useWeb3Auth - Fetching user data for validated session...');
+          await Promise.all([
+            fetchCart(),
+            fetchWishlist()
+          ]);
         }
       } else {
         console.log('useWeb3Auth - No valid session found');
@@ -118,31 +121,21 @@ export const useWeb3Auth = () => {
       sessionValidated.current = true;
     };
 
-    // Only validate if not currently validating and not authenticated by Privy
-    if (!isSessionValidating && !authenticated) {
+    // Always validate session on mount, regardless of Privy state
+    if (!isSessionValidating) {
       initializeSession();
     }
-  }, [isSessionValidating, authenticated]); // Depend on session validation state
+  }, [isSessionValidating, validateSession]); // Removed authenticated dependency
 
   // Handle Privy authentication state changes
   useEffect(() => {
     if (authenticated && user) {
       console.log('useWeb3Auth - Privy authenticated, starting auth flow...');
       authenticateAndLogin();
-    } else if (!authenticated && sessionValidated.current) {
-      // Handle logout/disconnection - only clear if we were previously authenticated
-      const currentToken = localStorage.getItem('token');
-      if (currentToken) {
-        console.log('useWeb3Auth - Privy disconnected, clearing auth state...');
-          setToken(null);
-          setIsAuthenticated(false);
-          setWalletAddress(null);
-          setCurrentUser(null);
-          localStorage.removeItem('token');
-          localStorage.removeItem('userInfo');
-        localStorage.removeItem('walletAddress');
-      }
     }
+    // Note: We don't clear auth state when Privy is not authenticated
+    // because the user might have a valid session from localStorage
+    // Only the explicit logout function should clear the auth state
   }, [authenticated, user, authenticateAndLogin]);
 
   const handleLogout = useCallback(async () => {
