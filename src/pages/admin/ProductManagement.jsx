@@ -313,13 +313,13 @@ function ProductManagement() {
               <Plus size={20} className="text-primaryp-400" />
               <h2 className="text-xl font-heading-header-3-header-3-bold text-white">Create New Product</h2>
             </div>
-            
+
             {createStep === 1 && (
               <form onSubmit={handleCreateDetails} className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <input type="text" placeholder="Product Name" value={newProduct.name} onChange={(e) => setNewProduct({ ...newProduct, name: e.target.value })} className="p-3 bg-neutralneutral-800 border border-neutralneutral-600 rounded-lg text-white placeholder-neutralneutral-400" required />
                   <input type="number" placeholder="Price (USDT)" value={newProduct.price} onChange={(e) => setNewProduct({ ...newProduct, price: e.target.value })} className="p-3 bg-neutralneutral-800 border border-neutralneutral-600 rounded-lg text-white placeholder-neutralneutral-400" required />
-              </div>
+                </div>
                 <textarea placeholder="Product Description" value={newProduct.description} onChange={(e) => setNewProduct({ ...newProduct, description: e.target.value })} className="w-full p-3 bg-neutralneutral-800 border border-neutralneutral-600 rounded-lg text-white placeholder-neutralneutral-400" rows="3" />
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <input type="text" placeholder="Badge (optional)" value={newProduct.badge} onChange={(e) => setNewProduct({ ...newProduct, badge: e.target.value })} className="p-3 bg-neutralneutral-800 border border-neutralneutral-600 rounded-lg text-white placeholder-neutralneutral-400" />
@@ -333,8 +333,8 @@ function ProductManagement() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-neutralneutral-300 text-sm mb-1">Specs (JSON array)</label>
-                  <textarea placeholder='e.g. ["8GB RAM","256GB SSD"]' value={newProduct.specs} onChange={(e) => setNewProduct({ ...newProduct, specs: e.target.value })} className="w-full p-3 bg-neutralneutral-800 border border-neutralneutral-600 rounded-lg text-white placeholder-neutralneutral-500" rows="3" />
+                  <label className="block text-neutralneutral-300 text-sm mb-1">Variants (JSON array)</label>
+                  <textarea placeholder='e.g. [{"name": "Color", "values": ["Red", "Green", "Blue"]}, {"name": "Size", "values": ["Small", "Medium", "Large"]}]' value={newProduct.variants} onChange={(e) => setNewProduct({ ...newProduct, variants: e.target.value })} className="w-full p-3 bg-neutralneutral-800 border border-neutralneutral-600 rounded-lg text-white placeholder-neutralneutral-500" rows="3" />
                 </div>
                 <div className="flex gap-3">
                   <Button type="submit" className="bg-secondarys-500 hover:bg-secondarys-400"><Plus size={16} className="mr-2" /> Continue to Images</Button>
@@ -428,7 +428,7 @@ function ProductManagement() {
                       <div className="mt-4 flex items-center justify-between">
                         <div className="flex items-center gap-3">
                           <span className="text-neutralneutral-400 text-sm">Publish</span>
-                          <PublishKnob checked={!!p.published} onClick={() => togglePublish(p)} onChange={() => {}} />
+                          <PublishKnob checked={!!p.published} onClick={() => togglePublish(p)} onChange={() => { }} />
                         </div>
                         <div className="flex gap-2">
                           <Button variant="outline" className="border-neutralneutral-600 text-neutralneutral-300" onClick={() => openEditModal(p)}><Edit size={14} className="mr-2" /> Edit</Button>
@@ -466,70 +466,20 @@ function ProductManagement() {
                       <option value="false">In Stock</option>
                     </select>
                     <div>
-                      <label className="block text-neutralneutral-300 text-sm mb-1">Specs (JSON array)</label>
-                      <textarea value={editForm.specs} onChange={(e) => setEditForm({ ...editForm, specs: e.target.value })} className="w-full p-3 bg-neutralneutral-800 border border-neutralneutral-600 rounded-lg text-white placeholder-neutralneutral-500" rows="3" />
+                      <label className="block text-neutralneutral-300 text-sm mb-1">Variants (JSON array)</label>
+                      <textarea value={editForm.variants} onChange={(e) => setEditForm({ ...editForm, variants: e.target.value })} className="w-full p-3 bg-neutralneutral-800 border border-neutralneutral-600 rounded-lg text-white placeholder-neutralneutral-500" rows="3" />
                     </div>
                   </div>
-
-                  <div className="space-y-3">
-                    <div>
-                      <div className="text-neutralneutral-300 mb-2">Current Images</div>
-                      <div className="grid grid-cols-3 gap-3">
-                        {(Array.isArray(editingProduct?.images) ? editingProduct.images : []).map((img, idx) => {
-                          const src = img?.url || img;
-                          return (
-                            <div key={idx} className="relative group">
-                              <img src={src} alt="product" className="h-24 w-full object-cover rounded border border-neutralneutral-700" />
-                              <button type="button" onClick={() => removeExistingImage(img)} className="absolute top-1 right-1 bg-black/60 hover:bg-black/80 text-white rounded p-1"><X size={14} /></button>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-
-                    <div className="p-3 bg-neutralneutral-800 border border-neutralneutral-700 rounded">
-                      <div className="text-neutralneutral-300 mb-2">Add more images</div>
-                      <input type="file" multiple accept="image/*" onChange={(e) => {
-                        const files = Array.from(e.target.files || []);
-                        const allowed = 10; // backend enforces total max
-                        setEditFiles(prev => [...prev, ...files.slice(0, allowed)]);
-                      }} className="block w-full text-neutralneutral-300" />
-                      {editFiles.length > 0 && (
-                        <div className="mt-2 grid grid-cols-3 gap-2">
-                          {editFiles.map((f, idx) => (
-                            <div key={idx} className="h-20 bg-neutralneutral-900 rounded flex items-center justify-center text-neutralneutral-400 text-[11px] px-2 text-center truncate">{f.name}</div>
-                          ))}
-                        </div>
-                      )}
-
-                      <div className="mt-3 space-y-2">
-                        {editUrls.map((u, idx) => (
-                          <div key={idx} className="flex gap-2">
-                            <input value={u} onChange={(e) => setEditUrls(prev => prev.map((x, i) => i === idx ? e.target.value : x))} placeholder="https://image-url" className="flex-1 p-2 bg-neutralneutral-900 border border-neutralneutral-700 rounded text-white placeholder-neutralneutral-500" />
-                            <Button variant="outline" className="border-neutralneutral-600 text-neutralneutral-300" onClick={() => setEditUrls(prev => prev.filter((_, i) => i !== idx))}>Remove</Button>
-                          </div>
-                        ))}
-                        <Button onClick={() => setEditUrls(prev => [...prev, ''])} className="bg-primaryp-500 hover:bg-primaryp-400"><Plus size={14} className="mr-2" /> Add URL</Button>
-                      </div>
-                      
-                      <div className="mt-3 flex justify-end">
-                        <Button onClick={uploadMoreInEdit} disabled={isEditUploading} className="bg-successs-500 hover:bg-successs-400"><Upload size={14} className="mr-2" /> {isEditUploading ? 'Updating...' : 'Upload New'}</Button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="mt-6 flex justify-end gap-2">
-                  <Button variant="outline" className="border-neutralneutral-600 text-neutralneutral-300" onClick={() => { setIsEditOpen(false); setEditingProduct(null); }}>Cancel</Button>
-                  <Button onClick={saveEdit} disabled={isSavingEdit} className="bg-secondarys-500 hover:bg-secondarys-400">{isSavingEdit ? 'Saving...' : 'Save Changes'}</Button>
                 </div>
               </div>
               </div>
             )}
+        
         </div>
       </div>
+  
     </Layout>
   );
-}
+};
 
 export default ProductManagement;

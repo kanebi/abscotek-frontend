@@ -13,6 +13,10 @@ export const AppRoutes = {
     name: 'Sign Up',
   },
   // Admin auth routes
+  adminLogin: {
+    path: '/admin/login',
+    name: 'Admin Login',
+  },
   login: {
     path: '/admin/login',
     name: 'Admin Login',

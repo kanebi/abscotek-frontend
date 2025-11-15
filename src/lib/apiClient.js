@@ -1,7 +1,8 @@
 import axios from 'axios';
 import useStore from '@/store/useStore';
+import useAdminStore from '@/store/adminStore';
 
-const API_URL = 'https://abscotek-backend-544864766736.europe-west1.run.app/api' || 'http://localhost:5832/api';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5832/api';
 
 // Helper function to mark requests as user actions (will trigger modal on 401)
 export const markAsUserAction = (config) => {
@@ -21,8 +22,15 @@ const apiClient = axios.create({
 // Request interceptor - adds auth token, wallet info, and user info
 apiClient.interceptors.request.use(
   (config) => {
-    // Get token from store or localStorage
-    const token = localStorage.getItem('token');
+    const isAdminRoute = config.url.includes('/admin');
+    let token = null;
+
+    if (isAdminRoute) {
+      token = sessionStorage.getItem('adminToken');
+    } else {
+      token = localStorage.getItem('token');
+    }
+    
     const walletAddress = localStorage.getItem('walletAddress');
     const userInfo = localStorage.getItem('userInfo');
     
@@ -62,34 +70,40 @@ apiClient.interceptors.response.use(
   },
   async (error) => {
     const originalRequest = error.config;
+    const isAdminRoute = originalRequest.url.includes('/admin');
     
     // Handle 401 Unauthorized - clear auth and redirect to login
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
       
-      // Clear auth state
-      localStorage.removeItem('token');
-      localStorage.removeItem('walletAddress');
-      
-      // Update store state
-      const store = useStore.getState();
-      store.setToken(null);
-      store.setIsAuthenticated(false);
-      store.setCurrentUser(null);
-      store.setWalletAddress(null);
-      
-      // Only open connect wallet modal if this is NOT a session validation call
-      // Session validation calls should fail silently without showing modal
-      const isSessionValidation = originalRequest.url?.includes('/users/profile') && 
-                                 originalRequest.method === 'GET' &&
-                                 !originalRequest._isUserAction;
-      
-      if (!isSessionValidation) {
-        // Open the connect wallet modal only for actual user actions
-        store.setConnectWalletModalOpen(true);
-        console.log('Opening connect wallet modal due to 401 error');
+      if (isAdminRoute) {
+        const adminStore = useAdminStore.getState();
+        adminStore.logout();
       } else {
-        console.log('Session validation failed, not opening modal');
+        // Clear auth state
+        localStorage.removeItem('token');
+        localStorage.removeItem('walletAddress');
+        
+        // Update store state
+        const store = useStore.getState();
+        store.setToken(null);
+        store.setIsAuthenticated(false);
+        store.setCurrentUser(null);
+        store.setWalletAddress(null);
+        
+        // Only open connect wallet modal if this is NOT a session validation call
+        // Session validation calls should fail silently without showing modal
+        const isSessionValidation = originalRequest.url?.includes('/users/profile') && 
+                                   originalRequest.method === 'GET' &&
+                                   !originalRequest._isUserAction;
+        
+        if (!isSessionValidation) {
+          // Open the connect wallet modal only for actual user actions
+          store.setConnectWalletModalOpen(true);
+          console.log('Opening connect wallet modal due to 401 error');
+        } else {
+          console.log('Session validation failed, not opening modal');
+        }
       }
     }
     

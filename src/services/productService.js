@@ -2,13 +2,13 @@ import apiClient from '@/lib/apiClient';
 
 // Public: list products with filters/sort/pagination
 const getProducts = async (params = {}) => {
-  const response = await apiClient.get('/products', { params });
+  const response = await apiClient.get('/api/products', { params });
   return response.data;
 };
 
 // Admin: list all products (published and unpublished)
 const getAdminProducts = async (params = {}) => {
-  const response = await apiClient.get('/admin/products', { params });
+  const response = await apiClient.get('/api/products', { params });
   return response.data; // { items, total, page, limit }
 };
 
@@ -20,7 +20,7 @@ const getAdminUnpublishedProducts = async (params = {}) => {
 
 // Public: get single product by id or slug
 const getProduct = async (idOrSlug) => {
-  const response = await apiClient.get(`/products/${idOrSlug}`);
+  const response = await apiClient.get(`/api/products/${idOrSlug}`);
   return response.data;
 };
 
@@ -32,19 +32,19 @@ const getRelatedProducts = async (idOrSlug, limit = 8) => {
 
 // Admin: create product
 const createProduct = async (productData) => {
-  const response = await apiClient.post('/admin/products', productData);
+  const response = await apiClient.post('/api/products', productData);
   return response.data;
 };
 
 // Admin: update product
 const updateProduct = async (id, productData) => {
-  const response = await apiClient.put(`/admin/products/${id}`, productData);
+  const response = await apiClient.put(`/api/products/${id}`, productData);
   return response.data;
 };
 
 // Admin: delete product
 const deleteProduct = async (id) => {
-  const response = await apiClient.delete(`/admin/products/${id}`);
+  const response = await apiClient.delete(`/api/products/${id}`);
   return response.data;
 };
 

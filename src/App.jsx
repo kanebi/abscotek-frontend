@@ -30,13 +30,17 @@ import ReferralPage from './pages/public/ReferralPage';
 import WithdrawalPage from './pages/public/WithdrawalPage';
 import WishlistPage from './pages/public/WishlistPage';
 import SearchResultsPage from './pages/public/SearchResultsPage';
+import AdminLoginPage from './pages/admin/AdminLoginPage';
 
 // Components
 import PrivateRoute from './components/PrivateRoute';
+import AdminPrivateRoute from './components/AdminPrivateRoute';
 import ConnectWalletModal from './components/widgets/ConnectWalletModal';
 import Toast from './components/Toast';
 import Layout from './components/Layout';
 import Web3AuthProvider from './components/Web3AuthProvider';
+import AuthSync from './components/AuthSync';
+import AdminAuthSync from './components/AdminAuthSync';
 
 // Configuration
 import { AppRoutes } from './config/routes';
@@ -45,6 +49,8 @@ import './App.css';
 function App() {
   return (
     <Web3AuthProvider>
+      <AuthSync />
+      <AdminAuthSync />
       <HelmetProvider>
         <Router>
           <div className="App">
@@ -53,8 +59,9 @@ function App() {
             <Routes>
               {/* Public Routes */}
               <Route path={AppRoutes.home.path} element={<HomePage />} />
-              <Route path={AppRoutes.login.path} element={<LoginPage />} />
+              <Route path={AppRoutes.userLogin.path} element={<LoginPage />} />
               <Route path={AppRoutes.signup.path} element={<SignupPage />} />
+              <Route path={AppRoutes.adminLogin.path} element={<AdminLoginPage />} />
               <Route
                 path={AppRoutes.productDetail.path}
                 element={<ProductDetailPage />}
@@ -92,39 +99,39 @@ function App() {
               {/* Protected Admin Routes */}
               <Route
                 path={AppRoutes.admin.path}
-                element={<PrivateRoute><AdminDashboard /></PrivateRoute>}
+                element={<AdminPrivateRoute><AdminDashboard /></AdminPrivateRoute>}
               />
               
               {/* Protected Vendor Routes */}
               <Route
                 path={AppRoutes.vendor.path}
-                element={<PrivateRoute><VendorDashboard /></PrivateRoute>}
+                element={<AdminPrivateRoute><VendorDashboard /></AdminPrivateRoute>}
               />
               <Route
                 path={AppRoutes.adminUsers.path}
-                element={<PrivateRoute><UserManagement /></PrivateRoute>}
+                element={<AdminPrivateRoute><UserManagement /></AdminPrivateRoute>}
               />
               <Route
                 path={AppRoutes.adminProducts.path}
-                element={<PrivateRoute><ProductManagement /></PrivateRoute>}
+                element={<AdminPrivateRoute><ProductManagement /></AdminPrivateRoute>}
               />
               <Route
                 path={AppRoutes.adminOrders.path}
-                element={<PrivateRoute><OrderManagement /></PrivateRoute>}
+                element={<AdminPrivateRoute><OrderManagement /></AdminPrivateRoute>}
               />
               <Route
                 path={AppRoutes.adminCarts.path}
-                element={<PrivateRoute><CartManagement /></PrivateRoute>}
+                element={<AdminPrivateRoute><CartManagement /></AdminPrivateRoute>}
               />
               <Route
                 path={AppRoutes.adminDeliveryMethods.path}
-                element={<PrivateRoute><DeliveryMethodManagement /></PrivateRoute>}
+                element={<AdminPrivateRoute><DeliveryMethodManagement /></AdminPrivateRoute>}
               />
               <Route
                 path={AppRoutes.adminWishlist.path}
-                element={<PrivateRoute><WishlistManagement /></PrivateRoute>}
+                element={<AdminPrivateRoute><WishlistManagement /></AdminPrivateRoute>}
               />
-                          </Routes>
+            </Routes>
           </div>
         </Router>
       </HelmetProvider>

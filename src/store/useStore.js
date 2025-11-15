@@ -31,6 +31,7 @@ const useStore = create((set, get) => {
     walletAddress: null,
     currentUser: null,
     isAuthenticated: false,
+    isLoading: false,
     userCurrency: 'USDT',
     isSessionValidating: false,
     cart: (() => {
@@ -52,6 +53,7 @@ const useStore = create((set, get) => {
   isAuthenticated: initialState.isAuthenticated,
   token: initialState.token,
   currentUser: initialState.currentUser,
+  isLoading: initialState.isLoading,
   userCurrency: initialState.userCurrency,
   isConnectWalletModalOpen: false,
   isSessionValidating: initialState.isSessionValidating,
@@ -134,6 +136,7 @@ const useStore = create((set, get) => {
       localStorage.removeItem('userInfo');
     }
   },
+  setIsLoading: (isLoading) => set({ isLoading }),
   setUserCurrency: (currency) => set({ userCurrency: currency }),
   setConnectWalletModalOpen: (isOpen) => set({ isConnectWalletModalOpen: isOpen }),
 

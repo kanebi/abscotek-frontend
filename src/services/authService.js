@@ -1,16 +1,22 @@
 import apiClient from '@/lib/apiClient';
+import useAdminStore from '@/store/adminStore';
 
 // Admin authentication
 const adminLogin = async (email, password) => {
-  const response = await apiClient.post('/admin/login', { email, password });
+  const response = await apiClient.post('/api/admin/login', { email, password });
   if (response.data.token) {
-    localStorage.setItem('token', response.data.token);
+    const { token, user } = response.data;
+    useAdminStore.getState().login(token, user);
   }
   return response.data;
 };
 
+const adminLogout = () => {
+  useAdminStore.getState().logout();
+};
+
 const adminSignup = async (userData) => {
-  const response = await apiClient.post('/admin/signup', {
+  const response = await apiClient.post('/api/admin/signup', {
     name: userData.name,
     email: userData.email,
     password: userData.password,
@@ -19,14 +25,15 @@ const adminSignup = async (userData) => {
     phone: userData.phone
   });
   if (response.data.token) {
-    localStorage.setItem('token', response.data.token);
+    const { token, user } = response.data;
+    useAdminStore.getState().login(token, user);
   }
   return response.data;
 };
 
 // Regular user authentication
 const login = async (email, password) => {
-  const response = await apiClient.post('/auth', { email, password });
+  const response = await apiClient.post('/api/auth', { email, password });
   if (response.data.token) {
     localStorage.setItem('token', response.data.token);
     if (response.data.user) {
@@ -38,7 +45,7 @@ const login = async (email, password) => {
 
 const signup = async (userData) => {
   // Fix signup to use correct fields and endpoint
-  const response = await apiClient.post('/users', {
+  const response = await apiClient.post('/api/users', {
     name: `${userData.firstName || ''} ${userData.lastName || ''}`.trim(),
     email: userData.email,
     password: userData.password,
@@ -56,25 +63,25 @@ const signup = async (userData) => {
 
 // Get current user
 const getCurrentUser = async () => {
-  const response = await apiClient.get('/auth');
+  const response = await apiClient.get('/api/auth');
   return response.data;
 };
 
 // Get admin profile
 const getAdminProfile = async () => {
-  const response = await apiClient.get('/admin/profile');
+  const response = await apiClient.get('/api/admin/profile');
   return response.data;
 };
 
 // Update admin profile
 const updateAdminProfile = async (profileData) => {
-  const response = await apiClient.put('/admin/profile', profileData);
+  const response = await apiClient.put('/api/admin/profile', profileData);
   return response.data;
 };
 
 // Change admin password
 const changeAdminPassword = async (currentPassword, newPassword) => {
-  const response = await apiClient.put('/admin/change-password', {
+  const response = await apiClient.put('/api/admin/change-password', {
     currentPassword,
     newPassword
   });
@@ -83,13 +90,13 @@ const changeAdminPassword = async (currentPassword, newPassword) => {
 
 // Get user profile
 const getUserProfile = async () => {
-  const response = await apiClient.get('/users/profile');
+  const response = await apiClient.get('/api/users/profile');
   return response.data;
 };
 
 // Update user profile
 const updateUserProfile = async (profileData) => {
-  const response = await apiClient.put('/users/profile', profileData);
+  const response = await apiClient.put('/api/users/profile', profileData);
   return response.data;
 };
 
@@ -132,6 +139,7 @@ export default {
   login,
   signup,
   adminLogin,
+  adminLogout,
   adminSignup,
   getCurrentUser,
   getAdminProfile,

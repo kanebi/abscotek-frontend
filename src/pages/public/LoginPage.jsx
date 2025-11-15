@@ -16,11 +16,13 @@ function LoginPage() {
   const setIsAuthenticated = useStore((state) => state.setIsAuthenticated);
   const setToken = useStore((state) => state.setToken);
   const setCurrentUser = useStore((state) => state.setCurrentUser);
+  const setIsLoading = useStore((state) => state.setIsLoading);
 
   const handleAdminLogin = async (e) => {
     e.preventDefault();
     setMessage('');
     setLoading(true);
+    setIsLoading(true);
     
     try {
       const response = await authService.adminLogin(email, password);
@@ -41,6 +43,7 @@ function LoginPage() {
       setMessage(errorMessage);
     } finally {
       setLoading(false);
+      setIsLoading(false);
     }
   };
 

@@ -2,7 +2,7 @@ import apiClient from '@/lib/apiClient';
 
 // Create order directly
 const createOrder = async (orderData) => {
-  const response = await apiClient.post('/orders', orderData);
+  const response = await apiClient.post('/api/orders', orderData);
   return response.data;
 };
 
@@ -14,7 +14,7 @@ const checkout = async (checkoutData) => {
 
 // List user's orders
 const getOrders = async (category = 'all') => {
-  const response = await apiClient.get(`/orders?category=${category}`);
+  const response = await apiClient.get(`/api/orders?category=${category}`);
   return response.data;
 };
 
@@ -26,7 +26,7 @@ const getOrdersPaginated = async (page = 1, limit = 10, status = 'all') => {
 
 // Get order by ID (owner or admin)
 const getOrderById = async (id) => {
-  const response = await apiClient.get(`/orders/${id}`);
+  const response = await apiClient.get(`/api/orders/${id}`);
   return response.data;
 };
 
