@@ -28,23 +28,28 @@ export const useWeb3Auth = () => {
   const authenticateAndLogin = useCallback(async () => {
     if (authenticated && user) {
       try {
-        // Check if we already have a valid token to avoid calling Privy repeatedly
+        // Check if we already have a valid token and session is validated
         const existingToken = localStorage.getItem('token');
-        if (existingToken) {
-          console.log('useWeb3Auth - Valid token already exists, skipping Privy API call');
-          // Just update the store with existing data
-          const existingUser = localStorage.getItem('userInfo');
-          if (existingUser) {
-            try {
-              const userData = JSON.parse(existingUser);
-            setCurrentUser(userData);
+        const existingUser = localStorage.getItem('userInfo');
+        
+        if (existingToken && existingUser && sessionValidated.current) {
+          console.log('useWeb3Auth - Valid session already exists, skipping re-authentication');
+          // Just ensure store is in sync with localStorage
+          try {
+            const userData = JSON.parse(existingUser);
+            const currentState = useStore.getState();
+            
+            // Only update if store is out of sync
+            if (!currentState.isAuthenticated || !currentState.token) {
+              console.log('useWeb3Auth - Syncing store with localStorage');
+              setCurrentUser(userData);
               setIsAuthenticated(true);
               setToken(existingToken);
               setWalletAddress(userData.walletAddress || user?.wallet?.address);
-              return;
-            } catch (e) {
-              console.log('useWeb3Auth - Invalid stored user data, proceeding with fresh auth');
             }
+            return;
+          } catch (e) {
+            console.log('useWeb3Auth - Invalid stored user data, proceeding with fresh auth');
           }
         }
 
@@ -79,11 +84,15 @@ export const useWeb3Auth = () => {
         await Promise.all([
           fetchCart(),
           fetchWishlist()
-        ]);
+        ]).catch(err => {
+          console.error('useWeb3Auth - Error loading user data:', err);
+        });
         console.log('useWeb3Auth - User data loaded successfully');
 
         // Merge guest cart after successful login
-        await cartService.mergeGuestCart();
+        await cartService.mergeGuestCart().catch(err => {
+          console.error('useWeb3Auth - Error merging guest cart:', err);
+        });
 
       } catch (error) {
         console.error('Privy authentication failed:', error);
@@ -99,11 +108,21 @@ export const useWeb3Auth = () => {
     const initializeSession = async () => {
       if (sessionValidated.current) return;
 
-      console.log('useWeb3Auth - Validating existing session...');
+      // Check if we have stored auth data
+      const storedToken = localStorage.getItem('token');
+      const storedUserInfo = localStorage.getItem('userInfo');
+      
+      if (!storedToken || !storedUserInfo) {
+        console.log('useWeb3Auth - No stored auth data, skipping validation');
+        sessionValidated.current = true;
+        return;
+      }
+
+      console.log('useWeb3Auth - Found stored auth data, validating session...');
       const isValid = await validateSession();
 
       if (isValid) {
-        console.log('useWeb3Auth - Session validated, user data already loaded by validateSession');
+        console.log('useWeb3Auth - Session validated successfully');
         // Note: validateSession already loads user data, so we don't need to fetch again
         // But we should still fetch cart and wishlist for authenticated users
         const { isAuthenticated, fetchCart, fetchWishlist } = useStore.getState();
@@ -112,20 +131,22 @@ export const useWeb3Auth = () => {
           await Promise.all([
             fetchCart(),
             fetchWishlist()
-          ]);
+          ]).catch(err => {
+            console.error('useWeb3Auth - Error fetching user data:', err);
+          });
         }
       } else {
-        console.log('useWeb3Auth - No valid session found');
+        console.log('useWeb3Auth - Session validation failed, auth state cleared');
       }
 
       sessionValidated.current = true;
     };
 
-    // Always validate session on mount, regardless of Privy state
+    // Always validate session on mount if we have stored data
     if (!isSessionValidating) {
       initializeSession();
     }
-  }, [isSessionValidating, validateSession]); // Removed authenticated dependency
+  }, [isSessionValidating, validateSession]);
 
   // Handle Privy authentication state changes
   useEffect(() => {

@@ -81,29 +81,37 @@ apiClient.interceptors.response.use(
         const adminStore = useAdminStore.getState();
         adminStore.logout();
       } else {
-        // Clear auth state
-        localStorage.removeItem('token');
-        localStorage.removeItem('walletAddress');
-        
-        // Update store state
-        const store = useStore.getState();
-        store.setToken(null);
-        store.setIsAuthenticated(false);
-        store.setCurrentUser(null);
-        store.setWalletAddress(null);
-        
-        // Only open connect wallet modal if this is NOT a session validation call
-        // Session validation calls should fail silently without showing modal
-        const isSessionValidation = originalRequest.url?.includes('/users/profile') && 
-                                   originalRequest.method === 'GET' &&
+        // Check if this is a session validation call before clearing auth
+        const isSessionValidation = (originalRequest.url?.includes('/users/profile') || 
+                                     originalRequest.url?.includes('/api/users/profile')) && 
+                                   originalRequest.method?.toUpperCase() === 'GET' &&
                                    !originalRequest._isUserAction;
         
-        if (!isSessionValidation) {
-          // Open the connect wallet modal only for actual user actions
-          store.setConnectWalletModalOpen(true);
-          console.log('Opening connect wallet modal due to 401 error');
+        if (isSessionValidation) {
+          // Session validation failed - clear auth silently
+          console.log('Session validation failed (401), clearing auth state silently');
+          localStorage.removeItem('token');
+          localStorage.removeItem('walletAddress');
+          localStorage.removeItem('userInfo');
+          
+          const store = useStore.getState();
+          store.setToken(null);
+          store.setIsAuthenticated(false);
+          store.setCurrentUser(null);
+          store.setWalletAddress(null);
         } else {
-          console.log('Session validation failed, not opening modal');
+          // Regular 401 error - clear auth and show modal
+          console.log('401 error on user action, clearing auth and showing modal');
+          localStorage.removeItem('token');
+          localStorage.removeItem('walletAddress');
+          localStorage.removeItem('userInfo');
+          
+          const store = useStore.getState();
+          store.setToken(null);
+          store.setIsAuthenticated(false);
+          store.setCurrentUser(null);
+          store.setWalletAddress(null);
+          store.setConnectWalletModalOpen(true);
         }
       }
     }
