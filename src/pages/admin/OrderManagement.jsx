@@ -1,23 +1,24 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import orderService from '../../services/orderService';
 import Layout from '../../components/Layout';
 import { Button } from '../../components/ui/button';
 import { Card } from '../../components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select';
 import AmountCurrency from '../../components/ui/AmountCurrency';
+import { AppRoutes } from '../../config/routes';
 import { 
   ClipboardList, 
-  Plus, 
-  Edit, 
-  Trash2, 
   Search,
   Package,
   User,
+  ArrowLeft,
   Calendar,
   DollarSign
 } from 'lucide-react';
 
 function OrderManagement() {
+  const navigate = useNavigate();
   const [orders, setOrders] = useState([]);
   const [errorMessage, setErrorMessage] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
@@ -51,20 +52,24 @@ function OrderManagement() {
   const handleStatusChange = async (orderId, newStatus) => {
     clearMessages();
     try {
-      await orderService.updateOrderStatus(orderId, newStatus);
-      setSuccessMessage(`Order ${orderId} status updated to ${newStatus}.`);
+      await orderService.adminUpdateOrder(orderId, { status: newStatus });
+      setSuccessMessage(`Order status updated to ${newStatus}.`);
       // Refetch orders to show the change immediately
       fetchOrders();
     } catch (error) {
       console.error('Error updating order status:', error);
-      setErrorMessage('Failed to update order status.');
+      const errorMsg = error.response?.data?.msg || error.response?.data?.message || 'Failed to update order status.';
+      setErrorMessage(errorMsg);
     }
   };
 
   const getStatusColor = (status) => {
-    switch (status) {
+    const statusLower = status?.toLowerCase();
+    switch (statusLower) {
       case 'pending':
         return 'text-warningw-400 bg-warningw-100/10';
+      case 'confirmed':
+        return 'text-infoi-400 bg-infoi-100/10';
       case 'processing':
         return 'text-infoi-400 bg-infoi-100/10';
       case 'shipped':
@@ -73,15 +78,19 @@ function OrderManagement() {
         return 'text-successs-400 bg-successs-100/10';
       case 'cancelled':
         return 'text-dangerd-400 bg-dangerd-100/10';
+      case 'refunded':
+        return 'text-neutralneutral-400 bg-neutralneutral-100/10';
       default:
         return 'text-neutralneutral-400 bg-neutralneutral-100/10';
     }
   };
 
   const filteredOrders = orders.filter(order => {
-    const matchesSearch = order._id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         order.userId?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === 'all' || order.status === statusFilter;
+    const matchesSearch = order._id?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         order.orderNumber?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         order.buyer?.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         order.buyer?.name?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = statusFilter === 'all' || order.status?.toLowerCase() === statusFilter.toLowerCase();
     return matchesSearch && matchesStatus;
   });
 
@@ -90,16 +99,26 @@ function OrderManagement() {
       <div className="w-[86%] mx-auto py-8">
         <div className="max-w-6xl mx-auto">
           {/* Header */}
-          <div className="flex items-center gap-4 mb-8">
-            <div className="w-12 h-12 bg-successs-100/10 rounded-full flex items-center justify-center">
-              <ClipboardList size={24} className="text-successs-400" />
+          <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 bg-successs-100/10 rounded-full flex items-center justify-center">
+                <ClipboardList size={24} className="text-successs-400" />
+              </div>
+              <div>
+                <h1 className="text-3xl font-heading-header-2-header-2-bold text-white">
+                  Order Management
+                </h1>
+                <p className="text-neutralneutral-400">View and manage customer orders</p>
+              </div>
             </div>
-            <div>
-              <h1 className="text-3xl font-heading-header-2-header-2-bold text-white">
-                Order Management
-              </h1>
-              <p className="text-neutralneutral-400">View and manage customer orders</p>
-            </div>
+            <Button 
+              variant="outline" 
+              onClick={() => navigate(AppRoutes.admin.path)}
+              className="border-neutralneutral-600 text-neutralneutral-300 hover:bg-neutralneutral-800"
+            >
+              <ArrowLeft size={16} className="mr-2" />
+              Back to Dashboard
+            </Button>
           </div>
 
           {/* Messages */}
@@ -179,10 +198,12 @@ function OrderManagement() {
                   <SelectContent>
                     <SelectItem value="all">All Status</SelectItem>
                     <SelectItem value="pending">Pending</SelectItem>
+                    <SelectItem value="confirmed">Confirmed</SelectItem>
                     <SelectItem value="processing">Processing</SelectItem>
                     <SelectItem value="shipped">Shipped</SelectItem>
                     <SelectItem value="delivered">Delivered</SelectItem>
                     <SelectItem value="cancelled">Cancelled</SelectItem>
+                    <SelectItem value="refunded">Refunded</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -210,10 +231,10 @@ function OrderManagement() {
                           </div>
                           <div>
                             <h3 className="text-lg font-body-large-large-bold text-white">
-                              Order #{order._id.slice(-8).toUpperCase()}
+                              Order #{order.orderNumber || order._id?.slice(-8).toUpperCase()}
                             </h3>
                             <span className={`px-2 py-1 rounded text-xs font-body-xsmall-xsmall-bold uppercase ${getStatusColor(order.status)}`}>
-                              {order.status}
+                              {order.status || 'pending'}
                             </span>
                           </div>
                         </div>
@@ -221,23 +242,30 @@ function OrderManagement() {
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                           <div className="flex items-center gap-2 text-neutralneutral-300">
                             <User size={14} />
-                            <span>User: {order.userId}</span>
+                            <span>{order.buyer?.name || order.buyer?.email || 'Guest'}</span>
                           </div>
                           <div className="flex items-center gap-2 text-neutralneutral-300">
                             <DollarSign size={14} />
-                            <span><AmountCurrency amount={order.total} fromCurrency="USDT" /></span>
+                            <span><AmountCurrency amount={order.totalAmount || 0} fromCurrency={order.currency || 'USDT'} /></span>
                           </div>
                           <div className="flex items-center gap-2 text-neutralneutral-300">
                             <Calendar size={14} />
-                            <span>{new Date(order.createdAt || Date.now()).toLocaleDateString()}</span>
+                            <span>{new Date(order.orderDate || order.createdAt || Date.now()).toLocaleDateString()}</span>
                           </div>
                         </div>
                       </div>
                       
                       {/* Actions */}
                       <div className="flex items-center gap-2">
+                        <Button
+                          variant="outline"
+                          onClick={() => navigate(`/admin/orders/${order._id}`)}
+                          className="border-neutralneutral-600 text-neutralneutral-300"
+                        >
+                          View Details
+                        </Button>
                         <Select
-                          value={order.status}
+                          value={order.status || 'pending'}
                           onValueChange={(newStatus) => handleStatusChange(order._id, newStatus)}
                         >
                           <SelectTrigger className="w-36 bg-neutralneutral-700 border-neutralneutral-600 text-white">
@@ -245,10 +273,12 @@ function OrderManagement() {
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="pending">Pending</SelectItem>
-                            <SelectItem value="paid">Paid</SelectItem>
+                            <SelectItem value="confirmed">Confirmed</SelectItem>
+                            <SelectItem value="processing">Processing</SelectItem>
                             <SelectItem value="shipped">Shipped</SelectItem>
                             <SelectItem value="delivered">Delivered</SelectItem>
                             <SelectItem value="cancelled">Cancelled</SelectItem>
+                            <SelectItem value="refunded">Refunded</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>

@@ -101,7 +101,7 @@ const updateUserProfile = async (profileData) => {
 };
 
 const authenticateWithPrivy = async (privyAccessToken) => {
-  const response = await apiClient.post('/auth/privy', { accessToken: privyAccessToken });
+  const response = await apiClient.post('/api/auth/privy', { accessToken: privyAccessToken });
   if (response.data.token) {
     localStorage.setItem('token', response.data.token);
     if (response.data.user) {

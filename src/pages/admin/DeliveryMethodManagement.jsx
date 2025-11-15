@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import deliveryMethodService from '../../services/deliveryMethodService';
 import Layout from '../../components/Layout';
 import { Button } from '../../components/ui/button';
 import { Card } from '../../components/ui/card';
 import AmountCurrency from '../../components/ui/AmountCurrency';
-import { Truck, Plus, Edit, Trash2, Clock, MapPin } from 'lucide-react';
+import { Truck, Plus, Edit, Trash2, Clock, MapPin, ArrowLeft } from 'lucide-react';
+import { AppRoutes } from '../../config/routes';
 
 function DeliveryMethodManagement() {
+  const navigate = useNavigate();
   const [deliveryMethods, setDeliveryMethods] = useState([]);
   const [newDeliveryMethod, setNewDeliveryMethod] = useState({ 
     name: '', 
@@ -89,16 +92,26 @@ function DeliveryMethodManagement() {
       <div className="w-[86%] mx-auto py-8">
         <div className="max-w-6xl mx-auto">
           {/* Header */}
-          <div className="flex items-center gap-4 mb-8">
-            <div className="w-12 h-12 bg-warningw-100/10 rounded-full flex items-center justify-center">
-              <Truck size={24} className="text-warningw-400" />
+          <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 bg-warningw-100/10 rounded-full flex items-center justify-center">
+                <Truck size={24} className="text-warningw-400" />
+              </div>
+              <div>
+                <h1 className="text-3xl font-heading-header-2-header-2-bold text-white">
+                  Delivery Method Management
+                </h1>
+                <p className="text-neutralneutral-400">Configure shipping and delivery options</p>
+              </div>
             </div>
-            <div>
-              <h1 className="text-3xl font-heading-header-2-header-2-bold text-white">
-                Delivery Method Management
-              </h1>
-              <p className="text-neutralneutral-400">Configure shipping and delivery options</p>
-            </div>
+            <Button 
+              variant="outline" 
+              onClick={() => navigate(AppRoutes.admin.path)}
+              className="border-neutralneutral-600 text-neutralneutral-300 hover:bg-neutralneutral-800"
+            >
+              <ArrowLeft size={16} className="mr-2" />
+              Back to Dashboard
+            </Button>
           </div>
 
           {/* Messages */}

@@ -2,11 +2,11 @@ import { useEffect } from 'react';
 import useAdminStore from '../store/adminStore';
 
 const AdminAuthSync = () => {
-  const loadFromSession = useAdminStore((state) => state.loadFromSession);
+  const loadFromStorage = useAdminStore((state) => state.loadFromStorage);
 
   useEffect(() => {
-    loadFromSession();
-  }, [loadFromSession]);
+    loadFromStorage();
+  }, [loadFromStorage]);
 
   return null;
 };

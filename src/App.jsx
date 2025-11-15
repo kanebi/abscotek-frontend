@@ -9,7 +9,9 @@ import UserManagement from './pages/admin/UserManagement';
 // Vendor Pages
 import VendorDashboard from './pages/vendor/VendorDashboard';
 import ProductManagement from './pages/admin/ProductManagement';
+import ProductEdit from './pages/admin/ProductEdit';
 import OrderManagement from './pages/admin/OrderManagement';
+import OrderDetail from './pages/admin/OrderDetail';
 import CartManagement from './pages/admin/CartManagement';
 import DeliveryMethodManagement from './pages/admin/DeliveryMethodManagement';
 import WishlistManagement from './pages/admin/WishlistManagement';
@@ -116,8 +118,16 @@ function App() {
                 element={<AdminPrivateRoute><ProductManagement /></AdminPrivateRoute>}
               />
               <Route
+                path="/admin/products/:id/edit"
+                element={<AdminPrivateRoute><ProductEdit /></AdminPrivateRoute>}
+              />
+              <Route
                 path={AppRoutes.adminOrders.path}
                 element={<AdminPrivateRoute><OrderManagement /></AdminPrivateRoute>}
+              />
+              <Route
+                path="/admin/orders/:id"
+                element={<AdminPrivateRoute><OrderDetail /></AdminPrivateRoute>}
               />
               <Route
                 path={AppRoutes.adminCarts.path}

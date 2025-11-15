@@ -2,114 +2,114 @@ import apiClient from '@/lib/apiClient';
 
 // Admin Dashboard & Analytics
 const getDashboardStats = async () => {
-  const response = await apiClient.get('/admin/dashboard/stats');
+  const response = await apiClient.get('/api/admin/dashboard/stats');
   return response.data;
 };
 
 const getAnalytics = async (period = '30d') => {
-  const response = await apiClient.get(`/admin/analytics?period=${period}`);
+  const response = await apiClient.get(`/api/admin/analytics?period=${period}`);
   return response.data;
 };
 
 // User Management
 const getAllUsers = async (params = {}) => {
-  const response = await apiClient.get('/admin/users', { params });
+  const response = await apiClient.get('/api/admin/users', { params });
   return response.data;
 };
 
 const getUserById = async (id) => {
-  const response = await apiClient.get(`/admin/users/${id}`);
+  const response = await apiClient.get(`/api/admin/users/${id}`);
   return response.data;
 };
 
 const updateUser = async (id, userData) => {
-  const response = await apiClient.put(`/admin/users/${id}`, userData);
+  const response = await apiClient.put(`/api/admin/users/${id}`, userData);
   return response.data;
 };
 
 const deleteUser = async (id) => {
-  const response = await apiClient.delete(`/admin/users/${id}`);
+  const response = await apiClient.delete(`/api/admin/users/${id}`);
   return response.data;
 };
 
 const suspendUser = async (id, reason) => {
-  const response = await apiClient.patch(`/admin/users/${id}/suspend`, { reason });
+  const response = await apiClient.patch(`/api/admin/users/${id}/suspend`, { reason });
   return response.data;
 };
 
 const unsuspendUser = async (id) => {
-  const response = await apiClient.patch(`/admin/users/${id}/unsuspend`);
+  const response = await apiClient.patch(`/api/admin/users/${id}/unsuspend`);
   return response.data;
 };
 
 // Delivery Methods Management
 const getDeliveryMethods = async () => {
-  const response = await apiClient.get('/admin/delivery-methods');
+  const response = await apiClient.get('/api/delivery-methods');
   return response.data;
 };
 
 const createDeliveryMethod = async (methodData) => {
-  const response = await apiClient.post('/admin/delivery-methods', methodData);
+  const response = await apiClient.post('/api/delivery-methods', methodData);
   return response.data;
 };
 
 const updateDeliveryMethod = async (id, methodData) => {
-  const response = await apiClient.put(`/admin/delivery-methods/${id}`, methodData);
+  const response = await apiClient.put(`/api/delivery-methods/${id}`, methodData);
   return response.data;
 };
 
 const deleteDeliveryMethod = async (id) => {
-  const response = await apiClient.delete(`/admin/delivery-methods/${id}`);
+  const response = await apiClient.delete(`/api/delivery-methods/${id}`);
   return response.data;
 };
 
 // Category Management
 const getCategories = async () => {
-  const response = await apiClient.get('/admin/categories');
+  const response = await apiClient.get('/api/admin/categories');
   return response.data;
 };
 
 const createCategory = async (categoryData) => {
-  const response = await apiClient.post('/admin/categories', categoryData);
+  const response = await apiClient.post('/api/admin/categories', categoryData);
   return response.data;
 };
 
 const updateCategory = async (id, categoryData) => {
-  const response = await apiClient.put(`/admin/categories/${id}`, categoryData);
+  const response = await apiClient.put(`/api/admin/categories/${id}`, categoryData);
   return response.data;
 };
 
 const deleteCategory = async (id) => {
-  const response = await apiClient.delete(`/admin/categories/${id}`);
+  const response = await apiClient.delete(`/api/admin/categories/${id}`);
   return response.data;
 };
 
 // System Settings
 const getSettings = async () => {
-  const response = await apiClient.get('/admin/settings');
+  const response = await apiClient.get('/api/admin/settings');
   return response.data;
 };
 
 const updateSettings = async (settings) => {
-  const response = await apiClient.put('/admin/settings', settings);
+  const response = await apiClient.put('/api/admin/settings', settings);
   return response.data;
 };
 
 // Reports
 const getSalesReport = async (startDate, endDate) => {
-  const response = await apiClient.get('/admin/reports/sales', {
+  const response = await apiClient.get('/api/admin/reports/sales', {
     params: { startDate, endDate }
   });
   return response.data;
 };
 
 const getInventoryReport = async () => {
-  const response = await apiClient.get('/admin/reports/inventory');
+  const response = await apiClient.get('/api/admin/reports/inventory');
   return response.data;
 };
 
 const getUserReport = async (startDate, endDate) => {
-  const response = await apiClient.get('/admin/reports/users', {
+  const response = await apiClient.get('/api/admin/reports/users', {
     params: { startDate, endDate }
   });
   return response.data;

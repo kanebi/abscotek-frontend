@@ -6,21 +6,31 @@ const useAdminStore = create((set) => ({
   user: null,
   login: (token, user) => {
     set({ isAuthenticated: true, token, user });
-    sessionStorage.setItem('adminToken', token);
-    sessionStorage.setItem('adminUser', JSON.stringify(user));
+    localStorage.setItem('adminToken', token);
+    localStorage.setItem('adminUser', JSON.stringify(user));
   },
   logout: () => {
     set({ isAuthenticated: false, token: null, user: null });
-    sessionStorage.removeItem('adminToken');
-    sessionStorage.removeItem('adminUser');
+    localStorage.removeItem('adminToken');
+    localStorage.removeItem('adminUser');
   },
-  loadFromSession: () => {
-    const token = sessionStorage.getItem('adminToken');
-    const user = JSON.parse(sessionStorage.getItem('adminUser'));
-    if (token && user) {
-      set({ isAuthenticated: true, token, user });
+  loadFromStorage: () => {
+    const token = localStorage.getItem('adminToken');
+    const userStr = localStorage.getItem('adminUser');
+    if (token && userStr) {
+      try {
+        const user = JSON.parse(userStr);
+        set({ isAuthenticated: true, token, user });
+      } catch (error) {
+        console.error('Error parsing admin user from storage:', error);
+        localStorage.removeItem('adminToken');
+        localStorage.removeItem('adminUser');
+      }
     }
   },
 }));
+
+// Initialize admin store from localStorage on module load
+useAdminStore.getState().loadFromStorage();
 
 export default useAdminStore;

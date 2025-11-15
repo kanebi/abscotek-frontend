@@ -26,7 +26,7 @@ apiClient.interceptors.request.use(
     let token = null;
 
     if (isAdminRoute) {
-      token = sessionStorage.getItem('adminToken');
+      token = localStorage.getItem('adminToken');
     } else {
       token = localStorage.getItem('token');
     }

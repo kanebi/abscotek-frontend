@@ -1,15 +1,45 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import productService from '../../services/productService';
 import Layout from '../../components/Layout';
 import { Button } from '../../components/ui/button';
 import { Card } from '../../components/ui/card';
 import AmountCurrency from '../../components/ui/AmountCurrency';
-import { Package, Plus, Edit, Trash2, Search, ImagePlus, Upload, Filter, X } from 'lucide-react';
+import { Package, Plus, Edit, Trash2, Search, ImagePlus, Upload, Filter, X, ArrowLeft } from 'lucide-react';
+import { AppRoutes } from '../../config/routes';
+
+const DEFAULT_VARIANT_JSON = JSON.stringify([
+  {
+    name: "Red - 128GB",
+    price: 999,
+    currency: "USDT",
+    stock: 10,
+    sku: "PROD-RED-128",
+    attributes: [
+      { name: "Color", value: "Red" },
+      { name: "Storage", value: "128GB" }
+    ],
+    images: []
+  }
+], null, 2);
 
 function ProductManagement() {
+  const navigate = useNavigate();
   const [products, setProducts] = useState([]);
-  const [newProduct, setNewProduct] = useState({ name: '', description: '', price: '', image: '', badge: '', category: '', brand: '', sku: '', specs: '[]', stock: 0, outOfStock: true });
-  const [editingProduct, setEditingProduct] = useState(null);
+  const [newProduct, setNewProduct] = useState({ 
+    name: '', 
+    description: '', 
+    price: '', 
+    image: '', 
+    badge: '', 
+    category: '', 
+    brand: '', 
+    sku: '', 
+    specs: '[]', 
+    variants: DEFAULT_VARIANT_JSON,
+    stock: 0, 
+    outOfStock: true 
+  });
   const [errorMessage, setErrorMessage] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -29,13 +59,7 @@ function ProductManagement() {
 
   const [total, setTotal] = useState(0);
 
-  // Edit modal state
-  const [isEditOpen, setIsEditOpen] = useState(false);
-  const [editForm, setEditForm] = useState({ name: '', description: '', price: '', badge: '', category: '', brand: '', sku: '', specs: '[]', stock: 0, outOfStock: true });
-  const [isSavingEdit, setIsSavingEdit] = useState(false);
-  const [editFiles, setEditFiles] = useState([]);
-  const [editUrls, setEditUrls] = useState(['']);
-  const [isEditUploading, setIsEditUploading] = useState(false);
+
 
   useEffect(() => { fetchProducts(); }, [showUnpublishedOnly, page, limit]);
 
@@ -68,30 +92,33 @@ function ProductManagement() {
   };
 
   const handleCreateDetails = async (e) => {
-    e.preventDefault(); clearMessages();
+    e.preventDefault(); 
+    clearMessages();
     try {
       const payload = {
         name: newProduct.name,
-        description: newProduct.description,
+        description: newProduct.description || '',
         price: Number(newProduct.price),
         currency: 'USDT',
         images: [],
         published: false,
-        badge: newProduct.badge || null,
-        category: newProduct.category || null,
-        brand: newProduct.brand || null,
-        sku: newProduct.sku || null,
+        badge: newProduct.badge?.trim() || null,
+        category: newProduct.category?.trim() || null,
+        brand: newProduct.brand?.trim() || null,
+        sku: newProduct.sku?.trim() || null,
         specs: safeParseArray(newProduct.specs),
+        variants: [], // Empty array for now - variants should be added separately with proper structure
         stock: Number(newProduct.stock || 0),
-        outOfStock: Boolean(newProduct.outOfStock),
       };
+      
       const created = await productService.createProduct(payload);
       setCreatedProductId(created._id);
       setCreateStep(2);
       setSuccessMessage('Product created. Please upload up to 10 images before publishing.');
     } catch (error) {
       console.error('Error creating product:', error);
-      setErrorMessage('Failed to create product.');
+      const errorMsg = error.response?.data?.errors?.[0]?.msg || error.response?.data?.message || 'Failed to create product.';
+      setErrorMessage(errorMsg);
     }
   };
 
@@ -150,88 +177,7 @@ function ProductManagement() {
     } finally { setIsUploading(false); }
   };
 
-  const openEditModal = (product) => {
-    setEditingProduct(product);
-    setEditForm({
-      name: product?.name || '',
-      description: product?.description || '',
-      price: product?.price ?? '',
-      badge: product?.badge || '',
-      category: product?.category || '',
-      brand: product?.brand || '',
-      sku: product?.sku || '',
-      specs: JSON.stringify(product?.specs || []),
-      stock: product?.stock ?? 0,
-      outOfStock: !!product?.outOfStock,
-    });
-    setEditFiles([]);
-    setEditUrls(['']);
-    setIsEditOpen(true);
-  };
 
-  const saveEdit = async () => {
-    if (!editingProduct?._id) return;
-    clearMessages(); setIsSavingEdit(true);
-    try {
-      await productService.updateProduct(editingProduct._id, {
-        name: editForm.name,
-        description: editForm.description,
-        price: Number(editForm.price),
-        badge: editForm.badge || null,
-        category: editForm.category || null,
-        brand: editForm.brand || null,
-        sku: editForm.sku || null,
-        specs: safeParseArray(editForm.specs),
-        stock: Number(editForm.stock || 0),
-        outOfStock: Boolean(editForm.outOfStock),
-      });
-      setSuccessMessage('Product updated successfully!');
-      setIsEditOpen(false);
-      setEditingProduct(null);
-      fetchProducts();
-    } catch (error) {
-      console.error('Error updating product:', error);
-      setErrorMessage('Failed to update product.');
-    } finally { setIsSavingEdit(false); }
-  };
-
-  const uploadMoreInEdit = async () => {
-    if (!editingProduct?._id) return;
-    clearMessages(); setIsEditUploading(true);
-    try {
-      let updated = null;
-      if (editFiles.length > 0) {
-        updated = await productService.uploadImages(editingProduct._id, editFiles);
-      }
-      const urls = editUrls.filter(Boolean);
-      if (urls.length > 0) {
-        updated = await productService.appendImageUrls(editingProduct._id, urls);
-      }
-      if (updated) setEditingProduct(updated);
-      setSuccessMessage('Images updated successfully!');
-      await fetchProducts();
-      setEditFiles([]);
-      setEditUrls(['']);
-    } catch (error) {
-      console.error('Error adding images:', error);
-      setErrorMessage('Failed to add images.');
-    } finally { setIsEditUploading(false); }
-  };
-
-  const removeExistingImage = async (image) => {
-    if (!editingProduct?._id) return;
-    clearMessages();
-    try {
-      const identifier = image?.id || image?._id || image?.url || image; // support id or url or raw url
-      const updated = await productService.removeImage(editingProduct._id, identifier);
-      if (updated) setEditingProduct(updated);
-      setSuccessMessage('Image removed');
-      await fetchProducts();
-    } catch (error) {
-      console.error('Error removing image:', error);
-      setErrorMessage('Failed to remove image.');
-    }
-  };
 
   const togglePublish = async (product) => {
     clearMessages();
@@ -282,14 +228,24 @@ function ProductManagement() {
       <div className="w-[86%] mx-auto py-8">
         <div className="max-w-6xl mx-auto">
           {/* Header */}
-          <div className="flex items-center gap-4 mb-8">
-            <div className="w-12 h-12 bg-secondarys-100/10 rounded-full flex items-center justify-center">
-              <Package size={24} className="text-secondarys-400" />
+          <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 bg-secondarys-100/10 rounded-full flex items-center justify-center">
+                <Package size={24} className="text-secondarys-400" />
+              </div>
+              <div>
+                <h1 className="text-3xl font-heading-header-2-header-2-bold text-white">Product Management</h1>
+                <p className="text-neutralneutral-300">Manage your product catalog</p>
+              </div>
             </div>
-            <div>
-              <h1 className="text-3xl font-heading-header-2-header-2-bold text-white">Product Management</h1>
-              <p className="text-neutralneutral-300">Manage your product catalog</p>
-            </div>
+            <Button 
+              variant="outline" 
+              onClick={() => navigate(AppRoutes.admin.path)}
+              className="border-neutralneutral-600 text-neutralneutral-300 hover:bg-neutralneutral-800"
+            >
+              <ArrowLeft size={16} className="mr-2" />
+              Back to Dashboard
+            </Button>
           </div>
 
           {/* Filters Row */}
@@ -428,10 +384,10 @@ function ProductManagement() {
                       <div className="mt-4 flex items-center justify-between">
                         <div className="flex items-center gap-3">
                           <span className="text-neutralneutral-400 text-sm">Publish</span>
-                          <PublishKnob checked={!!p.published} onClick={() => togglePublish(p)} onChange={() => { }} />
+                          <PublishKnob checked={!!p.published} onChange={() => togglePublish(p)} />
                         </div>
                         <div className="flex gap-2">
-                          <Button variant="outline" className="border-neutralneutral-600 text-neutralneutral-300" onClick={() => openEditModal(p)}><Edit size={14} className="mr-2" /> Edit</Button>
+                          <Button variant="outline" className="border-neutralneutral-600 text-neutralneutral-300" onClick={() => navigate(`/admin/products/${p._id}/edit`)}><Edit size={14} className="mr-2" /> Edit</Button>
                           <Button variant="destructive" className="bg-dangerd-500 hover:bg-dangerd-400" onClick={() => handleDelete(p._id)}><Trash2 size={14} className="mr-2" /> Delete</Button>
                         </div>
                       </div>
@@ -442,38 +398,7 @@ function ProductManagement() {
             )}
           </Card>
 
-          {/* Edit Modal */}
-          {isEditOpen && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
-              <div className="w-full max-w-3xl max-h-[85vh] overflow-y-auto bg-neutralneutral-900 border border-neutralneutral-700 rounded-lg p-6">
-                <div className="flex items-start justify-between mb-4">
-                  <h3 className="text-white text-xl">Edit Product</h3>
-                  <button className="text-neutralneutral-400 hover:text-white" onClick={() => { setIsEditOpen(false); setEditingProduct(null); }}><X size={18} /></button>
-                </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  <div className="space-y-3">
-                    <input type="text" value={editForm.name} onChange={(e) => setEditForm({ ...editForm, name: e.target.value })} placeholder="Name" className="w-full p-3 bg-neutralneutral-800 border border-neutralneutral-600 rounded-lg text-white placeholder-neutralneutral-400" />
-                    <textarea value={editForm.description} onChange={(e) => setEditForm({ ...editForm, description: e.target.value })} placeholder="Description" rows="6" className="w-full p-3 bg-neutralneutral-800 border border-neutralneutral-600 rounded-lg text-white placeholder-neutralneutral-400" />
-                    <input type="number" value={editForm.price} onChange={(e) => setEditForm({ ...editForm, price: e.target.value })} placeholder="Price (USDT)" className="w-full p-3 bg-neutralneutral-800 border border-neutralneutral-600 rounded-lg text-white placeholder-neutralneutral-400" />
-                    <input type="text" value={editForm.badge} onChange={(e) => setEditForm({ ...editForm, badge: e.target.value })} placeholder="Badge (optional)" className="w-full p-3 bg-neutralneutral-800 border border-neutralneutral-600 rounded-lg text-white placeholder-neutralneutral-400" />
-                    <input type="text" value={editForm.category} onChange={(e) => setEditForm({ ...editForm, category: e.target.value })} placeholder="Category" className="w-full p-3 bg-neutralneutral-800 border border-neutralneutral-600 rounded-lg text-white placeholder-neutralneutral-400" />
-                    <input type="text" value={editForm.brand} onChange={(e) => setEditForm({ ...editForm, brand: e.target.value })} placeholder="Brand" className="w-full p-3 bg-neutralneutral-800 border border-neutralneutral-600 rounded-lg text-white placeholder-neutralneutral-400" />
-                    <input type="text" value={editForm.sku} onChange={(e) => setEditForm({ ...editForm, sku: e.target.value })} placeholder="SKU" className="w-full p-3 bg-neutralneutral-800 border border-neutralneutral-600 rounded-lg text-white placeholder-neutralneutral-400" />
-                    <input type="number" value={editForm.stock} onChange={(e) => setEditForm({ ...editForm, stock: e.target.value })} placeholder="Stock" className="w-full p-3 bg-neutralneutral-800 border border-neutralneutral-600 rounded-lg text-white placeholder-neutralneutral-400" />
-                    <select value={editForm.outOfStock ? 'true' : 'false'} onChange={(e) => setEditForm({ ...editForm, outOfStock: e.target.value === 'true' })} className="p-3 bg-neutralneutral-800 border border-neutralneutral-600 rounded-lg text-white">
-                      <option value="true">Out of Stock</option>
-                      <option value="false">In Stock</option>
-                    </select>
-                    <div>
-                      <label className="block text-neutralneutral-300 text-sm mb-1">Variants (JSON array)</label>
-                      <textarea value={editForm.variants} onChange={(e) => setEditForm({ ...editForm, variants: e.target.value })} className="w-full p-3 bg-neutralneutral-800 border border-neutralneutral-600 rounded-lg text-white placeholder-neutralneutral-500" rows="3" />
-                    </div>
-                  </div>
-                </div>
-              </div>
-              </div>
-            )}
         
         </div>
       </div>

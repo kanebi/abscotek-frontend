@@ -8,13 +8,13 @@ const getProducts = async (params = {}) => {
 
 // Admin: list all products (published and unpublished)
 const getAdminProducts = async (params = {}) => {
-  const response = await apiClient.get('/api/products', { params });
+  const response = await apiClient.get('/api/admin/products', { params });
   return response.data; // { items, total, page, limit }
 };
 
 // Admin: list only unpublished products
 const getAdminUnpublishedProducts = async (params = {}) => {
-  const response = await apiClient.get('/admin/products/unpublished', { params });
+  const response = await apiClient.get('/api/admin/products/unpublished', { params });
   return response.data; // { items, total, page, limit }
 };
 
@@ -26,37 +26,37 @@ const getProduct = async (idOrSlug) => {
 
 // Public: related products
 const getRelatedProducts = async (idOrSlug, limit = 8) => {
-  const response = await apiClient.get(`/products/${idOrSlug}/related`, { params: { limit } });
+  const response = await apiClient.get(`/api/products/${idOrSlug}/related`, { params: { limit } });
   return response.data;
 };
 
 // Admin: create product
 const createProduct = async (productData) => {
-  const response = await apiClient.post('/api/products', productData);
+  const response = await apiClient.post('/api/admin/products', productData);
   return response.data;
 };
 
 // Admin: update product
 const updateProduct = async (id, productData) => {
-  const response = await apiClient.put(`/api/products/${id}`, productData);
+  const response = await apiClient.put(`/api/admin/products/${id}`, productData);
   return response.data;
 };
 
 // Admin: delete product
 const deleteProduct = async (id) => {
-  const response = await apiClient.delete(`/api/products/${id}`);
+  const response = await apiClient.delete(`/api/admin/products/${id}`);
   return response.data;
 };
 
 // Admin: toggle publish status
 const setPublishStatus = async (id, published) => {
-  const response = await apiClient.patch(`/admin/products/${id}/publish`, { published });
+  const response = await apiClient.patch(`/api/admin/products/${id}/publish`, { published });
   return response.data;
 };
 
 // Admin: update inventory/stock
 const updateInventory = async (id, inventory) => {
-  const response = await apiClient.patch(`/admin/products/${id}/inventory`, inventory);
+  const response = await apiClient.patch(`/api/admin/products/${id}/inventory`, inventory);
   return response.data;
 };
 
@@ -64,7 +64,7 @@ const updateInventory = async (id, inventory) => {
 const uploadImages = async (id, files = []) => {
   const formData = new FormData();
   files.forEach((file) => formData.append('images', file));
-  const response = await apiClient.post(`/admin/products/${id}/images`, formData, {
+  const response = await apiClient.post(`/api/admin/products/${id}/images`, formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
   });
   return response.data;
@@ -72,13 +72,13 @@ const uploadImages = async (id, files = []) => {
 
 // Admin: append existing image URLs
 const appendImageUrls = async (id, urls = []) => {
-  const response = await apiClient.post(`/admin/products/${id}/images`, { images: urls });
+  const response = await apiClient.post(`/api/admin/products/${id}/images`, { images: urls });
   return response.data;
 };
 
 // Admin: remove image by imageId or URL
 const removeImage = async (id, imageIdOrUrl) => {
-  const response = await apiClient.delete(`/admin/products/${id}/images`, {
+  const response = await apiClient.delete(`/api/admin/products/${id}/images`, {
     data: { image: imageIdOrUrl },
   });
   return response.data;
@@ -88,7 +88,7 @@ const removeImage = async (id, imageIdOrUrl) => {
 const bulkUpsert = async (payload) => {
   // payload can be FormData (for CSV) or JSON array for bulk upsert
   const isFormData = payload instanceof FormData;
-  const response = await apiClient.post('/admin/products/bulk', payload, {
+  const response = await apiClient.post('/api/admin/products/bulk', payload, {
     headers: isFormData ? { 'Content-Type': 'multipart/form-data' } : undefined,
   });
   return response.data;

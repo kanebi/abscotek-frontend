@@ -9,7 +9,7 @@ const shouldUseApi = (isAuthenticated, walletAddress) => {
 const getCart = async () => {
   const { isAuthenticated, walletAddress } = useStore.getState();
   if (shouldUseApi(isAuthenticated, walletAddress)) {
-    const response = await apiClient.get('/cart');
+    const response = await apiClient.get('/api/cart');
     return response.data;
   } else {
     return getGuestCart();
@@ -18,7 +18,7 @@ const getCart = async () => {
 
 const addToCart = async (productId, quantity, currency, variantName, isAuthenticated, walletAddress) => {
   if (shouldUseApi(isAuthenticated, walletAddress)) {
-    const response = await apiClient.post('/cart', { productId, quantity, currency, variantName });
+    const response = await apiClient.post('/api/cart', { productId, quantity, currency, variantName });
     return response.data;
   } else {
     const cart = getGuestCart();
@@ -58,7 +58,7 @@ const addToCart = async (productId, quantity, currency, variantName, isAuthentic
 const updateItemQuantity = async (productId, quantity) => {
   const { isAuthenticated, walletAddress } = useStore.getState();
   if (shouldUseApi(isAuthenticated, walletAddress)) {
-    const response = await apiClient.put('/cart', { productId, quantity });
+    const response = await apiClient.put('/api/cart', { productId, quantity });
     return response.data;
   } else {
     const cart = getGuestCart();
@@ -127,7 +127,7 @@ const getCartByUserId = async (userId) => {
 };
 
 const clearCart = async () => {
-  const response = await apiClient.delete('/cart/clear');
+  const response = await apiClient.delete('/api/cart/clear');
   return response.data;
 };
 

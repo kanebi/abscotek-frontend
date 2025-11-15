@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import cartService from '../../services/cartService';
 import Layout from '../../components/Layout';
 import { Button } from '../../components/ui/button';
 import { Card } from '../../components/ui/card';
-import { ShoppingCart, Search, Trash2, Package, User } from 'lucide-react';
+import { ShoppingCart, Search, Trash2, Package, User, ArrowLeft } from 'lucide-react';
+import { AppRoutes } from '../../config/routes';
 
 function CartManagement() {
+  const navigate = useNavigate();
   const [cart, setCart] = useState(null);
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState(null);
@@ -61,16 +64,26 @@ function CartManagement() {
       <div className="w-[86%] mx-auto py-8">
         <div className="max-w-4xl mx-auto">
           {/* Header */}
-          <div className="flex items-center gap-4 mb-8">
-            <div className="w-12 h-12 bg-infoi-100/10 rounded-full flex items-center justify-center">
-              <ShoppingCart size={24} className="text-infoi-400" />
+          <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 bg-infoi-100/10 rounded-full flex items-center justify-center">
+                <ShoppingCart size={24} className="text-infoi-400" />
+              </div>
+              <div>
+                <h1 className="text-3xl font-heading-header-2-header-2-bold text-white">
+                  Cart Management
+                </h1>
+                <p className="text-neutralneutral-400">View and manage user shopping carts</p>
+              </div>
             </div>
-            <div>
-              <h1 className="text-3xl font-heading-header-2-header-2-bold text-white">
-                Cart Management
-              </h1>
-              <p className="text-neutralneutral-400">View and manage user shopping carts</p>
-            </div>
+            <Button 
+              variant="outline" 
+              onClick={() => navigate(AppRoutes.admin.path)}
+              className="border-neutralneutral-600 text-neutralneutral-300 hover:bg-neutralneutral-800"
+            >
+              <ArrowLeft size={16} className="mr-2" />
+              Back to Dashboard
+            </Button>
           </div>
 
           {/* Messages */}

@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import userService from '../../services/userService';
 import Layout from '../../components/Layout';
 import { Button } from '../../components/ui/button';
 import { Card } from '../../components/ui/card';
-import { Users, Plus, Edit, Trash2, Search, Mail, Calendar } from 'lucide-react';
+import { Users, Plus, Edit, Trash2, Search, Mail, Calendar, ArrowLeft } from 'lucide-react';
+import { AppRoutes } from '../../config/routes';
 
 function UserManagement() {
+  const navigate = useNavigate();
   const [users, setUsers] = useState([]);
   const [newUser, setNewUser] = useState({ name: '', email: '', password: '' });
   const [editingUser, setEditingUser] = useState(null);
@@ -84,7 +87,7 @@ function UserManagement() {
     e.preventDefault();
     clearMessages();
     try {
-      await userService.updateUser(editingUser._id, editingUser);
+      await userService.updateUserById(editingUser._id, editingUser);
       setEditingUser(null);
       fetchUsers();
       setSuccessMessage('User updated successfully!');
@@ -104,16 +107,26 @@ function UserManagement() {
       <div className="w-[86%] mx-auto py-8">
         <div className="max-w-6xl mx-auto">
           {/* Header */}
-          <div className="flex items-center gap-4 mb-8">
-            <div className="w-12 h-12 bg-primaryp-100/10 rounded-full flex items-center justify-center">
-              <Users size={24} className="text-primaryp-400" />
+          <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 bg-primaryp-100/10 rounded-full flex items-center justify-center">
+                <Users size={24} className="text-primaryp-400" />
+              </div>
+              <div>
+                <h1 className="text-3xl font-heading-header-2-header-2-bold text-white">
+                  User Management
+                </h1>
+                <p className="text-neutralneutral-400">Manage user accounts and permissions</p>
+              </div>
             </div>
-            <div>
-              <h1 className="text-3xl font-heading-header-2-header-2-bold text-white">
-                User Management
-              </h1>
-              <p className="text-neutralneutral-400">Manage user accounts and permissions</p>
-            </div>
+            <Button 
+              variant="outline" 
+              onClick={() => navigate(AppRoutes.admin.path)}
+              className="border-neutralneutral-600 text-neutralneutral-300 hover:bg-neutralneutral-800"
+            >
+              <ArrowLeft size={16} className="mr-2" />
+              Back to Dashboard
+            </Button>
           </div>
 
           {/* Messages */}
