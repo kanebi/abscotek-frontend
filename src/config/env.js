@@ -25,4 +25,7 @@ export const ENV = {
   PROJECT_ID: getEnvVar('VITE_PROJECT_ID', ''),
 };
 
+// Export as both 'env' and 'ENV' for flexibility
+export const env = ENV;
+
 export default ENV;
