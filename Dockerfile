@@ -29,8 +29,12 @@ COPY Caddyfile /etc/caddy/Caddyfile
 # Copy the built assets from the build stage
 COPY --from=build /app/dist /app
 
+# Copy the config generation script
+COPY generate-config.sh /generate-config.sh
+RUN chmod +x /generate-config.sh
+
 # Expose the port Caddy listens on
 EXPOSE 8080
 
-# Start Caddy
-CMD ["caddy", "run", "--config", "/etc/caddy/Caddyfile", "--adapter", "caddyfile"]
+# Generate config and start Caddy
+CMD ["/bin/sh", "-c", "/generate-config.sh && caddy run --config /etc/caddy/Caddyfile --adapter caddyfile"]

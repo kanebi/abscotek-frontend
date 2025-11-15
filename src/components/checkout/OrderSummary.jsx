@@ -7,6 +7,7 @@ import { ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { AppRoutes } from '../../config/routes';
 import { PaystackButton } from 'react-paystack';
+import { env } from '../../config/env';
 
 function OrderSummary({ 
   onPlaceOrder, 
@@ -56,7 +57,7 @@ function OrderSummary({
     }
     
     // Check public key
-    const publicKey = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY;
+    const publicKey = env.PAYSTACK_PUBLIC_KEY;
     if (!publicKey || typeof publicKey !== 'string' || publicKey.includes('your_public_key') || publicKey.trim() === '') {
       issues.push('Invalid Paystack public key');
     }
@@ -70,7 +71,7 @@ function OrderSummary({
   console.log('Paystack Debug:', {
     email: currentUser?.email,
     amount: Math.round(orderTotal * 100),
-    publicKey: import.meta.env.VITE_PAYSTACK_PUBLIC_KEY,
+    publicKey: env.PAYSTACK_PUBLIC_KEY,
     currency: currency === 'USD' ? 'USD' : 'NGN',
     orderTotal,
     issues: paystackIssues
@@ -213,7 +214,7 @@ function OrderSummary({
               disabled={isPlacingOrder || !hasSelectedAddress || (requireDeliveryMethod && !deliveryMethod) || paystackIssues.length > 0}
               email={currentUser?.email || 'customer@example.com'}
               amount={Math.round(paymentAmount * 100)}
-              publicKey={import.meta.env.VITE_PAYSTACK_PUBLIC_KEY || 'pk_test_512a1b247e7f092f2f5de3d95bb70daa246c0cde'}
+              publicKey={env.PAYSTACK_PUBLIC_KEY || 'pk_test_512a1b247e7f092f2f5de3d95bb70daa246c0cde'}
               currency={currency === 'USD' ? 'USD' : 'NGN'}
               metadata={{
                 order_total: paymentAmount,

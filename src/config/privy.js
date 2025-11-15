@@ -1,8 +1,9 @@
 import { PrivyProvider } from '@privy-io/react-auth';
+import { env } from './env';
 
-export const privyAppId = import.meta.env.VITE_PRIVY_APP_ID;
+export const privyAppId = env.PRIVY_APP_ID;
 if (!privyAppId) {
-  throw new Error('VITE_PRIVY_APP_ID is not defined. Please set it in .env');
+  throw new Error('VITE_PRIVY_APP_ID is not defined. Please set it in .env or Cloud Run environment variables');
 }
 
 export const PrivyConfig = {

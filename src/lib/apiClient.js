@@ -1,8 +1,9 @@
 import axios from 'axios';
 import useStore from '@/store/useStore';
 import useAdminStore from '@/store/adminStore';
+import { env } from '@/config/env';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5832/api';
+const API_URL = env.API_URL || 'http://localhost:5832/api';
 
 // Helper function to mark requests as user actions (will trigger modal on 401)
 export const markAsUserAction = (config) => {
