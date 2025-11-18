@@ -1,11 +1,9 @@
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Search, Heart } from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import React, { useEffect } from "react";
+import React from "react";
 import useStore from "@/store/useStore";
 import WalletConnectButton from "@/components/widgets/WalletConnectButton";
-import { usePrivy } from '@privy-io/react-auth';
 import { useWeb3Auth } from "@/hooks/useWeb3Auth";
 
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
@@ -22,9 +20,6 @@ import MobileSearchModal from "@/components/widgets/MobileSearchModal";
 export default function Frame() {
     const user = useStore((state) => state.currentUser);
     const isAuthenticated = useStore((state) => state.isAuthenticated);
-    const setUser = useStore((state) => state.setCurrentUser);
-    const setToken = useStore((state) => state.setToken);
-    const { authenticated: privyAuthenticated, user: privyUser } = usePrivy();
     const { authenticateAndLogin } = useWeb3Auth();
 
     const [referModalOpen, setReferModalOpen] = React.useState(false);
@@ -209,14 +204,13 @@ export default function Frame() {
 
 export function NavigationBar() {
     const navigate = useNavigate();
-    const user = useStore((state) => state.currentUser);
     const navItems = ["Computer", "Phone", "Web3 Accessories", "Web3 Gaming", "Smartwatches", "Tablets", "Audio"]
     const TodayPrices = [
         { Label: "USDT: $1.01", value: "usdt", rate: "1.01", iconSrc: "/images/usdt-icon.svg", bg: '#00A478' },
         { Label: "BTC: $43,250", value: "btc", rate: "43250", iconSrc: "/images/btc-icon.svg", bg: '#F7931A' },
         { Label: "ETH: $2,580", value: "eth", rate: "2580", iconSrc: "/images/eth-icon.svg", bg: '#3C3C3D' }
     ]
-    const [selectedPrice, setSelectedPrice] = React.useState(TodayPrices[0]);
+    const [selectedPrice] = React.useState(TodayPrices[0]);
 
     const handleNavigation = (category) => {
         navigate(`${AppRoutes.productList.path}?category=${encodeURIComponent(category)}`);

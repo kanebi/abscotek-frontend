@@ -6,15 +6,15 @@ import {
 } from './dropdown-menu';
 import copy from '../../assets/images/solar_copy-linear.svg';
 import useStore from '@/store/useStore';
-import { usePrivy } from '@privy-io/react-auth';
+import { useWeb3Auth } from '@/hooks/useWeb3Auth';
 
 export default function UserPopover({ children }) {
   const { currentUser, walletAddress } = useStore();
-  const { user: privyUser, logout } = usePrivy();
+  const { disconnect } = useWeb3Auth();
   
-  // Get user data from store or Privy (same pattern as Header)
-  const displayName = currentUser?.name || currentUser?.email || privyUser?.email || 'User';
-  const displayAddress = walletAddress || privyUser?.wallet?.address;
+  // Get user data from store
+  const displayName = currentUser?.name || currentUser?.email || 'User';
+  const displayAddress = walletAddress;
   
   // Create safe user object
   const safeUser = {
@@ -74,7 +74,7 @@ export default function UserPopover({ children }) {
                 </div>
                 <div className="self-stretch h-0 outline outline-1 outline-offset-[-0.50px] outline-neutral-700"></div>
                 <button 
-                  onClick={logout}
+                  onClick={disconnect}
                   className="inline-flex justify-start items-center gap-2 w-full group"
                 >
                   <img src="/images/majesticons_logout.svg" alt="Logout" className="w-6 h-6" />

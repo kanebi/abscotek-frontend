@@ -14,11 +14,12 @@ export default function WalletConnectButton({
   const { isAuthenticated, currentUser, walletAddress } = useStore();
 
   const handleClick = () => {
-    if (!authenticated) {
-      login();
-    }
+    // If onConnect is provided, use it (this will handle the full auth flow)
+    // Otherwise, just call Privy login
     if (onConnect) {
       onConnect();
+    } else if (!authenticated) {
+      login();
     }
   };
 

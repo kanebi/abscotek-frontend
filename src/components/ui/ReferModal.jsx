@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import useStore from '@/store/useStore';
 import { Button } from './button';
 import WalletConnectButton from '@/components/widgets/WalletConnectButton';
-import { usePrivy } from '@privy-io/react-auth';
+import { useWeb3Auth } from '@/hooks/useWeb3Auth';
 import { Loader2 } from 'lucide-react';
 
 import referralService from '@/services/referralService';
@@ -12,7 +12,7 @@ const REFERRAL_REWARD_AMOUNT = 4; // This should ideally come from backend confi
 
 export default function ReferModal({ open, onClose }) {
   const { currentUser, token, isAuthenticated } = useStore();
-  const { authenticated: privyAuthenticated, user: privyUser } = usePrivy();
+  const { authenticateAndLogin } = useWeb3Auth();
 
   const [referralCode, setReferralCode] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -197,7 +197,7 @@ export default function ReferModal({ open, onClose }) {
               <div className="text-white text-xl font-bold font-['Mona_Sans'] mb-2">Refer friends and earn USDT!</div>
               <div className="text-neutral-300 text-base font-['Mona_Sans']">Connect your wallet to get your unique referral link and start earning rewards.</div>
             </div>
-            <WalletConnectButton />
+            <WalletConnectButton onConnect={authenticateAndLogin} />
           </div>
         )}
       </div>
