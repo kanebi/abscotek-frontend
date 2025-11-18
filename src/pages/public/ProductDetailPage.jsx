@@ -1,19 +1,16 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from 'react-router-dom';
 import Breadcrumb from "../../components/ui/CustomBreadCrumb";
-import { Card } from "../../components/ui/card";
 import { Button } from "../../components/ui/button";
-import { Separator } from "../../components/ui/separator";
 import AmountCurrency from "../../components/ui/AmountCurrency";
 import Layout from "../../components/Layout";
-import { Minus, Plus } from "lucide-react";
+import { Minus, Plus, Loader2 } from "lucide-react";
 import { Select, SelectItem, SelectContent, SelectTrigger, SelectValue } from "../../components/ui/select";
 import Carousel from "../../components/ui/Carousel";
 import ProductList from "../../components/ProductList";
 import SEO from "../../components/SEO";
 import { getPageSEO, generateProductStructuredData, generateBreadcrumbStructuredData } from "../../config/seo";
 import productService from "../../services/productService";
-import wishlistService from "../../services/wishlistService";
 import useStore from "../../store/useStore";
 
 export default function ProductDetail() {
@@ -27,7 +24,7 @@ export default function ProductDetail() {
     const [addingToWishlist, setAddingToWishlist] = useState(false);
     const [totalPrice, setTotalPrice] = useState(null);
 
-    const { addToCart, cartUpdating } = useStore();
+    const { addToCart, cartUpdating, addToWishlist: addToWishlistStore, isAuthenticated } = useStore();
 
     useEffect(() => {
         const fetchProduct = async () => {
@@ -79,9 +76,18 @@ export default function ProductDetail() {
 
     const handleAddToWishlist = async () => {
         if (!product) return;
+        
+        // Check if user is authenticated
+        if (!isAuthenticated) {
+            alert('Please login to add items to your wishlist');
+            return;
+        }
+        
         setAddingToWishlist(true);
         try {
-            await wishlistService.addToWishlist({ productId: product._id });
+            // Use store's addToWishlist which handles the API call
+            await addToWishlistStore(product._id);
+            // Show success state for 2 seconds
             setTimeout(() => {
                 setAddingToWishlist(false);
             }, 2000);
@@ -91,9 +97,20 @@ export default function ProductDetail() {
         }
     };
 
-    if (loading) return <Layout><div>Loading product...</div></Layout>;
-    if (error) return <Layout><div>Error: {error.message}</div></Layout>;
-    if (!product) return <Layout><div>Product not found.</div></Layout>;
+    if (loading) {
+        return (
+            <Layout>
+                <div className="flex items-center justify-center min-h-[60vh]">
+                    <div className="flex flex-col items-center gap-4">
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-500"></div>
+                        <p className="text-white">Loading product...</p>
+                    </div>
+                </div>
+            </Layout>
+        );
+    }
+    if (error) return <Layout><div className="text-center text-red-500 py-8">Error: {error.message}</div></Layout>;
+    if (!product) return <Layout><div className="text-center text-white py-8">Product not found.</div></Layout>;
 
     // Use fetched product data
     const p = product;
@@ -152,7 +169,9 @@ export default function ProductDetail() {
                         <div className="self-stretch flex flex-col justify-center items-start gap-6">
                             <div className="self-stretch flex flex-col gap-4">
                                 <div className="text-gray-200 text-2xl font-medium font-sans leading-loose">{p.name}</div>
-                                <div className="text-white text-xl font-semibold font-sans leading-relaxed"><AmountCurrency amount={totalPrice} fromCurrency={p.currency} /></div>
+                                <div className="text-white text-xl font-semibold font-sans leading-relaxed">
+                                    <AmountCurrency amount={totalPrice || p.price || 0} fromCurrency={p.currency || 'USDT'} />
+                                </div>
                             </div>
                             <div className="flex flex-col gap-6">
                                 {/* Variant selector as shadcn/ui select */}
@@ -199,10 +218,14 @@ export default function ProductDetail() {
                                 {p && p.outOfStock ? (<div className="inline-flex flex-col justify-start items-start gap-4">
                                     <div className="justify-start text-white text-base font-semibold font-['Mona_Sans'] leading-normal">Out of stock</div>
                                     <Button onClick={handleAddToWishlist} disabled={addingToWishlist} className="w-full px-7 py-3 bg-rose-500 rounded-xl inline-flex justify-center items-center gap-2.5">
+                                        {addingToWishlist && <Loader2 size={16} className="mr-2 animate-spin" />}
                                         <div className="justify-start text-white text-sm font-medium font-['Mona_Sans'] leading-tight">{addingToWishlist ? 'Adding...' : 'Add to Wishlist'}</div>
                                     </Button>
                                 </div>) :
-                            <Button onClick={handleAddToCart} disabled={cartUpdating} className="w-full max-w-xs px-7 py-4 bg-rose-500 rounded-xl flex justify-center items-center gap-2.5 text-white text-sm font-medium font-sans leading-tight">{cartUpdating ? 'Adding...' : 'Add To Cart'}</Button>
+                            <Button onClick={handleAddToCart} disabled={cartUpdating} className="w-full max-w-xs px-7 py-4 bg-rose-500 rounded-xl flex justify-center items-center gap-2.5 text-white text-sm font-medium font-sans leading-tight">
+                              {cartUpdating && <Loader2 size={16} className="mr-2 animate-spin" />}
+                              {cartUpdating ? 'Adding...' : 'Add To Cart'}
+                            </Button>
                         }
                         
                         </div>
@@ -277,10 +300,14 @@ export default function ProductDetail() {
                                 {p && p.outOfStock ? (<div className="inline-flex flex-col justify-start items-start gap-4">
                                     <div className="justify-start text-white text-base font-semibold font-['Mona_Sans'] leading-normal">Out of stock</div>
                                     <Button onClick={handleAddToWishlist} disabled={addingToWishlist} className="w-96 px-7 py-3 bg-rose-500 rounded-xl inline-flex justify-center items-center gap-2.5">
+                                        {addingToWishlist && <Loader2 size={16} className="mr-2 animate-spin" />}
                                         <div className="justify-start text-white text-sm font-medium font-['Mona_Sans'] leading-tight">{addingToWishlist ? 'Adding...' : 'Add to Wishlist'}</div>
                                     </Button>
                                 </div>) :
-                                    <Button onClick={handleAddToCart} disabled={cartUpdating} className="w-[400px] h-12 bg-rose-500 rounded-xl text-white text-base font-medium   ">{cartUpdating ? 'Adding...' : 'Add To Cart'}</Button>
+                                    <Button onClick={handleAddToCart} disabled={cartUpdating} className="w-[400px] h-12 bg-rose-500 rounded-xl text-white text-base font-medium flex items-center justify-center gap-2">
+                                      {cartUpdating && <Loader2 size={16} className="animate-spin" />}
+                                      {cartUpdating ? 'Adding...' : 'Add To Cart'}
+                                    </Button>
                                 }
                             </div>
                             <div className="flex flex-col gap-3">

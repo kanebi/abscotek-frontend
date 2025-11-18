@@ -1,15 +1,43 @@
-import React from "react";
+import React, { useState } from "react";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import AmountCurrency from "@/components/ui/AmountCurrency";
 import { useNavigate } from "react-router-dom";
+import { Heart } from "lucide-react";
+import useStore from "@/store/useStore";
 
-// Props: { image, name, price, badge, outOfStock, _id }
-export default function ProductCard({ image, name, price, badge, outOfStock, _id }) {
+// Props: { image, name, price, badge, outOfStock, _id, stock }
+export default function ProductCard({ image, name, price, badge, outOfStock, _id, stock }) {
     const navigate = useNavigate();
+    const [isAddingToWishlist, setIsAddingToWishlist] = useState(false);
+    const { addToWishlist, isAuthenticated } = useStore();
+    
+    const isInStock = !outOfStock && (stock === undefined || stock > 0);
 
     const handleNavigate = () => {
       if (!_id) return;
       navigate(`/product/${_id}`);
+    };
+
+    const handleAddToWishlist = async (e) => {
+      e.stopPropagation(); // Prevent card click
+      
+      if (!isAuthenticated) {
+        alert('Please login to add items to your wishlist');
+        return;
+      }
+      
+      if (!_id) return;
+      
+      setIsAddingToWishlist(true);
+      try {
+        await addToWishlist(_id);
+        setTimeout(() => {
+          setIsAddingToWishlist(false);
+        }, 2000);
+      } catch (error) {
+        console.error('Failed to add to wishlist:', error);
+        setIsAddingToWishlist(false);
+      }
     };
   return (
     <>
@@ -26,6 +54,15 @@ export default function ProductCard({ image, name, price, badge, outOfStock, _id
               {badge}
             </div>
           )}
+          {/* {isInStock && ( */}
+            <button
+              onClick={handleAddToWishlist}
+              disabled={isAddingToWishlist}
+              className="absolute right-2 top-2 w-8 h-8 bg-neutral-900/20 hover:bg-neutral-900 rounded-full flex items-center justify-center transition-colors disabled:opacity-50"
+            >
+              <Heart size={16} className={isAddingToWishlist ? "text-red-500 fill-red-500" : "text-white"} />
+            </button>
+          {/* )} */}
           {outOfStock && (
             <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
               <div className="text-white text-base font-semibold text-center">
@@ -60,6 +97,15 @@ export default function ProductCard({ image, name, price, badge, outOfStock, _id
                 {badge}
               </span>
             </div>
+          )}
+          {isInStock && (
+            <button
+              onClick={handleAddToWishlist}
+              disabled={isAddingToWishlist}
+              className="absolute right-4 top-6 w-10 h-10 bg-neutral-900/80 hover:bg-neutral-900 rounded-full flex items-center justify-center transition-colors disabled:opacity-50"
+            >
+              <Heart size={20} className={isAddingToWishlist ? "text-red-500 fill-red-500" : "text-white"} />
+            </button>
           )}
           {outOfStock && (
             <div className="absolute inset-0 bg-black/40 flex items-center justify-center">

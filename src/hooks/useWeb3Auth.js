@@ -1,38 +1,44 @@
 import { useEffect, useCallback, useRef } from 'react';
 import { usePrivy } from '@privy-io/react-auth';
 import authService from '../services/authService';
-import userService from '../services/userService';
 import useStore from '../store/useStore';
 import cartService from '../services/cartService';
 
 export const useWeb3Auth = () => {
-  const { user, authenticated, getAccessToken, logout } = usePrivy();
+  const { user, authenticated, ready, getAccessToken, logout } = usePrivy();
   const sessionValidated = useRef(false);
 
-  console.log('useWeb3Auth - Privy user:', user);
+  console.log('useWeb3Auth - Privy ready:', ready);
   console.log('useWeb3Auth - Privy authenticated:', authenticated);
+  console.log('useWeb3Auth - Privy user:', user);
 
   const {
     setWalletAddress,
     setIsAuthenticated,
     setToken,
     setCurrentUser,
-    validateSession,
     fetchCart,
-    fetchWishlist,
-    isSessionValidating
+    fetchWishlist
   } = useStore();
 
   
 
+  const authInProgress = useRef(false);
+
   const authenticateAndLogin = useCallback(async () => {
     if (authenticated && user) {
+      // Prevent concurrent authentication attempts
+      if (authInProgress.current) {
+        console.log('useWeb3Auth - Authentication already in progress, skipping');
+        return;
+      }
+
       try {
-        // Check if we already have a valid token and session is validated
+        // Check if we already have a valid token
         const existingToken = localStorage.getItem('token');
         const existingUser = localStorage.getItem('userInfo');
         
-        if (existingToken && existingUser && sessionValidated.current) {
+        if (existingToken && existingUser) {
           console.log('useWeb3Auth - Valid session already exists, skipping re-authentication');
           // Just ensure store is in sync with localStorage
           try {
@@ -53,6 +59,8 @@ export const useWeb3Auth = () => {
           }
         }
 
+        // Mark authentication as in progress
+        authInProgress.current = true;
         console.log('useWeb3Auth - Starting Privy authentication flow');
 
         const accessToken = await getAccessToken();
@@ -99,54 +107,68 @@ export const useWeb3Auth = () => {
         // Don't clear auth state on failure - user might still be authenticated in Privy
         // Just log the error and let the user try again
         console.log('useWeb3Auth - Authentication failed, but keeping Privy state intact');
+      } finally {
+        // Reset authentication in progress flag
+        authInProgress.current = false;
       }
     }
   }, [authenticated, user, getAccessToken, setToken, setIsAuthenticated, setCurrentUser, setWalletAddress, fetchCart, fetchWishlist]);
 
-  // Validate session on app start (only once)
+  // Initialize session on app start - wait for Privy to be ready
   useEffect(() => {
     const initializeSession = async () => {
       if (sessionValidated.current) return;
+      
+      // Wait for Privy to be ready before initializing
+      if (!ready) {
+        console.log('useWeb3Auth - Waiting for Privy to be ready...');
+        return;
+      }
+
+      console.log('useWeb3Auth - Privy is ready, initializing session...');
 
       // Check if we have stored auth data
       const storedToken = localStorage.getItem('token');
       const storedUserInfo = localStorage.getItem('userInfo');
       
       if (!storedToken || !storedUserInfo) {
-        console.log('useWeb3Auth - No stored auth data, skipping validation');
+        console.log('useWeb3Auth - No stored auth data, skipping initialization');
         sessionValidated.current = true;
         return;
       }
 
-      console.log('useWeb3Auth - Found stored auth data, validating session...');
-      const isValid = await validateSession();
+      // If Privy is authenticated, let the authenticateAndLogin handle it
+      if (authenticated && user) {
+        console.log('useWeb3Auth - Privy is authenticated, will use Privy auth flow');
+        sessionValidated.current = true;
+        return;
+      }
 
-      if (isValid) {
-        console.log('useWeb3Auth - Session validated successfully');
-        // Note: validateSession already loads user data, so we don't need to fetch again
-        // But we should still fetch cart and wishlist for authenticated users
-        const { isAuthenticated, fetchCart, fetchWishlist } = useStore.getState();
-        if (isAuthenticated) {
-          console.log('useWeb3Auth - Fetching user data for validated session...');
-          await Promise.all([
-            fetchCart(),
-            fetchWishlist()
-          ]).catch(err => {
-            console.error('useWeb3Auth - Error fetching user data:', err);
-          });
-        }
-      } else {
-        console.log('useWeb3Auth - Session validation failed, auth state cleared');
+      console.log('useWeb3Auth - Found stored auth data but Privy not authenticated');
+      console.log('useWeb3Auth - Initializing session from localStorage');
+      
+      // Trust the stored data and load it into the store
+      // Don't make API calls that could trigger 401 and clear the auth
+      const { isAuthenticated, fetchCart, fetchWishlist } = useStore.getState();
+      if (isAuthenticated) {
+        console.log('useWeb3Auth - Loading user data for existing session...');
+        // Fetch cart and wishlist - if these fail with 401, the token is invalid
+        // and the interceptor will handle clearing the auth
+        await Promise.all([
+          fetchCart(),
+          fetchWishlist()
+        ]).catch(err => {
+          console.error('useWeb3Auth - Error fetching user data:', err);
+          // If this fails, the auth will be cleared by the interceptor
+        });
       }
 
       sessionValidated.current = true;
     };
 
-    // Always validate session on mount if we have stored data
-    if (!isSessionValidating) {
-      initializeSession();
-    }
-  }, [isSessionValidating, validateSession]);
+    // Initialize session when Privy is ready
+    initializeSession();
+  }, [ready, authenticated, user]); // Run when Privy ready state changes
 
   // Handle Privy authentication state changes
   useEffect(() => {

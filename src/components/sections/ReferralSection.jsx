@@ -28,6 +28,9 @@ const ReferralSection = () => {
   };
 
   const handleWithdrawClick = () => {
+    if (stats.referralBonus <= 0) {
+      return;
+    }
     setShowWithdrawDialog(true);
   };
 
@@ -106,10 +109,11 @@ const ReferralSection = () => {
 
         <Button 
           onClick={handleWithdrawClick}
-          className="flex w-[614px] items-center justify-center gap-2.5 px-7 py-[13px] relative flex-[0_0_auto] bg-primaryp-300 rounded-xl h-auto hover:bg-primaryp-400"
+          disabled={stats.referralBonus <= 0 || loading}
+          className="flex w-[614px] items-center justify-center gap-2.5 px-7 py-[13px] relative flex-[0_0_auto] bg-primaryp-300 rounded-xl h-auto hover:bg-primaryp-400 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <span className="relative w-fit mt-[-1.00px] font-body-base-base-medium font-[number:var(--body-base-base-medium-font-weight)] text-white text-[length:var(--body-base-base-medium-font-size)] tracking-[var(--body-base-base-medium-letter-spacing)] leading-[var(--body-base-base-medium-line-height)] whitespace-nowrap [font-style:var(--body-base-base-medium-font-style)]">
-            Withdraw Bonuses
+            {stats.referralBonus <= 0 ? 'No Balance to Withdraw' : 'Withdraw Bonuses'}
           </span>
         </Button>
       </div>
@@ -148,10 +152,11 @@ const ReferralSection = () => {
 
         <Button 
           onClick={handleWithdrawClick}
-          className="flex items-center justify-center gap-2.5 px-7 py-[13px] relative self-stretch w-full flex-[0_0_auto] bg-primaryp-300 rounded-xl h-auto hover:bg-primaryp-400"
+          disabled={stats.referralBonus <= 0 || loading}
+          className="flex items-center justify-center gap-2.5 px-7 py-[13px] relative self-stretch w-full flex-[0_0_auto] bg-primaryp-300 rounded-xl h-auto hover:bg-primaryp-400 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <span className="relative w-fit mt-[-1.00px] font-body-base-base-medium font-[number:var(--body-base-base-medium-font-weight)] text-white text-[length:var(--body-base-base-medium-font-size)] tracking-[var(--body-base-base-medium-letter-spacing)] leading-[var(--body-base-base-medium-line-height)] [font-style:var(--body-base-base-medium-font-style)] whitespace-nowrap">
-            Withdraw Bonuses
+            {stats.referralBonus <= 0 ? 'No Balance to Withdraw' : 'Withdraw Bonuses'}
           </span>
         </Button>
       </div>
@@ -161,6 +166,7 @@ const ReferralSection = () => {
         open={showWithdrawDialog}
         onOpenChange={setShowWithdrawDialog}
         onSuccess={handleWithdrawSuccess}
+        availableBalance={stats.referralBonus}
       />
 
       {/* Success Modal */}
@@ -174,4 +180,4 @@ const ReferralSection = () => {
   );
 };
 
-export default ReferralSection; 
+export default ReferralSection;

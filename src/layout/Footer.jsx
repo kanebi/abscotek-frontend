@@ -32,7 +32,7 @@ const contactInfo = [
 
 export default function Footer() {
     return (
-        <footer className="bg-neutral-900 w-full">
+        <footer className="bg-neutral-900 w-full overflow-hidden">
             {/* Desktop Footer */}
             <div className="hidden md:flex flex-col items-start gap-2.5 px-[81px] py-[52px]">
                 <div className="flex flex-col w-full items-end gap-[60px] flex-[0_0_auto]">
@@ -67,9 +67,9 @@ export default function Footer() {
                                         </div>
                                     </div>
                                 </div>
-                                <p className="font-body-base-base-regular font-[number:var(--body-base-base-regular-font-weight)] text-defaultgrey text-[length:var(--body-base-base-regular-font-size)] tracking-[var(--body-base-base-regular-letter-spacing)] leading-[var(--body-base-base-regular-line-height)] [font-style:var(--body-base-base-regular-font-style)]">
+                                <p className="font-body-base-base-regular font-[number:var(--body-base-base-regular-font-weight)] text-defaultgrey text-[length:var(--body-base-base-regular-font-size)] tracking-[var(--body-base-base-regular-letter-spacing)] leading-[var(--body-base-base-regular-line-height)] [font-style:var(--body-base-base-regular-font-style)] break-words">
                                     Welcome to the First Onchain Marketplace for all your tech
-                                    devices and accessories. Make yourself at hom among other Top
+                                    devices and accessories. Make yourself at home among other Top
                                     Chads
                                 </p>
                             </div>
@@ -92,7 +92,7 @@ export default function Footer() {
                                     <div className="mt-[-1.00px] font-body-large-large-regular font-[number:var(--body-large-large-regular-font-weight)] text-neutralneutral-100 text-[length:var(--body-large-large-regular-font-size)] tracking-[var(--body-large-large-regular-letter-spacing)] leading-[var(--body-large-large-regular-line-height)] [font-style:var(--body-large-large-regular-font-style)]">
                                         {info.label}
                                     </div>
-                                    <div className="w-fit font-body-large-large-medium font-[number:var(--body-large-large-medium-font-weight)] text-white text-[length:var(--body-large-large-medium-font-size)] tracking-[var(--body-large-large-medium-letter-spacing)] leading-[var(--body-large-large-medium-line-height)] whitespace-nowrap [font-style:var(--body-large-large-medium-font-style)]">
+                                    <div className="w-fit font-body-large-large-medium font-[number:var(--body-large-large-medium-font-weight)] text-white text-[length:var(--body-large-large-medium-font-size)] tracking-[var(--body-large-large-medium-letter-spacing)] leading-[var(--body-large-large-medium-line-height)] break-words [font-style:var(--body-large-large-medium-font-style)]">
                                         {info.value}
                                     </div>
                                 </div>

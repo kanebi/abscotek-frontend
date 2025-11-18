@@ -65,6 +65,15 @@ const useStore = create((set, get) => {
     })()
   };
 
+  // Log initial state for debugging
+  console.log('useStore - Initializing with:', {
+    hasToken: !!storedToken,
+    hasUser: !!initialUser,
+    isAuthenticated: initialState.isAuthenticated,
+    userName: initialUser?.name,
+    userEmail: initialUser?.email
+  });
+
   return {
   // User state (initialize from localStorage)
   isAuthenticated: initialState.isAuthenticated,

@@ -3,12 +3,15 @@ import useStore from '@/store/useStore';
 import { usePrivy } from '@privy-io/react-auth';
 
 export default function ConnectWalletModal() {
-  const { isConnectWalletModalOpen, setConnectWalletModalOpen, currentUser, walletAddress } = useStore();
-  const { login, authenticated, user } = usePrivy();
+  const { isConnectWalletModalOpen, setConnectWalletModalOpen, currentUser, walletAddress, isAuthenticated } = useStore();
+  const { login, authenticated: privyAuthenticated, user } = usePrivy();
+
+  // Use store's isAuthenticated as source of truth
+  const userIsAuthenticated = isAuthenticated && currentUser;
 
   // Check if welcome back modal was dismissed recently
   useEffect(() => {
-    if (isConnectWalletModalOpen && authenticated) {
+    if (isConnectWalletModalOpen && userIsAuthenticated) {
       const lastWelcomeDismissal = localStorage.getItem('welcomeBackModalDismissed');
       const now = Date.now();
       const twentyFourHours = 24 * 60 * 60 * 1000;
@@ -25,12 +28,10 @@ export default function ConnectWalletModal() {
         console.log('Welcome back modal auto-closed - dismissed recently');
       }
     }
-  }, [isConnectWalletModalOpen, authenticated, setConnectWalletModalOpen]);
+  }, [isConnectWalletModalOpen, userIsAuthenticated, setConnectWalletModalOpen]);
 
   if (!isConnectWalletModalOpen) return null;
 
-  // Use the same pattern as Header - check Privy's authenticated state
-  const userIsAuthenticated = authenticated;
   const displayName = currentUser?.name || currentUser?.email || user?.email?.address || 'User';
   const displayAddress = walletAddress || user?.wallet?.address;
 

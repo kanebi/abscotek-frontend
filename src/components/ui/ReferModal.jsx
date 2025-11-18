@@ -11,17 +11,20 @@ import copySVG from '@/assets/images/solar_copy-linear.svg'
 const REFERRAL_REWARD_AMOUNT = 4; // This should ideally come from backend config
 
 export default function ReferModal({ open, onClose }) {
-  const { currentUser, token } = useStore();
-  const { authenticated, user: privyUser } = usePrivy();
+  const { currentUser, token, isAuthenticated } = useStore();
+  const { authenticated: privyAuthenticated, user: privyUser } = usePrivy();
 
   const [referralCode, setReferralCode] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [copying, setCopying] = useState(false);
 
+  // Use store's isAuthenticated as source of truth
+  const userIsAuthenticated = isAuthenticated && currentUser;
+
   useEffect(() => {
     const fetchReferralCode = async () => {
-      if (authenticated) {
+      if (userIsAuthenticated) {
         try {
           setLoading(true);
           setError(null);
@@ -41,7 +44,7 @@ export default function ReferModal({ open, onClose }) {
           console.log('ReferModal - Final token check:', {
             storeToken: !!token,
             localStorageToken: !!localStorage.getItem('token'),
-            authenticated,
+            isAuthenticated: userIsAuthenticated,
             attempts
           });
 
@@ -66,12 +69,12 @@ export default function ReferModal({ open, onClose }) {
     };
 
     // Start fetching immediately when authenticated
-    if (authenticated) {
+    if (userIsAuthenticated) {
       fetchReferralCode();
     } else {
       setLoading(false);
     }
-  }, [token, authenticated]);
+  }, [token, userIsAuthenticated]);
 
   if (!open) return null;
 
@@ -95,7 +98,7 @@ export default function ReferModal({ open, onClose }) {
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
       <div className="w-[653px] p-8 bg-neutral-900 rounded-2xl shadow-[0px_16px_32px_0px_rgba(0,0,0,0.20)] inline-flex flex-col justify-start items-start gap-2.5 overflow-hidden relative">
         <button onClick={onClose} className="absolute top-4 right-4 text-white text-2xl">×</button>
-        {authenticated ? (
+        {userIsAuthenticated ? (
           <div className="self-stretch flex flex-col justify-start items-start gap-6">
             <div className="inline-flex justify-start items-center gap-6">
               <div className="w-28 h-24 flex items-center justify-center relative overflow-visible">

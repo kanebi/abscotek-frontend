@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { Search } from "lucide-react";
+import { Search, Heart } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import React, { useEffect } from "react";
 import useStore from "@/store/useStore";
@@ -21,15 +21,20 @@ import MobileSearchModal from "@/components/widgets/MobileSearchModal";
 
 export default function Frame() {
     const user = useStore((state) => state.currentUser);
+    const isAuthenticated = useStore((state) => state.isAuthenticated);
     const setUser = useStore((state) => state.setCurrentUser);
     const setToken = useStore((state) => state.setToken);
-    const { authenticated, user: privyUser } = usePrivy();
+    const { authenticated: privyAuthenticated, user: privyUser } = usePrivy();
     const { authenticateAndLogin } = useWeb3Auth();
 
     const [referModalOpen, setReferModalOpen] = React.useState(false);
     const [searchOpen, setSearchOpen] = React.useState(false);
     const defaultTopBackground = "rgba(36, 36, 36, 1)";
     const navigate = useNavigate();
+
+    // Use store's isAuthenticated as the source of truth
+    // This ensures the UI reflects the session state from localStorage
+    const showUserMenu = isAuthenticated && user;
 
     return (
         <header className="overflow-hidden relative w-full md:h-[156px] h-[184px] bg-neutral-900">
@@ -89,7 +94,19 @@ export default function Frame() {
                                 </div>
                             </Button>
                         </div>
-                        {authenticated ? (
+                        {/* Wishlist Icon */}
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => navigate(AppRoutes.wishlist.path)}
+                            className="relative w-10 h-10 rounded-xl hover:bg-[rgba(36,36,36,0.8)] transition-colors"
+                            style={{ background: `var(--defaulttop-background, ${defaultTopBackground})` }}
+                            onMouseOver={e => e.currentTarget.style.background = 'rgba(36,36,36,0.8)'}
+                            onMouseOut={e => e.currentTarget.style.background = `var(--defaulttop-background, ${defaultTopBackground})`}
+                        >
+                            <Heart className="w-5 h-5 text-white" />
+                        </Button>
+                        {showUserMenu ? (
                             <UserPopover user={user}>
                                 <div className="cursor-pointer">
                                     <AvatarBlock user={user} />
@@ -135,7 +152,7 @@ export default function Frame() {
                         >
                             <Search className="relative w-5 h-5 text-[#858585]" />
                         </Button>
-                        {authenticated ? (
+                        {showUserMenu ? (
                             <UserPopover user={user}>
                                 <div className="cursor-pointer">
                                     <AvatarBlock user={user} />
@@ -145,21 +162,34 @@ export default function Frame() {
                             <WalletConnectButton onConnect={authenticateAndLogin} />
                         )}
 
-                        <SliderCart />
+                        {/* Wishlist Icon - Mobile */}
                         <Button
                             variant="ghost"
                             size="icon"
-                            className="relative w-10 h-10 items-center justify-center gap-[11.11px] px-[13.33px] py-[11.11px] bg-defaulttop-background rounded-[13.33px] overflow-hidden transition-colors hover:!bg-[rgba(36,36,36,0.8)]"
+                            onClick={() => navigate(AppRoutes.wishlist.path)}
+                            className="flex flex-col w-10 h-10 items-center justify-center gap-[11.11px] px-[13.33px] py-[11.11px] bg-defaulttop-background rounded-[13.33px] overflow-hidden transition-colors hover:!bg-[rgba(36,36,36,0.8)]"
                             style={{ background: `var(--defaulttop-background, ${defaultTopBackground})` }}
                             onMouseOver={e => e.currentTarget.style.background = 'rgba(36,36,36,0.8)'}
                             onMouseOut={e => e.currentTarget.style.background = `var(--defaulttop-background, ${defaultTopBackground})`}
+                        >
+                            <Heart className="relative w-5 h-5 text-white" />
+                        </Button>
+
+                        <SliderCart />
+                        {/* Menu button - currently disabled */}
+                        {/* <Button
+                            variant="ghost"
+                            size="icon"
+                            disabled
+                            className="relative w-10 h-10 items-center justify-center gap-[11.11px] px-[13.33px] py-[11.11px] bg-defaulttop-background rounded-[13.33px] overflow-hidden opacity-50 cursor-not-allowed"
+                            style={{ background: `var(--defaulttop-background, ${defaultTopBackground})` }}
                         >
                             <img
                                 className="text-white absolute top-0 left-0 right-0 bottom-0 m-auto"
                                 alt="Menu"
                                 src="/images/hugeicons_menu-09.svg"
                             />
-                        </Button>
+                        </Button> */}
                     </div>
                 </nav>
                 {/* Mobile Search Modal */}

@@ -3,7 +3,7 @@ import useAdminStore from '@/store/adminStore';
 
 // Admin authentication
 const adminLogin = async (email, password) => {
-  const response = await apiClient.post('/api/admin/login', { email, password });
+  const response = await apiClient.post('/admin/login', { email, password });
   if (response.data.token) {
     const { token, user } = response.data;
     useAdminStore.getState().login(token, user);
@@ -16,7 +16,7 @@ const adminLogout = () => {
 };
 
 const adminSignup = async (userData) => {
-  const response = await apiClient.post('/api/admin/signup', {
+  const response = await apiClient.post('/admin/signup', {
     name: userData.name,
     email: userData.email,
     password: userData.password,
@@ -33,7 +33,7 @@ const adminSignup = async (userData) => {
 
 // Regular user authentication
 const login = async (email, password) => {
-  const response = await apiClient.post('/api/auth', { email, password });
+  const response = await apiClient.post('/auth', { email, password });
   if (response.data.token) {
     localStorage.setItem('token', response.data.token);
     if (response.data.user) {
@@ -45,7 +45,7 @@ const login = async (email, password) => {
 
 const signup = async (userData) => {
   // Fix signup to use correct fields and endpoint
-  const response = await apiClient.post('/api/users', {
+  const response = await apiClient.post('/users', {
     name: `${userData.firstName || ''} ${userData.lastName || ''}`.trim(),
     email: userData.email,
     password: userData.password,
@@ -63,25 +63,25 @@ const signup = async (userData) => {
 
 // Get current user
 const getCurrentUser = async () => {
-  const response = await apiClient.get('/api/auth');
+  const response = await apiClient.get('/auth');
   return response.data;
 };
 
 // Get admin profile
 const getAdminProfile = async () => {
-  const response = await apiClient.get('/api/admin/profile');
+  const response = await apiClient.get('/admin/profile');
   return response.data;
 };
 
 // Update admin profile
 const updateAdminProfile = async (profileData) => {
-  const response = await apiClient.put('/api/admin/profile', profileData);
+  const response = await apiClient.put('/admin/profile', profileData);
   return response.data;
 };
 
 // Change admin password
 const changeAdminPassword = async (currentPassword, newPassword) => {
-  const response = await apiClient.put('/api/admin/change-password', {
+  const response = await apiClient.put('/admin/change-password', {
     currentPassword,
     newPassword
   });
@@ -90,18 +90,18 @@ const changeAdminPassword = async (currentPassword, newPassword) => {
 
 // Get user profile
 const getUserProfile = async () => {
-  const response = await apiClient.get('/api/users/profile');
+  const response = await apiClient.get('/users/profile');
   return response.data;
 };
 
 // Update user profile
 const updateUserProfile = async (profileData) => {
-  const response = await apiClient.put('/api/users/profile', profileData);
+  const response = await apiClient.put('/users/profile', profileData);
   return response.data;
 };
 
 const authenticateWithPrivy = async (privyAccessToken) => {
-  const response = await apiClient.post('/api/auth/privy', { accessToken: privyAccessToken });
+  const response = await apiClient.post('/auth/privy', { accessToken: privyAccessToken });
   if (response.data.token) {
     localStorage.setItem('token', response.data.token);
     if (response.data.user) {

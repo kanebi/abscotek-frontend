@@ -94,16 +94,16 @@ function CheckoutPage() {
   const { cart, clearCart, userCurrency, usdtBalance, setIsAuthenticated, setWalletAddress, currentUser, walletAddress, cartLoading, fetchCart, isAuthenticated: storeAuthenticated } = useStore();
   const { addNotification } = useNotificationStore();
 
-  // Get wallet address from Privy or store (like ReferModal)
+  // Get wallet address from Privy or store
   const userWalletAddress = walletAddress || privyUser?.wallet?.address;
 
-  // Use Privy authenticated state as primary auth check
-  const isUserAuthenticated = authenticated && storeAuthenticated;
+  // Use store's isAuthenticated as source of truth
+  const isUserAuthenticated = storeAuthenticated && currentUser;
 
   // Prevent redirects if user is authenticated
   const shouldRedirect = !isUserAuthenticated && !cartLoading;
 
-  // Debug authentication state (like ReferModal)
+  // Debug authentication state
   console.log('CheckoutPage - Auth state:', {
     privyAuthenticated: authenticated,
     storeAuthenticated,
@@ -161,7 +161,7 @@ function CheckoutPage() {
           }
         }
           
-         if (authenticated) {
+         if (isUserAuthenticated) {
            // Load cart and user data for authenticated users
            await fetchCart();
 
@@ -180,14 +180,14 @@ function CheckoutPage() {
 
   // Fetch addresses when authentication state changes
   useEffect(() => {
-    console.log("Auth state changed:", { authenticated, storeAuthenticated });
-    if (authenticated) {
-      console.log("Privy authenticated, fetching addresses...");
+    console.log("Auth state changed:", { isUserAuthenticated, storeAuthenticated });
+    if (isUserAuthenticated) {
+      console.log("User authenticated, fetching addresses...");
       refetchAddresses();
     } else {
-      console.log("Not authenticated in Privy, skipping address fetch");
+      console.log("Not authenticated, skipping address fetch");
     }
-  }, [authenticated]);
+  }, [isUserAuthenticated]);
 
   // Removed redirect logic to prevent blank screen
   // The page will show appropriate content based on cart and auth state
@@ -242,9 +242,8 @@ function CheckoutPage() {
   const refetchAddresses = async () => {
     try {
       // Check if user is authenticated before fetching addresses
-      // Use Privy authentication as primary check since that's what matters for API calls
-      if (!authenticated) {
-        console.log("User not authenticated in Privy, skipping address fetch");
+      if (!isUserAuthenticated) {
+        console.log("User not authenticated, skipping address fetch");
         return;
       }
       
@@ -269,10 +268,9 @@ function CheckoutPage() {
   const handleSaveAddress = async (addressData) => {
     try {
       // Check if user is authenticated before saving address
-      // Use Privy authentication as primary check since that's what matters for API calls
-      if (!authenticated) {
-        console.error("User not authenticated in Privy, cannot save address");
-        console.log("Auth state:", { authenticated, storeAuthenticated, token: !!localStorage.getItem('token') });
+      if (!isUserAuthenticated) {
+        console.error("User not authenticated, cannot save address");
+        console.log("Auth state:", { isUserAuthenticated, storeAuthenticated, token: !!localStorage.getItem('token') });
         addNotification("Please login to save addresses", "error");
         return;
       }
@@ -312,10 +310,9 @@ function CheckoutPage() {
 
   const handleAddNewAddress = () => {
     // Check if user is authenticated before showing address form
-    // Use Privy authentication as primary check since that's what matters for API calls
-      if (!authenticated) {
-        console.error("User not authenticated in Privy, cannot add address");
-        console.log("Auth state:", { authenticated, storeAuthenticated, token: !!localStorage.getItem('token') });
+      if (!isUserAuthenticated) {
+        console.error("User not authenticated, cannot add address");
+        console.log("Auth state:", { isUserAuthenticated, storeAuthenticated, token: !!localStorage.getItem('token') });
         addNotification("Please login to add addresses", "error");
         return;
       }
@@ -325,10 +322,9 @@ function CheckoutPage() {
 
   const handleEditAddress = (address) => {
     // Check if user is authenticated before editing address
-    // Use Privy authentication as primary check since that's what matters for API calls
-      if (!authenticated) {
-        console.error("User not authenticated in Privy, cannot edit address");
-        console.log("Auth state:", { authenticated, storeAuthenticated, token: !!localStorage.getItem('token') });
+      if (!isUserAuthenticated) {
+        console.error("User not authenticated, cannot edit address");
+        console.log("Auth state:", { isUserAuthenticated, storeAuthenticated, token: !!localStorage.getItem('token') });
         addNotification("Please login to edit addresses", "error");
         return;
       }
@@ -339,10 +335,9 @@ function CheckoutPage() {
   const handleDeleteAddress = async (addressId) => {
     try {
       // Check if user is authenticated before deleting address
-      // Use Privy authentication as primary check since that's what matters for API calls
-      if (!authenticated) {
-        console.error("User not authenticated in Privy, cannot delete address");
-        console.log("Auth state:", { authenticated, storeAuthenticated, token: !!localStorage.getItem('token') });
+      if (!isUserAuthenticated) {
+        console.error("User not authenticated, cannot delete address");
+        console.log("Auth state:", { isUserAuthenticated, storeAuthenticated, token: !!localStorage.getItem('token') });
         addNotification("Please login to delete addresses", "error");
         return;
       }
@@ -411,7 +406,7 @@ function CheckoutPage() {
       return;
     }
 
-    if (!authenticated) {
+    if (!isUserAuthenticated) {
       addNotification("Please login to place an order.", "error");
       return;
     }
@@ -558,16 +553,20 @@ function CheckoutPage() {
           console.log('Paystack order data being sent:', orderData);
           
           const response = await orderService.verifyPaymentAndCreateOrder(orderData);
+          console.log('Fallback method response:', response);
           
-          if (response && response.orderNumber) {
+          // Check for orderNumber in response (could be in response directly or in response.data)
+          const orderNumber = response?.orderNumber || response?.data?.orderNumber;
+          
+          if (orderNumber) {
             await clearCart();
             setOrderedSuccess(true);
             // Clear saved delivery method from localStorage
             localStorage.removeItem('selectedDeliveryMethod');
-            console.log('Paystack order success redirecting with order number:', response.orderNumber);
-            navigate(AppRoutes.orderSuccess.path.replace(':orderId?', response.orderNumber));
+            console.log('Paystack order success redirecting with order number:', orderNumber);
+            navigate(AppRoutes.orderSuccess.path.replace(':orderId?', orderNumber));
           } else {
-            console.error('Order creation/verification failed:', response);
+            console.error('Order creation/verification failed - no orderNumber in response:', response);
             addNotification('Payment successful but order processing failed. Please contact support.', 'error');
           }
           return;
@@ -599,21 +598,26 @@ function CheckoutPage() {
 
       console.log('Verifying payment and creating order with Paystack reference:', paystackRef);
       const response = await orderService.verifyPaymentAndCreateOrder(orderData);
+      console.log('Full response from verifyPaymentAndCreateOrder:', response);
 
-      if (response && response.orderNumber) {
+      // Check for orderNumber in response (could be in response directly or in response.data)
+      const orderNumber = response?.orderNumber || response?.data?.orderNumber;
+      
+      if (orderNumber) {
         await clearCart();
         setOrderedSuccess(true);
         // Clear saved delivery method from localStorage
         localStorage.removeItem('selectedDeliveryMethod');
-        console.log('Paystack order success redirecting with order number:', response.orderNumber);
-        navigate(AppRoutes.orderSuccess.path.replace(':orderId?', response.orderNumber));
+        console.log('Paystack order success redirecting with order number:', orderNumber);
+        navigate(AppRoutes.orderSuccess.path.replace(':orderId?', orderNumber));
       } else {
-        console.error('Order creation/verification failed:', response);
+        console.error('Order creation/verification failed - no orderNumber in response:', response);
         addNotification('Payment successful but order processing failed. Please contact support.', 'error');
       }
 
     } catch (error) {
       console.error('Error processing Paystack payment success:', error);
+      console.error('Error details:', error.response?.data || error.message);
       addNotification('Payment successful but there was an issue processing your order. Please contact support.', 'error');
     } finally {
       setIsProcessingPayment(false);
@@ -667,7 +671,7 @@ function CheckoutPage() {
   }
 
   // Show login prompt if not authenticated, but don't block the page
-  if (!authenticated) {
+  if (!isUserAuthenticated) {
     return (
       <Layout>
         <div className="w-[86%] mx-auto py-8 mb-10 text-center">

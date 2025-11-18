@@ -81,37 +81,29 @@ apiClient.interceptors.response.use(
         const adminStore = useAdminStore.getState();
         adminStore.logout();
       } else {
-        // Check if this is a session validation call before clearing auth
-        const isSessionValidation = (originalRequest.url?.includes('/users/profile') || 
-                                     originalRequest.url?.includes('/api/users/profile')) && 
-                                   originalRequest.method?.toUpperCase() === 'GET' &&
-                                   !originalRequest._isUserAction;
+        // Check if this is a background data fetch (cart/wishlist) vs user action
+        const isBackgroundFetch = (originalRequest.url?.includes('/cart') || 
+                                   originalRequest.url?.includes('/wishlist')) && 
+                                  !originalRequest._isUserAction;
         
-        if (isSessionValidation) {
-          // Session validation failed - clear auth silently
-          console.log('Session validation failed (401), clearing auth state silently');
-          localStorage.removeItem('token');
-          localStorage.removeItem('walletAddress');
-          localStorage.removeItem('userInfo');
-          
-          const store = useStore.getState();
-          store.setToken(null);
-          store.setIsAuthenticated(false);
-          store.setCurrentUser(null);
-          store.setWalletAddress(null);
-        } else {
-          // Regular 401 error - clear auth and show modal
-          console.log('401 error on user action, clearing auth and showing modal');
-          localStorage.removeItem('token');
-          localStorage.removeItem('walletAddress');
-          localStorage.removeItem('userInfo');
-          
-          const store = useStore.getState();
-          store.setToken(null);
-          store.setIsAuthenticated(false);
-          store.setCurrentUser(null);
-          store.setWalletAddress(null);
+        // Always clear auth on 401, but only show modal for user actions
+        console.log('401 Unauthorized - clearing auth state');
+        localStorage.removeItem('token');
+        localStorage.removeItem('walletAddress');
+        localStorage.removeItem('userInfo');
+        
+        const store = useStore.getState();
+        store.setToken(null);
+        store.setIsAuthenticated(false);
+        store.setCurrentUser(null);
+        store.setWalletAddress(null);
+        
+        // Only show modal if this was a user action (not background fetch)
+        if (!isBackgroundFetch) {
+          console.log('401 on user action - showing connect wallet modal');
           store.setConnectWalletModalOpen(true);
+        } else {
+          console.log('401 on background fetch - auth cleared silently');
         }
       }
     }

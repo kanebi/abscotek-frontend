@@ -15,13 +15,13 @@ import { ACTIVE_PAGINATION_ITEM_STYLE, PAGINATION_ITEM_STYLE } from "@/component
 import { useNavigate } from "react-router-dom";
 import { AppRoutes } from "@/config/routes";
 import AmountCurrency from "@/components/ui/AmountCurrency";
-import cartService from "@/services/cartService";
 import useStore from "@/store/useStore";
+import { Heart, Loader2 } from "lucide-react";
 
 const ProductGridSection = ({ products = [], activePage = 1, totalPages = 1, onPageChange }) => {
   const navigate = useNavigate();
   const [addingToCart, setAddingToCart] = useState(null);
-  const { addToCart } = useStore();
+  const { addToCart, wishlist, addToWishlist, removeFromWishlist, isAuthenticated } = useStore();
 
   // Normalize incoming products to UI shape without changing visual UI
   const normalized = (products || []).map((p) => ({
@@ -31,6 +31,7 @@ const ProductGridSection = ({ products = [], activePage = 1, totalPages = 1, onP
     description: p?.description,
     currency: p?.currency || "USDT",
     image: p?.images?.[0] || p?.image || "https://via.placeholder.com/300x240",
+    stock: p?.stock || 0,
   }));
 
   const handleNavigate = (id) => {
@@ -50,6 +51,34 @@ const ProductGridSection = ({ products = [], activePage = 1, totalPages = 1, onP
       console.error("Failed to add to cart:", error);
       setAddingToCart(null);
     }
+  };
+
+  const handleWishlistToggle = async (e, productId) => {
+    e.stopPropagation();
+    if (!isAuthenticated) {
+      navigate(AppRoutes.home.path);
+      return;
+    }
+    
+    const isInWishlist = wishlist?.items?.some(item => 
+      (item.product?._id || item.product?.id) === productId
+    );
+
+    try {
+      if (isInWishlist) {
+        await removeFromWishlist(productId);
+      } else {
+        await addToWishlist(productId);
+      }
+    } catch (error) {
+      console.error("Failed to toggle wishlist:", error);
+    }
+  };
+
+  const isInWishlist = (productId) => {
+    return wishlist?.items?.some(item => 
+      (item.product?._id || item.product?.id) === productId
+    );
   };
 
   return (
@@ -80,6 +109,21 @@ const ProductGridSection = ({ products = [], activePage = 1, totalPages = 1, onP
                       alt={product.name}
                       src={product.image}
                     />
+                    {/* {product.stock > 0 && ( */}
+                      <button
+                        onClick={(e) => handleWishlistToggle(e, product.id)}
+                        className="absolute top-3 right-3 w-8 h-8 md:w-10 md:h-10 bg-neutral-900/20 hover:bg-neutral-900 rounded-full flex items-center justify-center transition-all z-10"
+                      >
+                        <Heart
+                          size={18}
+                          className={`${
+                            isInWishlist(product.id)
+                              ? "fill-red-500 text-red-500"
+                              : "text-neutral-700"
+                          }`}
+                        />
+                      </button>
+                    {/* )} */}
                   </div>
 
                   <div className="flex flex-col items-start gap-4 relative self-stretch w-full flex-[0_0_auto] mt-4">
@@ -101,6 +145,7 @@ const ProductGridSection = ({ products = [], activePage = 1, totalPages = 1, onP
                       className="flex items-center justify-center gap-2.5 px-7 py-[13px] relative self-stretch w-full flex-[0_0_auto] bg-primaryp-300 rounded-xl h-auto"
                       disabled={addingToCart === product.id}
                     >
+                      {addingToCart === product.id && <Loader2 size={16} className="animate-spin" />}
                       <span className="font-body-base-base-medium font-[number:var(--body-base-base-medium-font-weight)] text-white text-[length:var(--body-base-base-medium-font-size)] tracking-[var(--body-base-base-medium-letter-spacing)] leading-[var(--body-base-base-medium-line-height)] whitespace-nowrap [font-style:var(--body-base-base-medium-font-style)]">
                         {addingToCart === product.id ? "Adding..." : "Add To Cart"}
                       </span>

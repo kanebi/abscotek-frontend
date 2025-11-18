@@ -2,19 +2,19 @@ import apiClient from '@/lib/apiClient';
 
 // Create order directly
 const createOrder = async (orderData) => {
-  const response = await apiClient.post('/api/orders', orderData);
+  const response = await apiClient.post('/orders', orderData);
   return response.data;
 };
 
 // Create order from cart and clear cart
 const checkout = async (checkoutData) => {
-  const response = await apiClient.post('/api/orders/checkout', checkoutData);
+  const response = await apiClient.post('/orders/checkout', checkoutData);
   return response.data;
 };
 
 // List user's orders
 const getOrders = async (category = 'all') => {
-  const response = await apiClient.get(`/api/orders?category=${category}`);
+  const response = await apiClient.get(`/orders?category=${category}`);
   return response.data;
 };
 
@@ -26,7 +26,7 @@ const getOrdersPaginated = async (page = 1, limit = 10, status = 'all') => {
 
 // Get order by ID (owner or admin)
 const getOrderById = async (id) => {
-  const response = await apiClient.get(`/api/orders/${id}`);
+  const response = await apiClient.get(`/orders/${id}`);
   return response.data;
 };
 
@@ -58,31 +58,31 @@ const cancelOrder = async (id) => {
 
 // List all orders (admin)
 const adminGetAllOrders = async () => {
-  const response = await apiClient.get('/api/admin/orders');
+  const response = await apiClient.get('/admin/orders');
   return response.data;
 };
 
 // View order (admin)
 const adminGetOrderById = async (id) => {
-  const response = await apiClient.get(`/api/admin/orders/${id}`);
+  const response = await apiClient.get(`/admin/orders/${id}`);
   return response.data;
 };
 
 // Update order (admin)
 const adminUpdateOrder = async (id, updateData) => {
-  const response = await apiClient.put(`/api/admin/orders/${id}`, updateData);
+  const response = await apiClient.put(`/admin/orders/${id}`, updateData);
   return response.data;
 };
 
 // Verify payment and create/update order
 const verifyPaymentAndCreateOrder = async (orderData) => {
-  const response = await apiClient.post('/api/orders/verify-payment', orderData);
+  const response = await apiClient.post('/orders/verify-payment', orderData);
   return response.data;
 };
 
 // Process USDT payment using Privy wallet
 const processUSDTWalletPayment = async (paymentData) => {
-  const response = await apiClient.post('/api/orders/usdt-payment', paymentData);
+  const response = await apiClient.post('/orders/usdt-payment', paymentData);
   return response.data;
 };
 

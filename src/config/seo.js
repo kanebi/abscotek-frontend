@@ -60,6 +60,12 @@ export const pageSEO = {
     description: 'Find the perfect tech products and electronics that match your needs.',
     keywords: 'search results, find products, tech search, electronics search',
   },
+  wishlist: {
+    title: 'My Wishlist - Abscotek',
+    description: 'View and manage your saved favorite tech products and electronics.',
+    keywords: 'wishlist, saved items, favorite products, wish list',
+    noindex: true,
+  },
   admin: {
     title: 'Admin Dashboard - Abscotek',
     description: 'Administrative dashboard for managing the Abscotek platform.',

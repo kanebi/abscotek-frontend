@@ -16,7 +16,7 @@ const getEnvVar = (key, defaultValue = '') => {
 };
 
 export const ENV = {
-  API_URL: getEnvVar('VITE_API_URL', 'http://localhost:5832/'),
+  API_URL: getEnvVar('VITE_API_URL', 'http://localhost:5832/api'),
   PRIVY_APP_ID: getEnvVar('VITE_PRIVY_APP_ID'),
   PRIVY_CLIENT_ID: getEnvVar('VITE_PRIVY_CLIENT_ID'),
   EXCHANGE_RATE_API_KEY: getEnvVar('VITE_APP_EXCHANGE_RATE_API_KEY'),

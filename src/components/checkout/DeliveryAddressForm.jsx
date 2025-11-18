@@ -315,7 +315,10 @@ function DeliveryAddressForm({ onSave, onCancel, showCancel = false, editingAddr
                     <div
                       key={index}
                       className="px-4 py-2 hover:bg-[#2C2C2E] cursor-pointer text-white text-sm"
-                      onClick={() => handleCitySelect(suggestion)}
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        handleCitySelect(suggestion);
+                      }}
                     >
                       {suggestion.description}
                     </div>
@@ -345,7 +348,10 @@ function DeliveryAddressForm({ onSave, onCancel, showCancel = false, editingAddr
                     <div
                       key={index}
                       className="px-4 py-2 hover:bg-[#2C2C2E] cursor-pointer text-white text-sm"
-                      onClick={() => handleStateSelect(suggestion)}
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        handleStateSelect(suggestion);
+                      }}
                     >
                       {suggestion.description}
                     </div>
@@ -481,7 +487,10 @@ function DeliveryAddressForm({ onSave, onCancel, showCancel = false, editingAddr
                     <div
                       key={index}
                       className="px-4 py-2 hover:bg-[#2C2C2E] cursor-pointer text-white text-sm"
-                      onClick={() => handleCitySelect(suggestion)}
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        handleCitySelect(suggestion);
+                      }}
                     >
                       {suggestion.description}
                     </div>
@@ -511,7 +520,10 @@ function DeliveryAddressForm({ onSave, onCancel, showCancel = false, editingAddr
                     <div
                       key={index}
                       className="px-4 py-2 hover:bg-[#2C2C2E] cursor-pointer text-white text-sm"
-                      onClick={() => handleStateSelect(suggestion)}
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        handleStateSelect(suggestion);
+                      }}
                     >
                       {suggestion.description}
                     </div>

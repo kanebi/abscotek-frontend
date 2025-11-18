@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { X, Minus, Plus } from "lucide-react";
+import { X, Minus, Plus, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "./button";
 import { Separator } from "./separator";
@@ -160,7 +160,7 @@ try {
         <div className="flex-1 overflow-y-auto">
           {cartLoading ? (
             <div className="flex items-center justify-center h-64">
-              <div className="text-neutralneutral-100">Loading...</div>
+              <Loader2 className="w-8 h-8 animate-spin text-white" />
             </div>
           ) : !cart || !cart.items || cart.items.length === 0 ? (
              /* Empty State */
