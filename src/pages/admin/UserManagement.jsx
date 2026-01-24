@@ -505,23 +505,23 @@ function UserManagement() {
                             </>
                           )}
                         </div>
-                        <div className="flex gap-2">
-                          <Button
-                            onClick={() => setEditingUser(user)}
-                            size="sm"
-                            className="bg-warningw-500 hover:bg-warningw-400"
-                          >
-                            <Edit size={14} className="mr-1" />
-                            Edit
-                          </Button>
-                          <Button
-                            onClick={() => handleDelete(user._id)}
-                            size="sm"
-                            className="bg-dangerd-500 hover:bg-dangerd-400"
-                          >
-                            <Trash2 size={14} className="mr-1" />
-                            Delete
-                          </Button>
+                      <div className="flex gap-2">
+                        <Button
+                          onClick={() => setEditingUser(user)}
+                          size="sm"
+                          className="bg-warningw-500 hover:bg-warningw-400"
+                        >
+                          <Edit size={14} className="mr-1" />
+                          Edit
+                        </Button>
+                        <Button
+                          onClick={() => handleDelete(user._id)}
+                          size="sm"
+                          className="bg-dangerd-500 hover:bg-dangerd-400"
+                        >
+                          <Trash2 size={14} className="mr-1" />
+                          Delete
+                        </Button>
                         </div>
                       </div>
                     </div>

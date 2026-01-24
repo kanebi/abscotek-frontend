@@ -57,7 +57,7 @@ export default function ProductDetail() {
     }, [id]);
 
     useEffect(() => {
-        if (selectedVariant) {
+            if (selectedVariant) {
             // Use variant price if available, otherwise use product price
             const variantPrice = selectedVariant.price || product?.price || 0;
             setTotalPrice(variantPrice);
@@ -666,7 +666,7 @@ export default function ProductDetail() {
                             <div className="text-white text-2xl font-semibold    leading-loose whitespace-pre-wrap break-words max-w-full">{p.description}</div>
                             {/* Specs Selection - Only show if no variant is selected */}
                             {!selectedVariant && p.specs && p.specs.length > 0 && (
-                                <div className="flex flex-col gap-6">
+                            <div className="flex flex-col gap-6">
                                     <div className="text-rose-500 text-xl font-semibold leading-relaxed">Specifications</div>
                                     <div className="flex flex-col gap-3">
                                         {p.specs.map((spec, idx) => {
@@ -707,9 +707,9 @@ export default function ProductDetail() {
                                             >
                                                 <div className="w-28 text-gray-400 text-base font-medium">{spec.label}</div>
                                                 <div className="flex-1 text-white text-base font-normal">{spec.value}</div>
-                                            </div>
-                                        ))}
                                     </div>
+                                ))}
+                            </div>
                                 </div>
                             )}
                         </div>

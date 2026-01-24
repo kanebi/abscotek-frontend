@@ -356,7 +356,7 @@ export function NavigationBar() {
                                                             handleNavigation(item);
                                                             setShowCategoriesCard(false);
                                                         }}
-                                                        className="text-xs px-3 py-1.5 h-auto border-neutral-600 bg-[#2a2a2a] text-white hover:bg-neutral-700 hover:text-white"
+                                                        className="text-xs px-3 py-1.5 h-auto border-neutral-600 bg-transparent text-neutral-300 hover:bg-neutral-800 hover:text-white hover:border-neutral-500"
                                                     >
                                                         {item}
                                                     </Button>
@@ -373,7 +373,7 @@ export function NavigationBar() {
                                                             handleNavigation(category);
                                                             setShowCategoriesCard(false);
                                                         }}
-                                                        className="text-xs px-3 py-1.5 h-auto border-neutral-600 bg-[#2a2a2a] text-white hover:bg-neutral-700 hover:text-white"
+                                                        className="text-xs px-3 py-1.5 h-auto border-neutral-600 bg-transparent text-neutral-300 hover:bg-neutral-800 hover:text-white hover:border-neutral-500"
                                                     >
                                                         {category}
                                                     </Button>
@@ -454,7 +454,7 @@ export function NavigationBar() {
                                                     handleNavigation(item);
                                                     setShowCategoriesCard(false);
                                                 }}
-                                                className="text-xs px-3 py-1.5 h-auto border-neutral-600 bg-[#2a2a2a] text-white hover:bg-neutral-700 hover:text-white"
+                                                className="text-xs px-3 py-1.5 h-auto border-neutral-600 bg-transparent text-neutral-300 hover:bg-neutral-800 hover:text-white hover:border-neutral-500"
                                             >
                                                 {item}
                                             </Button>
@@ -471,7 +471,7 @@ export function NavigationBar() {
                                                     handleNavigation(category);
                                                     setShowCategoriesCard(false);
                                                 }}
-                                                className="text-xs px-3 py-1.5 h-auto border-neutral-600 bg-[#2a2a2a] text-white hover:bg-neutral-700 hover:text-white"
+                                                className="text-xs px-3 py-1.5 h-auto border-neutral-600 bg-transparent text-neutral-300 hover:bg-neutral-800 hover:text-white hover:border-neutral-500"
                                             >
                                                 {category}
                                             </Button>
