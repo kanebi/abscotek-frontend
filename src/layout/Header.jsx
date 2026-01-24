@@ -35,11 +35,14 @@ export default function Frame() {
     const showUserMenu = isAuthenticated && user;
 
     return (
-        <header className="overflow-hidden relative w-full md:h-[156px] h-[184px] bg-neutral-900">
+        <header className="overflow-hidden relative w-full md:h-[156px] h-[221px] bg-neutral-900">
             {/* Desktop Header */}
             <div className="hidden md:flex w-[86%] items-center justify-between mt-3.5 mx-auto">
                 <div className="inline-flex items-center gap-[52px] relative flex-[0_0_auto]">
-                    <div className="inline-flex items-center gap-[10.1px] relative flex-[0_0_auto]">
+                    <div 
+                        className="inline-flex items-center gap-[10.1px] relative flex-[0_0_auto] cursor-pointer"
+                        onClick={() => navigate(AppRoutes.home.path)}
+                    >
                         <div className="relative w-[30.45px] h-14">
                             <div className="relative w-[30px] h-14">
                                
@@ -121,9 +124,12 @@ export default function Frame() {
             </div>
 
             {/* Mobile Header */}
-            <div className="flex md:hidden w-full h-[94px] bg-neutral-900 items-center justify-center relative">
+            <div className="flex md:hidden w-full h-[113px] bg-neutral-900 items-center justify-center relative">
                 <nav className="flex w-full  justify-between items-center relative px-[15px]">
-                    <div className="inline-flex gap-[9.85px] flex-[0_0_auto] items-center relative">
+                    <div 
+                        className="inline-flex gap-[9.85px] flex-[0_0_auto] items-center relative cursor-pointer"
+                        onClick={() => navigate(AppRoutes.home.path)}
+                    >
                         <div className="relative w-[29.69px] h-[54.6px]">
                             <div className="relative w-[30px] h-[55px]">
                                 <img
@@ -266,13 +272,13 @@ export function NavigationBar() {
 
     let bg = '#00A478'
     return (
-        <nav className=" text-defaultwhite">
-            <div className="flex items-center  justify-between max-w-full   py-2">
+        <nav className="text-defaultwhite">
+            {/* Desktop Layout */}
+            <div className="hidden lg:flex items-center justify-between max-w-full py-2">
                 {/* Left side - Price indicator */}
                 <div className="flex items-center gap-3">
                     <span className="text-sm text-defaultgrey whitespace-nowrap">Today Price:</span>
                     <div className="flex items-center gap-2">
-                        {/* <TrendingUp className="w-4 h-4 text-primaryp-300" /> */}
                         <DropdownMenu modal >
                             <DropdownMenuTrigger asChild>
                                 <Button
@@ -301,7 +307,7 @@ export function NavigationBar() {
                 </div>
 
                 {/* Right side - Navigation menu */}
-                <div className="hidden lg:flex items-center gap-2 ">
+                <div className="flex items-center gap-2">
                     {mainNavItems.map((item) => (
                         <Button
                             key={item} variant="ghost"
@@ -342,43 +348,100 @@ export function NavigationBar() {
                         </DropdownMenu>
                     )}
                 </div>
+            </div>
 
-                {/* Mobile menu button */}
-                <div className="md:hidden lg:hidden hidden ">
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" className="text-defaultwhite hover:bg-defaulttop-background p-2">
-                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                                </svg>
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="bg-defaulttop-background border-defaultgrey w-48 max-h-[400px] overflow-y-auto">
+            {/* Mobile Layout */}
+            <div className="flex lg:hidden flex-col gap-2  pb-10">
+                {/* Top row - Categories */}
+                <div className="w-full  relative">
+                    <div className="flex items-center gap-2 overflow-x-auto" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+                        <style>{`
+                            .mobile-nav-categories::-webkit-scrollbar {
+                                display: none;
+                            }
+                            .mobile-nav-categories {
+                                -ms-overflow-style: none;
+                                scrollbar-width: none;
+                            }
+                        `}</style>
+                        <div className="flex items-center gap-2 mobile-nav-categories">
                             {mainNavItems.map((item) => (
-                                <DropdownMenuItem 
+                                <Button
                                     key={item} 
+                                    variant="ghost"
                                     onClick={() => handleNavigation(item)}
-                                    className="text-defaultwhite hover:bg-defaulttop-background cursor-pointer"
+                                    className="text-defaultwhite hover:bg-defaulttop-background hover:text-defaultwhite px-3 py-1.5 text-xs font-normal h-auto cursor-pointer whitespace-nowrap flex-shrink-0 max-w-[120px] truncate"
+                                    title={item}
                                 >
                                     {item}
-                                </DropdownMenuItem>
+                                </Button>
                             ))}
+                            
+                            {/* More dropdown for mobile - Always visible */}
                             {moreCategories.length > 0 && (
-                                <>
-                                    <DropdownMenuSeparator className="bg-neutral-600" />
-                                    {moreCategories.map((category) => (
-                                        <DropdownMenuItem 
-                                            key={category}
-                                            onClick={() => handleNavigation(category)}
-                                            className="text-defaultwhite hover:bg-defaulttop-background cursor-pointer"
+                                <div className="flex-shrink-0 sticky right-0 bg-neutral-900 pl-2 -mr-2">
+                                    <DropdownMenu>
+                                        <DropdownMenuTrigger asChild>
+                                            <Button
+                                                variant="ghost"
+                                                className="text-defaultwhite hover:bg-defaulttop-background hover:text-defaultwhite px-3 py-1.5 text-xs font-normal h-auto cursor-pointer whitespace-nowrap flex-shrink-0"
+                                            >
+                                                More
+                                                <img src="/images/dropdown.svg" alt="Dropdown" className="ml-1 w-3 h-3" />
+                                            </Button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent 
+                                            style={DROPDOWN_MENU_CONTENT_STYLE} 
+                                            className="text-sm text-white border-neutral-600 max-h-[400px] overflow-y-auto"
+                                            align="end"
                                         >
-                                            {category}
-                                        </DropdownMenuItem>
-                                    ))}
-                                </>
+                                            {moreCategories.map((category) => (
+                                                <DropdownMenuItem 
+                                                    key={category}
+                                                    onClick={() => handleNavigation(category)}
+                                                    className="text-defaultwhite hover:bg-defaulttop-background cursor-pointer max-w-[200px] truncate"
+                                                    title={category}
+                                                >
+                                                    {category}
+                                                </DropdownMenuItem>
+                                            ))}
+                                        </DropdownMenuContent>
+                                    </DropdownMenu>
+                                </div>
                             )}
-                        </DropdownMenuContent>
-                    </DropdownMenu>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Bottom row - Currency selector */}
+                <div className="flex items-center justify-between w-full px-2">
+                    <div className="flex items-center gap-2">
+                        <span className="text-xs text-defaultgrey whitespace-nowrap">Today Price:</span>
+                        <DropdownMenu modal >
+                            <DropdownMenuTrigger asChild>
+                                <Button
+                                    variant="ghost"
+                                    className={`text-defaultwhite w-28 relative hover:text-defaultwhite hover:bg-defaulttop-background h-auto font-normal outline-none border-none hover:outline-none flex items-center gap-1 text-xs`}
+                                >
+                                    <div className="flex items-center gap-1.5 pl-1">
+                                        <img src={currencyIconMap[userCurrency || 'USDT']?.src} className="w-3 h-3" />
+                                        <span className="text-xs font-medium">{userCurrency || 'USDT'}</span>
+                                    </div>
+                                    <img src="/images/dropdown.svg" alt="Dropdown Icon" className="absolute right-0 w-2 h-2" />
+                                </Button>
+                            </DropdownMenuTrigger >
+                            <DropdownMenuContent   style={DROPDOWN_MENU_CONTENT_STYLE} className="text-sm text-white border-neutral-600" align="start">
+                                {CurrencyOptions.map((c) => (
+                                    <DropdownMenuItem key={c.value} onClick={() => setUserCurrency(c.value)}>
+                                        <div className="flex items-center gap-2" >
+                                            <img src={currencyIconMap[c.value]?.src} className="w-4 h-4" />
+                                            <span>{c.label}</span>
+                                        </div>
+                                    </DropdownMenuItem>
+                                ))}
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    </div>
                 </div>
             </div>
         </nav>

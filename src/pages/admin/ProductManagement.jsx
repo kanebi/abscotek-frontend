@@ -8,6 +8,7 @@ import AmountCurrency from '../../components/ui/AmountCurrency';
 import { Package, Plus, Edit, Trash2, Search, ImagePlus, Upload, Filter, X, ArrowLeft } from 'lucide-react';
 import { AppRoutes } from '../../config/routes';
 import ProductVariantEditor from '../../components/admin/ProductVariantEditor';
+import ProductSpecsEditor from '../../components/admin/ProductSpecsEditor';
 import { PRODUCT_CATEGORIES, PRODUCT_BRANDS } from '../../config/categories';
 
 function ProductManagement() {
@@ -22,7 +23,7 @@ function ProductManagement() {
     category: '', 
     brand: '', 
     sku: '', 
-    specs: '[]', 
+    specs: [], 
     variants: [],
     stock: 0
   });
@@ -155,7 +156,7 @@ function ProductManagement() {
       setCreatedProductId(null);
       setUploadFiles([]);
       setUploadUrls(['']);
-      setNewProduct({ name: '', description: '', price: '', image: '', badge: '', category: '', brand: '', sku: '', specs: '[]', stock: 0, outOfStock: true });
+      setNewProduct({ name: '', description: '', price: '', image: '', badge: '', category: '', brand: '', sku: '', specs: [], variants: [], stock: 0 });
       fetchProducts();
     } catch (error) {
       console.error('Error uploading images:', error);
@@ -351,6 +352,12 @@ function ProductManagement() {
                   </div>
                   <input type="text" placeholder="SKU" value={newProduct.sku} onChange={(e) => setNewProduct({ ...newProduct, sku: e.target.value })} className="p-3 bg-neutralneutral-800 border border-neutralneutral-600 rounded-lg text-white placeholder-neutralneutral-400" />
                   <input type="number" placeholder="Stock" value={newProduct.stock} onChange={(e) => setNewProduct({ ...newProduct, stock: e.target.value })} className="p-3 bg-neutralneutral-800 border border-neutralneutral-600 rounded-lg text-white placeholder-neutralneutral-400" />
+                </div>
+                <div>
+                  <ProductSpecsEditor
+                    specs={Array.isArray(newProduct.specs) ? newProduct.specs : safeParseArray(newProduct.specs)}
+                    onChange={(specs) => setNewProduct({ ...newProduct, specs })}
+                  />
                 </div>
                 <div>
                   <ProductVariantEditor

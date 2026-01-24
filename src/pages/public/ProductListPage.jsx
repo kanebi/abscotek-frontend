@@ -23,11 +23,27 @@ import SEO from "@/components/SEO";
 import { getPageSEO, generateBreadcrumbStructuredData } from "@/config/seo";
 import productService from "@/services/productService";
 import EmptyProducts from "@/components/widgets/EmptyProducts";
+import { PRODUCT_CATEGORIES } from "@/config/categories";
+import { Button } from "@/components/ui/button";
 
 export default function Desktop() {
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
-  const category = searchParams.get('category') || undefined;
+  
+  // Normalize category: map "phones" to "smartphones" for compatibility
+  const normalizeCategory = (cat) => {
+    if (!cat) return undefined;
+    const categoryMap = {
+      'phones': 'Smartphones',
+      'phone': 'Smartphones',
+      'Phones': 'Smartphones',
+      'Phone': 'Smartphones'
+    };
+    return categoryMap[cat] || cat;
+  };
+  
+  const rawCategory = searchParams.get('category') || undefined;
+  const category = normalizeCategory(rawCategory);
   const page = Number(searchParams.get('page') || 1);
   const sortParam = searchParams.get('sort') || undefined; // price:asc | price:desc | newest | popularity
 
@@ -58,13 +74,13 @@ export default function Desktop() {
         // Get all filter params from URL
         const filterParams = {};
         for (let [key, value] of searchParams.entries()) {
-          if (['category', 'color', 'size', 'minPrice', 'maxPrice', 'brand'].includes(key)) {
+          if (['color', 'size', 'minPrice', 'maxPrice', 'brand'].includes(key)) {
             filterParams[key] = value;
           }
         }
 
         const params = {
-          category,
+          category: category, // Use normalized category
           page,
           limit: 12,
           sort,
@@ -104,6 +120,43 @@ export default function Desktop() {
   const onSortChange = (value) => {
     const next = new URLSearchParams(searchParams);
     next.set('sort', value);
+    next.set('page', '1');
+    setSearchParams(next);
+  };
+
+  // Navigation mapping (same as Header)
+  const mainNavItems = ["Laptops", "Phone", "Smartwatches", "Tablets", "Audio", "Headphones", "TVs & Monitors"];
+  const navToCategoryMap = {
+    "Laptops": "Laptops",
+    "Phone": "Smartphones",
+    "Smartwatches": "Smart Watches",
+    "Tablets": "Tablets",
+    "Audio": "Speakers",
+    "Headphones": "Headphones & Earbuds",
+    "TVs & Monitors": "TVs & Monitors"
+  };
+  
+  // Get other categories for "More" section
+  const moreCategories = PRODUCT_CATEGORIES.filter(cat => {
+    const categoryMap = {
+      "Laptops": ["Laptops"],
+      "Phone": ["Smartphones"],
+      "Smartwatches": ["Smart Watches"],
+      "Tablets": ["Tablets"],
+      "Audio": ["Speakers", "Audio Equipment"],
+      "Headphones": ["Headphones & Earbuds"],
+      "TVs & Monitors": ["TVs & Monitors"]
+    };
+    const isInMainNav = Object.values(categoryMap).some(mainCats => 
+      mainCats.some(mainCat => mainCat.toLowerCase() === cat.toLowerCase())
+    );
+    return !isInMainNav;
+  });
+
+  const handleCategoryClick = (navItem) => {
+    const actualCategory = navToCategoryMap[navItem] || navItem;
+    const next = new URLSearchParams(searchParams);
+    next.set('category', actualCategory);
     next.set('page', '1');
     setSearchParams(next);
   };
@@ -233,6 +286,56 @@ export default function Desktop() {
         <h2 className="text-sm text-defaultgrey-2">
           Shopping Options ({resultCount})
         </h2>
+      </div>
+
+      {/* Mobile Categories Section */}
+      <div className="md:hidden absolute top-[140px] left-0 right-0 w-full px-4 pb-4 z-10">
+        <div className="bg-neutral-900 rounded-lg border border-neutral-700 p-4 shadow-lg">
+          <h3 className="text-white text-base font-semibold mb-3">Categories</h3>
+          <div className="flex flex-wrap gap-2 mb-3">
+            {mainNavItems.map((item) => (
+              <Button
+                key={item}
+                variant={category === navToCategoryMap[item] ? "default" : "outline"}
+                onClick={() => handleCategoryClick(item)}
+                className={`text-xs px-3 py-1.5 h-auto ${
+                  category === navToCategoryMap[item]
+                    ? 'bg-primaryp-500 hover:bg-primaryp-400 text-white'
+                    : 'border-neutral-600 text-neutral-300 hover:bg-neutral-800'
+                }`}
+              >
+                {item}
+              </Button>
+            ))}
+          </div>
+          {moreCategories.length > 0 && (
+            <>
+              <div className="border-t border-neutral-700 my-3"></div>
+              <h4 className="text-neutral-400 text-xs font-medium mb-2">More Categories</h4>
+              <div className="flex flex-wrap gap-2">
+                {moreCategories.map((cat) => (
+                  <Button
+                    key={cat}
+                    variant={category === cat ? "default" : "outline"}
+                    onClick={() => {
+                      const next = new URLSearchParams(searchParams);
+                      next.set('category', cat);
+                      next.set('page', '1');
+                      setSearchParams(next);
+                    }}
+                    className={`text-xs px-3 py-1.5 h-auto ${
+                      category === cat
+                        ? 'bg-primaryp-500 hover:bg-primaryp-400 text-white'
+                        : 'border-neutral-600 text-neutral-300 hover:bg-neutral-800'
+                    }`}
+                  >
+                    {cat}
+                  </Button>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
       </div>
     </div>
     </Layout>

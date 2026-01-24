@@ -8,6 +8,7 @@ import { Link } from 'react-router-dom';
 import { AppRoutes } from '../../config/routes';
 import { PaystackButton } from 'react-paystack';
 import { env } from '../../config/env';
+import currencyConversionService from '../../services/currencyConversionService';
 
 function OrderSummary({ 
   onPlaceOrder, 
@@ -27,9 +28,10 @@ function OrderSummary({
   const { cart, userCurrency, getCartTotal, currentUser } = useStore();
   
   const deliveryCost = deliveryMethod ? deliveryMethod.price : 0;
-  // For order total calculation, we should use the converted amount if available
-  // Otherwise, we need to handle currency conversion properly
+  // If convertedAmount is provided, it's already in userCurrency
+  // Otherwise, use getCartTotal which is in cart.currency
   const orderTotal = convertedAmount > 0 ? convertedAmount : getCartTotal();
+  const orderTotalCurrency = convertedAmount > 0 ? userCurrency : (cart.currency || 'USDT');
 
   // Validate Paystack parameters
   const validatePaystackParams = () => {
@@ -112,7 +114,7 @@ function OrderSummary({
             <div className="flex justify-between text-white text-base">
               <span>Your Balance</span>
               <span className="font-medium">
-                {balance.toFixed(4)} {currency}
+                <AmountCurrency amount={balance} fromCurrency={currency || 'USDT'} />
               </span>
             </div>
             <Separator className="mt-4 bg-[#38383a]" />
@@ -197,7 +199,7 @@ function OrderSummary({
           <div className="flex justify-between text-white text-lg font-semibold">
             <span>Order Total</span>
             <span>
-              <AmountCurrency amount={orderTotal} fromCurrency={cart.currency || 'USDT'} />
+              <AmountCurrency amount={orderTotal} fromCurrency={orderTotalCurrency} />
             </span>
           </div>
           
@@ -224,7 +226,7 @@ function OrderSummary({
               </div>
             )}
             <PaystackButton
-              text={isPlacingOrder ? 'Processing...' : `Pay ${currency} ${paymentAmount.toFixed(2)}`}
+              text={isPlacingOrder ? 'Processing...' : `Pay ${currencyConversionService.formatCurrency(paymentAmount, currency || 'NGN')}`}
               className="w-full bg-red-500 hover:bg-red-600 text-white px-12 py-6 rounded-lg font-medium disabled:opacity-50 text-base"
               onSuccess={onPaystackSuccess}
               onClose={onPaystackClose}

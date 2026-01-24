@@ -198,21 +198,35 @@ function CheckoutPage() {
       const isCrypto = ['USDT','ETH','BTC','BNB','MATIC'].includes(selectedCurrency);
       setPaymentMethod(isCrypto ? 'wallet' : 'paystack');
 
-      if (cart && cart.items && cart.items.length > 0 && selectedDeliveryMethod) {
+      if (cart && cart.items && cart.items.length > 0) {
         try {
+          // Calculate cart total in cart's currency
           const cartTotal = cart.items.reduce((total, item) => {
             return total + (item.product?.price || item.price || item.unitPrice) * item.quantity;
           }, 0);
 
-          const deliveryCostInUserCurrency = await currencyConversionService.convertCurrency(
-            selectedDeliveryMethod.price,
-            selectedDeliveryMethod.currency,
+          // Convert cart total from cart currency to user currency
+          const cartTotalInUserCurrency = await currencyConversionService.convertCurrency(
+            cartTotal,
+            cart.currency || 'USDT',
             userCurrency
           );
 
-          const totalAmount = cartTotal + Number(deliveryCostInUserCurrency);
+          let totalAmount = Number(cartTotalInUserCurrency);
+
+          // Add delivery cost if delivery method is selected
+          if (selectedDeliveryMethod) {
+            const deliveryCostInUserCurrency = await currencyConversionService.convertCurrency(
+              selectedDeliveryMethod.price,
+              selectedDeliveryMethod.currency,
+              userCurrency
+            );
+            totalAmount = totalAmount + Number(deliveryCostInUserCurrency);
+          }
+
           setConvertedAmount(totalAmount);
 
+          // Convert total amount from userCurrency to selectedCurrency for payment
           const paymentConverted = await currencyConversionService.convertCurrency(
             totalAmount,
             userCurrency,
@@ -224,6 +238,9 @@ function CheckoutPage() {
           setConvertedAmount(0);
           setPaymentAmount(0);
         }
+      } else {
+        setConvertedAmount(0);
+        setPaymentAmount(0);
       }
     };
 
