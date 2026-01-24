@@ -314,20 +314,20 @@ function UserOrdersPage() {
                       <div className="flex justify-between items-center">
                         <span className="text-neutral-300">Subtotal:</span>
                         <span className="text-neutral-300">
-                          <AmountCurrency amount={orderToCancel.pricing?.subtotal || orderToCancel.subTotal || 0} fromCurrency={orderToCancel.currency} />
+                          <AmountCurrency amount={orderToCancel.pricing?.subtotal || orderToCancel.subTotal || 0} fromCurrency={orderToCancel.currency || 'USDT'} />
                         </span>
                       </div>
                       <div className="flex justify-between items-center">
                         <span className="text-neutral-300">Shipping:</span>
                         <span className="text-neutral-300">
-                          <AmountCurrency amount={orderToCancel.pricing?.delivery || orderToCancel.deliveryFee || orderToCancel.deliveryMethod?.price || 0} fromCurrency={orderToCancel.currency} />
+                          <AmountCurrency amount={orderToCancel.pricing?.delivery || orderToCancel.deliveryFee || orderToCancel.deliveryMethod?.price || 0} fromCurrency={orderToCancel.pricing?.deliveryCurrency || orderToCancel.deliveryMethod?.currency || orderToCancel.currency || 'USDT'} />
                         </span>
                       </div>
                       <div className="border-t border-neutral-600 my-2"></div>
                       <div className="flex justify-between items-center">
                         <span className="text-white font-semibold">Total Amount:</span>
                         <span className="text-white font-semibold">
-                          <AmountCurrency amount={(orderToCancel.pricing?.subtotal || orderToCancel.subTotal || 0) + (orderToCancel.pricing?.delivery || orderToCancel.deliveryFee || orderToCancel.deliveryMethod?.price || 0)} fromCurrency={orderToCancel.currency} />
+                          <AmountCurrency amount={orderToCancel.pricing?.total || orderToCancel.totalAmount || (orderToCancel.pricing?.subtotal || orderToCancel.subTotal || 0) + (orderToCancel.pricing?.delivery || orderToCancel.deliveryFee || orderToCancel.deliveryMethod?.price || 0)} fromCurrency={orderToCancel.currency || 'USDT'} />
                         </span>
                       </div>
                     </div>

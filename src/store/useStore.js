@@ -300,8 +300,7 @@ const useStore = create((set, get) => {
   removeFromCart: async (productId) => {
     set({ cartUpdating: true });
     try {
-      const { isAuthenticated, currentUser, walletAddress } = get();
-      let response;
+      const { isAuthenticated, currentUser, walletAddress, fetchCart } = get();
       if (isAuthenticated || walletAddress) {
         // Ensure we have a valid user ID
         const userId = currentUser?._id || currentUser?.id;
@@ -309,15 +308,31 @@ const useStore = create((set, get) => {
           console.error('No user ID found for cart removal:', currentUser);
           throw new Error('User ID not found');
         }
-        response = await cartService.removeFromCart(userId, productId);
+        await cartService.removeFromCart(userId, productId);
+        // Reload cart from backend to ensure structure is correct
+        await fetchCart();
       } else {
-        response = await cartService.removeFromCart(null, productId);
+        await cartService.removeFromCart(null, productId);
+        // Reload structured cart from localStorage
+        const guestCart = cartService.getGuestCart();
+        set({ cart: guestCart });
       }
-      set({ cart: response });
       useNotificationStore.getState().addNotification('Item removed from cart', 'success');
     } catch (error) {
       console.error('Failed to remove from cart:', error);
       useNotificationStore.getState().addNotification('Failed to remove item from cart', 'error');
+      // On error, try to reload cart to ensure consistency
+      try {
+        const { isAuthenticated, fetchCart } = get();
+        if (isAuthenticated || get().walletAddress) {
+          await fetchCart();
+        } else {
+          const guestCart = cartService.getGuestCart();
+          set({ cart: guestCart });
+        }
+      } catch (reloadError) {
+        console.error('Failed to reload cart after removal error:', reloadError);
+      }
     } finally {
       set({ cartUpdating: false });
     }

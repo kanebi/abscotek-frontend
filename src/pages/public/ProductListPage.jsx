@@ -288,55 +288,6 @@ export default function Desktop() {
         </h2>
       </div>
 
-      {/* Mobile Categories Section */}
-      <div className="md:hidden absolute top-[140px] left-0 right-0 w-full px-4 pb-4 z-10">
-        <div className="bg-neutral-900 rounded-lg border border-neutral-700 p-4 shadow-lg">
-          <h3 className="text-white text-base font-semibold mb-3">Categories</h3>
-          <div className="flex flex-wrap gap-2 mb-3">
-            {mainNavItems.map((item) => (
-              <Button
-                key={item}
-                variant={category === navToCategoryMap[item] ? "default" : "outline"}
-                onClick={() => handleCategoryClick(item)}
-                className={`text-xs px-3 py-1.5 h-auto ${
-                  category === navToCategoryMap[item]
-                    ? 'bg-primaryp-500 hover:bg-primaryp-400 text-white'
-                    : 'border-neutral-600 text-neutral-300 hover:bg-neutral-800'
-                }`}
-              >
-                {item}
-              </Button>
-            ))}
-          </div>
-          {moreCategories.length > 0 && (
-            <>
-              <div className="border-t border-neutral-700 my-3"></div>
-              <h4 className="text-neutral-400 text-xs font-medium mb-2">More Categories</h4>
-              <div className="flex flex-wrap gap-2">
-                {moreCategories.map((cat) => (
-                  <Button
-                    key={cat}
-                    variant={category === cat ? "default" : "outline"}
-                    onClick={() => {
-                      const next = new URLSearchParams(searchParams);
-                      next.set('category', cat);
-                      next.set('page', '1');
-                      setSearchParams(next);
-                    }}
-                    className={`text-xs px-3 py-1.5 h-auto ${
-                      category === cat
-                        ? 'bg-primaryp-500 hover:bg-primaryp-400 text-white'
-                        : 'border-neutral-600 text-neutral-300 hover:bg-neutral-800'
-                    }`}
-                  >
-                    {cat}
-                  </Button>
-                ))}
-              </div>
-            </>
-          )}
-        </div>
-      </div>
     </div>
     </Layout>
   );

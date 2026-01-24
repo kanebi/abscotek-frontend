@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbSeparator } from "@/components/ui/Breadcrumb";
 import { Separator } from "@/components/ui/separator";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import emptyState from "../../assets/images/empty-state.svg";
 import { AppRoutes } from "@/config/routes";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -128,20 +128,23 @@ export default function UserProfileSection() {
       date: new Date(order.orderDate || order.createdAt).toLocaleString(),
       number: order.orderNumber || order._id,
       status: order.status,
+      currency: order.currency || firstItem.currency || 'USDT',
       product: {
         name: firstItem.product?.name || 'Product',
-        variant: firstItem.variant?.attributes?.length > 0
+        variant: firstItem.variant?.name || (firstItem.variant?.attributes?.length > 0
           ? firstItem.variant.attributes.map(attr => `${attr.name}: ${attr.value}`).join(', ')
-          : 'N/A',
+          : null),
+        specs: firstItem.specs || null,
         images: productImages, // Use images array instead of single image
-        price: `${firstItem.unitPrice || 0} ${firstItem.product?.currency || order.currency}`,
+        price: firstItem.unitPrice || firstItem.product?.price || 0,
+        currency: firstItem.currency || firstItem.product?.currency || order.currency || 'USDT',
         quantity: firstItem.quantity || 1,
       },
-      total: `${order.totalAmount} ${order.currency}`,
+      total: order.totalAmount || 0,
       pricing: {
-        subtotal: `${order.subTotal} ${order.currency}`,
-        delivery: `${order.deliveryFee} ${order.currency}`,
-        total: `${order.totalAmount} ${order.currency}`,
+        subtotal: order.subTotal || 0,
+        delivery: order.deliveryFee || 0,
+        total: order.totalAmount || 0,
       },
       shipping: order.shipping || order.shippingAddress || {},
       delivery: order.delivery || order.deliveryMethod || {},
@@ -166,24 +169,32 @@ export default function UserProfileSection() {
     const urlParams = new URLSearchParams(location.search);
     const orderId = urlParams.get('orderId');
     if (orderId) {
-      setSelectedOrderId(parseInt(orderId));
+      // Keep as string to match order.id type
+      setSelectedOrderId(orderId);
+    } else {
+      setSelectedOrderId(null);
     }
   }, [location.search]);
 
-  // Handle order selection
-  const handleOrderSelect = (orderId) => {
-    setSelectedOrderId(orderId);
-    navigate(`${AppRoutes.userProfile.path}?orderId=${orderId}`);
-  };
+  // Handle order selection - use useCallback to prevent unnecessary re-renders
+  const handleOrderSelect = useCallback((orderId) => {
+    // Convert to string if needed to ensure consistent type
+    const orderIdStr = String(orderId);
+    setSelectedOrderId(orderIdStr);
+    navigate(`${AppRoutes.userProfile.path}?orderId=${orderIdStr}`, { replace: true });
+  }, [navigate]);
 
   // Handle back to order list
   const handleBackToOrderList = () => {
     setSelectedOrderId(null);
-    navigate(AppRoutes.userProfile.path);
+    navigate(AppRoutes.userProfile.path, { replace: true });
   };
 
-  // Get selected order data
-  const selectedOrder = selectedOrderId ? displayOrders.find(order => order.id === selectedOrderId) : null;
+  // Get selected order data - ensure type matching, use useMemo to prevent unnecessary recalculations
+  const selectedOrder = useMemo(() => {
+    if (!selectedOrderId || !displayOrders.length) return null;
+    return displayOrders.find(order => String(order.id) === String(selectedOrderId)) || null;
+  }, [selectedOrderId, displayOrders]);
 
   // Order progress steps - now using backend stages data
   const getProgressSteps = (order) => {

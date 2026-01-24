@@ -341,7 +341,7 @@ function OrderDetailsPage() {
                       </div>
                     </div>
                     <p className="text-white font-medium">
-                      <AmountCurrency amount={item.totalPrice || (item.unitPrice * item.quantity)} fromCurrency={item.currency || order.currency} />
+                      <AmountCurrency amount={item.totalPrice || (item.unitPrice * item.quantity)} fromCurrency={item.currency || order.currency || 'USDT'} />
                     </p>
                   </div>
                 )) || []}
@@ -375,16 +375,16 @@ function OrderDetailsPage() {
               <div className="space-y-2 text-neutral-300">
                 <div className="flex justify-between">
                   <span>Subtotal</span>
-                  <span><AmountCurrency amount={order.pricing?.subtotal || order.subTotal || 0} fromCurrency={order.currency} /></span>
+                  <span><AmountCurrency amount={order.pricing?.subtotal || order.subTotal || 0} fromCurrency={order.currency || 'USDT'} /></span>
                 </div>
                 <div className="flex justify-between">
                   <span>Shipping</span>
-                  <span><AmountCurrency amount={order.pricing?.delivery || order.deliveryFee || deliveryMethod?.price || 0} fromCurrency={order.currency} /></span>
+                  <span><AmountCurrency amount={order.pricing?.delivery || order.deliveryFee || deliveryMethod?.price || 0} fromCurrency={order.pricing?.deliveryCurrency || deliveryMethod?.currency || order.currency || 'USDT'} /></span>
                 </div>
                 <div className="border-t border-neutral-700 my-2"></div>
                 <div className="flex justify-between text-white font-semibold text-lg">
                   <span>Total</span>
-                  <span><AmountCurrency amount={(order.pricing?.subtotal || order.subTotal || 0) + (order.pricing?.delivery || order.deliveryFee || deliveryMethod?.price || 0)} fromCurrency={order.currency} /></span>
+                  <span><AmountCurrency amount={order.pricing?.total || order.totalAmount || (order.pricing?.subtotal || order.subTotal || 0) + (order.pricing?.delivery || order.deliveryFee || deliveryMethod?.price || 0)} fromCurrency={order.currency || 'USDT'} /></span>
                 </div>
               </div>
             </Card>
@@ -478,14 +478,14 @@ function OrderDetailsPage() {
                     <div className="flex justify-between items-center">
                       <span className="text-neutral-300">Shipping:</span>
                       <span className="text-neutral-300">
-                        <AmountCurrency amount={order.pricing?.delivery || order.deliveryFee || deliveryMethod?.price || 0} fromCurrency={order.currency} />
+                        <AmountCurrency amount={order.pricing?.delivery || order.deliveryFee || deliveryMethod?.price || 0} fromCurrency={order.pricing?.deliveryCurrency || deliveryMethod?.currency || order.currency || 'USDT'} />
                       </span>
                     </div>
                     <div className="border-t border-neutral-600 my-2"></div>
                     <div className="flex justify-between items-center">
                       <span className="text-white font-semibold">Total Amount:</span>
                       <span className="text-white font-semibold">
-                        <AmountCurrency amount={(order.pricing?.subtotal || order.subTotal || 0) + (order.pricing?.delivery || order.deliveryFee || deliveryMethod?.price || 0)} fromCurrency={order.currency} />
+                        <AmountCurrency amount={order.pricing?.total || order.totalAmount || (order.pricing?.subtotal || order.subTotal || 0) + (order.pricing?.delivery || order.deliveryFee || deliveryMethod?.price || 0)} fromCurrency={order.currency || 'USDT'} />
                       </span>
                     </div>
                   </div>

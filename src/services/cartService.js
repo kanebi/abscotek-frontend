@@ -99,8 +99,29 @@ const removeFromCart = async (userId, productId) => {
         return response.data;
     } else {
         let cart = getGuestCart();
-        const newItems = cart.items.filter((item) => item.product._id !== productId);
-        const newCart = { ...cart, items: newItems };
+        // Filter out the item - handle both productId and variant/spec matching
+        const newItems = cart.items.filter((item) => {
+            const itemProductId = item.product?._id || item.productId;
+            // If productId matches, remove the item
+            // Note: For more precise removal, we could also match variant and specs,
+            // but for now, removing by productId is sufficient
+            return itemProductId !== productId;
+        });
+        
+        // Recalculate totals
+        const subtotal = newItems.reduce((sum, item) => {
+            const price = item.unitPrice || item.product?.price || item.price || 0;
+            const variantPrice = item.variant?.additionalPrice || 0;
+            return sum + ((price + variantPrice) * item.quantity);
+        }, 0);
+        
+        const newCart = { 
+            ...cart, 
+            items: newItems,
+            subtotal: subtotal,
+            total: subtotal,
+            currency: cart.currency || 'USDT'
+        };
         localStorage.setItem('guestCart', JSON.stringify(newCart));
         return newCart;
     }

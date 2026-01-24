@@ -254,9 +254,21 @@ export const OrderDetailsSection = ({ order, onBackToList }) => {
                       <div className="font-body-xlarge-xlarge-semibold text-defaultgrey-2">
                         {order.product.name}
                       </div>
-                      <div className="font-body-large-large-medium text-[#b9babb]">
-                        {order.product.variant}
-                      </div>
+                      {order.product.variant && (
+                        <div className="font-body-large-large-medium text-[#b9babb]">
+                          {typeof order.product.variant === 'string' ? order.product.variant : order.product.variant.name}
+                        </div>
+                      )}
+                      {order.product.specs && order.product.specs.length > 0 && (
+                        <div className="text-xs text-neutralneutral-300 mt-1">
+                          {order.product.specs.map((spec, idx) => (
+                            <span key={idx}>
+                              {spec.label}: {spec.value}
+                              {idx < order.product.specs.length - 1 && ', '}
+                            </span>
+                          ))}
+                        </div>
+                      )}
                     </div>
                     <div className="w-[74px] font-body-large-large-semibold text-defaultwhite text-center">
                       x{order.product.quantity}

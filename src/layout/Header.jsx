@@ -215,6 +215,10 @@ export default function Frame() {
 
 export function NavigationBar() {
     const navigate = useNavigate();
+    const [showCategoriesCard, setShowCategoriesCard] = React.useState(false);
+    const categoriesCardRef = React.useRef(null);
+
+    // Close categories card when clicking outside (backdrop handles this now)
     // Main navigation items (visible in header)
     const mainNavItems = ["Laptops", "Phone", "Smartwatches", "Tablets", "Audio", "Headphones", "TVs & Monitors"];
     
@@ -318,34 +322,68 @@ export function NavigationBar() {
                         </Button>
                     ))}
                     
-                    {/* More dropdown */}
+                    {/* More button - Desktop - Shows categories card */}
                     {moreCategories.length > 0 && (
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <Button
-                                    variant="ghost"
-                                    className="text-defaultwhite hover:bg-defaulttop-background hover:text-defaultwhite px-4 py-2 text-sm font-normal h-auto cursor-pointer"
-                                >
-                                    More
-                                    <img src="/images/dropdown.svg" alt="Dropdown" className="ml-1 w-3 h-3" />
-                                </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent 
-                                style={DROPDOWN_MENU_CONTENT_STYLE} 
-                                className="text-sm text-white border-neutral-600 max-h-[400px] overflow-y-auto"
-                                align="end"
+                        <div className="relative">
+                            <Button
+                                variant="ghost"
+                                onClick={() => setShowCategoriesCard(!showCategoriesCard)}
+                                className="text-defaultwhite hover:bg-defaulttop-background hover:text-defaultwhite px-4 py-2 text-sm font-normal h-auto cursor-pointer"
                             >
-                                {moreCategories.map((category) => (
-                                    <DropdownMenuItem 
-                                        key={category}
-                                        onClick={() => handleNavigation(category)}
-                                        className="text-defaultwhite hover:bg-defaulttop-background cursor-pointer"
-                                    >
-                                        {category}
-                                    </DropdownMenuItem>
-                                ))}
-                            </DropdownMenuContent>
-                        </DropdownMenu>
+                                More
+                                <img src="/images/dropdown.svg" alt="Dropdown" className="ml-1 w-3 h-3" />
+                            </Button>
+                            {showCategoriesCard && (
+                                <>
+                                    {/* Backdrop with blur */}
+                                    <div 
+                                        className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-40"
+                                        onClick={() => setShowCategoriesCard(false)}
+                                    />
+                                    {/* Categories Card */}
+                                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
+                                        <div 
+                                            className="bg-[#1F1F21] rounded-lg border border-neutral-700 p-6 shadow-xl min-w-[400px] max-w-[600px] max-h-[80vh] overflow-y-auto pointer-events-auto"
+                                            onClick={(e) => e.stopPropagation()}
+                                            ref={categoriesCardRef}
+                                        >
+                                            <div className="flex flex-wrap gap-2 mb-4">
+                                                {mainNavItems.map((item) => (
+                                                    <Button
+                                                        key={item} 
+                                                        variant="outline"
+                                                        onClick={() => {
+                                                            handleNavigation(item);
+                                                            setShowCategoriesCard(false);
+                                                        }}
+                                                        className="text-xs px-3 py-1.5 h-auto border-neutral-600 bg-[#2a2a2a] text-white hover:bg-neutral-700 hover:text-white"
+                                                    >
+                                                        {item}
+                                                    </Button>
+                                                ))}
+                                            </div>
+                                            <div className="border-t border-neutral-700 my-4"></div>
+                                            <h4 className="text-white text-sm font-semibold mb-3">More Categories</h4>
+                                            <div className="flex flex-wrap gap-2">
+                                                {moreCategories.map((category) => (
+                                                    <Button
+                                                        key={category}
+                                                        variant="outline"
+                                                        onClick={() => {
+                                                            handleNavigation(category);
+                                                            setShowCategoriesCard(false);
+                                                        }}
+                                                        className="text-xs px-3 py-1.5 h-auto border-neutral-600 bg-[#2a2a2a] text-white hover:bg-neutral-700 hover:text-white"
+                                                    >
+                                                        {category}
+                                                    </Button>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </>
+                            )}
+                        </div>
                     )}
                 </div>
             </div>
@@ -353,7 +391,7 @@ export function NavigationBar() {
             {/* Mobile Layout */}
             <div className="flex lg:hidden flex-col gap-2  pb-10">
                 {/* Top row - Categories */}
-                <div className="w-full  relative">
+                <div className="w-full relative">
                     <div className="flex items-center gap-2 overflow-x-auto" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
                         <style>{`
                             .mobile-nav-categories::-webkit-scrollbar {
@@ -377,40 +415,72 @@ export function NavigationBar() {
                                 </Button>
                             ))}
                             
-                            {/* More dropdown for mobile - Always visible */}
+                            {/* More button for mobile - Shows categories card */}
                             {moreCategories.length > 0 && (
                                 <div className="flex-shrink-0 sticky right-0 bg-neutral-900 pl-2 -mr-2">
-                                    <DropdownMenu>
-                                        <DropdownMenuTrigger asChild>
-                                            <Button
-                                                variant="ghost"
-                                                className="text-defaultwhite hover:bg-defaulttop-background hover:text-defaultwhite px-3 py-1.5 text-xs font-normal h-auto cursor-pointer whitespace-nowrap flex-shrink-0"
-                                            >
-                                                More
-                                                <img src="/images/dropdown.svg" alt="Dropdown" className="ml-1 w-3 h-3" />
-                                            </Button>
-                                        </DropdownMenuTrigger>
-                                        <DropdownMenuContent 
-                                            style={DROPDOWN_MENU_CONTENT_STYLE} 
-                                            className="text-sm text-white border-neutral-600 max-h-[400px] overflow-y-auto"
-                                            align="end"
-                                        >
-                                            {moreCategories.map((category) => (
-                                                <DropdownMenuItem 
-                                                    key={category}
-                                                    onClick={() => handleNavigation(category)}
-                                                    className="text-defaultwhite hover:bg-defaulttop-background cursor-pointer max-w-[200px] truncate"
-                                                    title={category}
-                                                >
-                                                    {category}
-                                                </DropdownMenuItem>
-                                            ))}
-                                        </DropdownMenuContent>
-                                    </DropdownMenu>
+                                    <Button
+                                        variant="ghost"
+                                        onClick={() => setShowCategoriesCard(!showCategoriesCard)}
+                                        className="text-defaultwhite hover:bg-defaulttop-background hover:text-defaultwhite px-3 py-1.5 text-xs font-normal h-auto cursor-pointer whitespace-nowrap flex-shrink-0"
+                                    >
+                                        More
+                                        <img src="/images/dropdown.svg" alt="Dropdown" className="ml-1 w-3 h-3" />
+                                    </Button>
                                 </div>
                             )}
                         </div>
                     </div>
+                    {/* Categories Card - Mobile */}
+                    {showCategoriesCard && (
+                        <>
+                            {/* Backdrop with blur */}
+                            <div 
+                                className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-40"
+                                onClick={() => setShowCategoriesCard(false)}
+                            />
+                            {/* Categories Card */}
+                            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
+                                <div 
+                                    className="bg-[#1F1F21] rounded-lg border border-neutral-700 p-6 shadow-xl w-full max-w-[90vw] max-h-[80vh] overflow-y-auto pointer-events-auto"
+                                    onClick={(e) => e.stopPropagation()}
+                                    ref={categoriesCardRef}
+                                >
+                                    <div className="flex flex-wrap gap-2 mb-4">
+                                        {mainNavItems.map((item) => (
+                                            <Button
+                                                key={item} 
+                                                variant="outline"
+                                                onClick={() => {
+                                                    handleNavigation(item);
+                                                    setShowCategoriesCard(false);
+                                                }}
+                                                className="text-xs px-3 py-1.5 h-auto border-neutral-600 bg-[#2a2a2a] text-white hover:bg-neutral-700 hover:text-white"
+                                            >
+                                                {item}
+                                            </Button>
+                                        ))}
+                                    </div>
+                                    <div className="border-t border-neutral-700 my-4"></div>
+                                    <h4 className="text-white text-sm font-semibold mb-3">More Categories</h4>
+                                    <div className="flex flex-wrap gap-2">
+                                        {moreCategories.map((category) => (
+                                            <Button
+                                                key={category}
+                                                variant="outline"
+                                                onClick={() => {
+                                                    handleNavigation(category);
+                                                    setShowCategoriesCard(false);
+                                                }}
+                                                className="text-xs px-3 py-1.5 h-auto border-neutral-600 bg-[#2a2a2a] text-white hover:bg-neutral-700 hover:text-white"
+                                            >
+                                                {category}
+                                            </Button>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                        </>
+                    )}
                 </div>
 
                 {/* Bottom row - Currency selector */}

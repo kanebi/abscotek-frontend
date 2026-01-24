@@ -1,11 +1,36 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import AmountCurrency from "@/components/ui/AmountCurrency";
-import React from "react";
+import React, { useCallback } from "react";
 
 const OrderCard = ({ order, onViewOrder }) => {
+  const handleCardClick = useCallback((e) => {
+    // Don't trigger if clicking on a button or interactive element
+    const target = e.target;
+    const isButton = target.closest('button') || target.closest('a');
+    
+    if (isButton) {
+      return;
+    }
+    
+    // Stop propagation to prevent multiple triggers
+    e.stopPropagation();
+    onViewOrder();
+  }, [onViewOrder]);
+
   return (
-    <section className="flex flex-col items-start relative self-stretch w-full flex-[0_0_auto]">
+    <section 
+      className="flex flex-col items-start relative self-stretch w-full flex-[0_0_auto] cursor-pointer"
+      onClick={handleCardClick}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onViewOrder();
+        }
+      }}
+    >
       {/* Order Header */}
       <div className="flex flex-col items-start gap-2.5 px-4 md:px-8 py-3.5 relative self-stretch w-full flex-[0_0_auto] bg-defaulttop-background rounded-[12px_12px_0px_0px] overflow-hidden border border-solid border-[#3f3f3f]">
         <div className="flex flex-col items-start justify-center gap-1 relative self-stretch w-full flex-[0_0_auto]">
@@ -112,6 +137,10 @@ const OrderCard = ({ order, onViewOrder }) => {
                 <div className="inline-flex items-center gap-3 relative flex-[0_0_auto]">
                   <Button
                     variant="outline"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      // Handle cancel order action here if needed
+                    }}
                     className="inline-flex items-center justify-center gap-2.5 px-7 py-[13px] relative flex-[0_0_auto] rounded-xl border border-solid border-primaryp-300 h-auto hover:bg-defaulttop-background bg-transparent"
                   >
                     <span className="relative w-fit mt-[-1.00px] font-body-base-base-medium font-[number:var(--body-base-base-medium-font-weight)] text-white text-[length:var(--body-base-base-medium-font-size)] tracking-[var(--body-base-base-medium-letter-spacing)] leading-[var(--body-base-base-medium-line-height)] whitespace-nowrap [font-style:var(--body-base-base-medium-font-style)]">
@@ -121,7 +150,10 @@ const OrderCard = ({ order, onViewOrder }) => {
 
                   <Button
                     variant="outline"
-                    onClick={onViewOrder}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onViewOrder();
+                    }}
                     className="inline-flex items-center justify-center gap-2.5 px-7 py-[13px] relative flex-[0_0_auto] rounded-xl border border-solid border-primaryp-300 h-auto hover:bg-defaulttop-background bg-transparent"
                   >
                     <span className="relative w-fit mt-[-1.00px] font-body-base-base-medium font-[number:var(--body-base-base-medium-font-weight)] text-white text-[length:var(--body-base-base-medium-font-size)] tracking-[var(--body-base-base-medium-letter-spacing)] leading-[var(--body-base-base-medium-line-height)] whitespace-nowrap [font-style:var(--body-base-base-medium-font-style)]">
@@ -221,6 +253,10 @@ const OrderCard = ({ order, onViewOrder }) => {
                 <div className="flex flex-col md:flex-row items-center gap-2 md:gap-3 relative flex-[0_0_auto] w-full md:w-auto">
                   <Button
                     variant="outline"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      // Handle cancel order action here if needed
+                    }}
                     className="h-auto hover:bg-defaulttop-background bg-transparent w-full md:w-auto inline-flex items-center justify-center gap-2.5 px-4 md:px-7 py-2 md:py-[13px] relative flex-[0_0_auto] rounded-xl border border-solid border-primaryp-300"
                   >
                     <span className="relative w-fit mt-[-1.00px] font-body-base-base-medium font-[number:var(--body-base-base-medium-font-weight)] text-white text-xs md:text-[length:var(--body-base-base-medium-font-size)] tracking-[var(--body-base-base-medium-letter-spacing)] leading-[16px] md:leading-[var(--body-base-base-medium-line-height)] whitespace-nowrap [font-style:var(--body-base-base-medium-font-style)]">
@@ -230,7 +266,10 @@ const OrderCard = ({ order, onViewOrder }) => {
 
                   <Button
                     variant="outline"
-                    onClick={onViewOrder}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onViewOrder();
+                    }}
                     className="h-auto hover:bg-defaulttop-background bg-transparent w-full md:w-auto inline-flex items-center justify-center gap-2.5 px-4 md:px-7 py-2 md:py-[13px] relative flex-[0_0_auto] rounded-xl border border-solid border-primaryp-300"
                   >
                     <span className="relative w-fit mt-[-1.00px] font-body-base-base-medium font-[number:var(--body-base-base-medium-font-weight)] text-white text-xs md:text-[length:var(--body-base-base-medium-font-size)] tracking-[var(--body-base-base-medium-letter-spacing)] leading-[16px] md:leading-[var(--body-base-base-medium-line-height)] whitespace-nowrap [font-style:var(--body-base-base-medium-font-style)]">
