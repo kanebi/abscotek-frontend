@@ -7,21 +7,8 @@ import { Card } from '../../components/ui/card';
 import AmountCurrency from '../../components/ui/AmountCurrency';
 import { Package, Plus, Edit, Trash2, Search, ImagePlus, Upload, Filter, X, ArrowLeft } from 'lucide-react';
 import { AppRoutes } from '../../config/routes';
-
-const DEFAULT_VARIANT_JSON = JSON.stringify([
-  {
-    name: "Red - 128GB",
-    price: 999,
-    currency: "USDT",
-    stock: 10,
-    sku: "PROD-RED-128",
-    attributes: [
-      { name: "Color", value: "Red" },
-      { name: "Storage", value: "128GB" }
-    ],
-    images: []
-  }
-], null, 2);
+import ProductVariantEditor from '../../components/admin/ProductVariantEditor';
+import { PRODUCT_CATEGORIES, PRODUCT_BRANDS } from '../../config/categories';
 
 function ProductManagement() {
   const navigate = useNavigate();
@@ -36,9 +23,8 @@ function ProductManagement() {
     brand: '', 
     sku: '', 
     specs: '[]', 
-    variants: DEFAULT_VARIANT_JSON,
-    stock: 0, 
-    outOfStock: true 
+    variants: [],
+    stock: 0
   });
   const [errorMessage, setErrorMessage] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
@@ -107,7 +93,7 @@ function ProductManagement() {
         brand: newProduct.brand?.trim() || null,
         sku: newProduct.sku?.trim() || null,
         specs: safeParseArray(newProduct.specs),
-        variants: [], // Empty array for now - variants should be added separately with proper structure
+        variants: Array.isArray(newProduct.variants) ? newProduct.variants : safeParseArray(newProduct.variants),
         stock: Number(newProduct.stock || 0),
       };
       
@@ -279,18 +265,99 @@ function ProductManagement() {
                 <textarea placeholder="Product Description" value={newProduct.description} onChange={(e) => setNewProduct({ ...newProduct, description: e.target.value })} className="w-full p-3 bg-neutralneutral-800 border border-neutralneutral-600 rounded-lg text-white placeholder-neutralneutral-400" rows="3" />
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <input type="text" placeholder="Badge (optional)" value={newProduct.badge} onChange={(e) => setNewProduct({ ...newProduct, badge: e.target.value })} className="p-3 bg-neutralneutral-800 border border-neutralneutral-600 rounded-lg text-white placeholder-neutralneutral-400" />
-                  <input type="text" placeholder="Category" value={newProduct.category} onChange={(e) => setNewProduct({ ...newProduct, category: e.target.value })} className="p-3 bg-neutralneutral-800 border border-neutralneutral-600 rounded-lg text-white placeholder-neutralneutral-400" />
-                  <input type="text" placeholder="Brand" value={newProduct.brand} onChange={(e) => setNewProduct({ ...newProduct, brand: e.target.value })} className="p-3 bg-neutralneutral-800 border border-neutralneutral-600 rounded-lg text-white placeholder-neutralneutral-400" />
+                  <div>
+                    <label className="block text-neutralneutral-300 text-sm mb-1">Category</label>
+                    {newProduct.category && !PRODUCT_CATEGORIES.includes(newProduct.category) && newProduct.category !== 'Other' ? (
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          value={newProduct.category}
+                          onChange={(e) => setNewProduct({ ...newProduct, category: e.target.value || null })}
+                          placeholder="Custom Category"
+                          className="flex-1 p-3 bg-neutralneutral-800 border border-neutralneutral-600 rounded-lg text-white placeholder-neutralneutral-400"
+                        />
+                        <Button
+                          type="button"
+                          onClick={() => setNewProduct({ ...newProduct, category: null })}
+                          variant="outline"
+                          className="border-neutralneutral-600"
+                        >
+                          <X size={16} />
+                        </Button>
+                      </div>
+                    ) : (
+                      <select
+                        value={newProduct.category || ''}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          if (value === 'Other') {
+                            setNewProduct({ ...newProduct, category: '' });
+                          } else {
+                            setNewProduct({ ...newProduct, category: value || null });
+                          }
+                        }}
+                        className="w-full p-3 bg-neutralneutral-800 border border-neutralneutral-600 rounded-lg text-white"
+                      >
+                        <option value="">Select Category</option>
+                        {PRODUCT_CATEGORIES.map((cat) => (
+                          <option key={cat} value={cat}>
+                            {cat}
+                          </option>
+                        ))}
+                      </select>
+                    )}
+                  </div>
+                  <div>
+                    <label className="block text-neutralneutral-300 text-sm mb-1">Brand</label>
+                    {newProduct.brand && !PRODUCT_BRANDS.includes(newProduct.brand) && newProduct.brand !== 'Custom' ? (
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          value={newProduct.brand}
+                          onChange={(e) => setNewProduct({ ...newProduct, brand: e.target.value || null })}
+                          placeholder="Custom Brand"
+                          className="flex-1 p-3 bg-neutralneutral-800 border border-neutralneutral-600 rounded-lg text-white placeholder-neutralneutral-400"
+                        />
+                        <Button
+                          type="button"
+                          onClick={() => setNewProduct({ ...newProduct, brand: null })}
+                          variant="outline"
+                          className="border-neutralneutral-600"
+                        >
+                          <X size={16} />
+                        </Button>
+                      </div>
+                    ) : (
+                      <select
+                        value={newProduct.brand || ''}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          if (value === 'Custom') {
+                            setNewProduct({ ...newProduct, brand: '' });
+                          } else {
+                            setNewProduct({ ...newProduct, brand: value || null });
+                          }
+                        }}
+                        className="w-full p-3 bg-neutralneutral-800 border border-neutralneutral-600 rounded-lg text-white"
+                      >
+                        <option value="">Select Brand</option>
+                        {PRODUCT_BRANDS.map((brand) => (
+                          <option key={brand} value={brand}>
+                            {brand}
+                          </option>
+                        ))}
+                      </select>
+                    )}
+                  </div>
                   <input type="text" placeholder="SKU" value={newProduct.sku} onChange={(e) => setNewProduct({ ...newProduct, sku: e.target.value })} className="p-3 bg-neutralneutral-800 border border-neutralneutral-600 rounded-lg text-white placeholder-neutralneutral-400" />
                   <input type="number" placeholder="Stock" value={newProduct.stock} onChange={(e) => setNewProduct({ ...newProduct, stock: e.target.value })} className="p-3 bg-neutralneutral-800 border border-neutralneutral-600 rounded-lg text-white placeholder-neutralneutral-400" />
-                  <select value={newProduct.outOfStock ? 'true' : 'false'} onChange={(e) => setNewProduct({ ...newProduct, outOfStock: e.target.value === 'true' })} className="p-3 bg-neutralneutral-800 border border-neutralneutral-600 rounded-lg text-white">
-                    <option value="true">Out of Stock</option>
-                    <option value="false">In Stock</option>
-                  </select>
                 </div>
                 <div>
-                  <label className="block text-neutralneutral-300 text-sm mb-1">Variants (JSON array)</label>
-                  <textarea placeholder='e.g. [{"name": "Color", "values": ["Red", "Green", "Blue"]}, {"name": "Size", "values": ["Small", "Medium", "Large"]}]' value={newProduct.variants} onChange={(e) => setNewProduct({ ...newProduct, variants: e.target.value })} className="w-full p-3 bg-neutralneutral-800 border border-neutralneutral-600 rounded-lg text-white placeholder-neutralneutral-500" rows="3" />
+                  <ProductVariantEditor
+                    variants={newProduct.variants}
+                    onChange={(variants) => setNewProduct({ ...newProduct, variants })}
+                    productPrice={Number(newProduct.price) || 0}
+                  />
                 </div>
                 <div className="flex gap-3">
                   <Button type="submit" className="bg-secondarys-500 hover:bg-secondarys-400"><Plus size={16} className="mr-2" /> Continue to Images</Button>

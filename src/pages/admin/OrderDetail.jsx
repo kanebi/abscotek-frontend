@@ -194,6 +194,16 @@ function OrderDetail() {
                                 Variant: {item.variant.name}
                               </p>
                             )}
+                            {item.specs && item.specs.length > 0 && (
+                              <div className="text-xs text-neutralneutral-400 mt-1 mb-1">
+                                {item.specs.map((spec, idx) => (
+                                  <span key={idx}>
+                                    {spec.label}: {spec.value}
+                                    {idx < item.specs.length - 1 && ', '}
+                                  </span>
+                                ))}
+                              </div>
+                            )}
                             <p className="text-neutralneutral-400 text-sm">
                               Quantity: {item.quantity}
                             </p>

@@ -324,6 +324,19 @@ function OrderDetailsPage() {
                       )}
                       <div>
                         <p className="text-white font-medium">{item.product?.name || item.productName || 'Product'}</p>
+                        {item.variant?.name && (
+                          <p className="text-sm text-neutral-300">Variant: {item.variant.name}</p>
+                        )}
+                        {item.specs && item.specs.length > 0 && (
+                          <div className="text-xs text-neutral-400 mt-1">
+                            {item.specs.map((spec, idx) => (
+                              <span key={idx}>
+                                {spec.label}: {spec.value}
+                                {idx < item.specs.length - 1 && ', '}
+                              </span>
+                            ))}
+                          </div>
+                        )}
                         <p className="text-sm text-neutral-400">Qty: {item.quantity}</p>
                       </div>
                     </div>

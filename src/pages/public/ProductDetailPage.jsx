@@ -5,7 +5,6 @@ import { Button } from "../../components/ui/button";
 import AmountCurrency from "../../components/ui/AmountCurrency";
 import Layout from "../../components/Layout";
 import { Minus, Plus, Loader2 } from "lucide-react";
-import { Select, SelectItem, SelectContent, SelectTrigger, SelectValue } from "../../components/ui/select";
 import Carousel from "../../components/ui/Carousel";
 import ProductList from "../../components/ProductList";
 import SEO from "../../components/SEO";
@@ -20,7 +19,8 @@ export default function ProductDetail() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [quantity, setQuantity] = useState(1);
-    const [selectedColor, setSelectedColor] = useState(null);
+    const [selectedVariant, setSelectedVariant] = useState(null);
+    const [selectedSpec, setSelectedSpec] = useState(null); // Single selected spec index
     const [addingToWishlist, setAddingToWishlist] = useState(false);
     const [totalPrice, setTotalPrice] = useState(null);
 
@@ -34,7 +34,8 @@ export default function ProductDetail() {
                 setProduct(data);
                 setTotalPrice(data.price);
                 if (data.variants && data.variants.length > 0) {
-                    setSelectedColor(data.variants[0].name);
+                    setSelectedVariant(data.variants[0]);
+                    setTotalPrice(data.variants[0].price || data.price);
                 }
                 // Fetch related products in parallel
                 try {
@@ -56,13 +57,23 @@ export default function ProductDetail() {
     }, [id]);
 
     useEffect(() => {
-        if (product && product.variants) {
-            const selectedVariant = product.variants.find(v => v.name === selectedColor);
-            if (selectedVariant) {
-                setTotalPrice(product.price + selectedVariant.additionalPrice);
-            }
+        if (selectedVariant) {
+            // Use variant price if available, otherwise use product price
+            const variantPrice = selectedVariant.price || product?.price || 0;
+            setTotalPrice(variantPrice);
+            // When variant is selected, clear spec selection
+            setSelectedSpec(null);
+        } else if (product) {
+            setTotalPrice(product.price || 0);
         }
-    }, [selectedColor, product]);
+    }, [selectedVariant, product]);
+
+    // When variant is selected, clear spec
+    useEffect(() => {
+        if (selectedVariant && selectedSpec !== null) {
+            setSelectedSpec(null);
+        }
+    }, [selectedVariant]);
 
     const handleQuantityChange = (amount) => {
         setQuantity(prev => Math.max(1, prev + amount));
@@ -70,8 +81,57 @@ export default function ProductDetail() {
 
     const handleAddToCart = () => {
         if (product) {
-            addToCart(product._id, quantity, product.currency, selectedColor);
+            const variantName = selectedVariant?.name || null;
+            // Only include spec if no variant is selected (variants disable specs)
+            const specs = !selectedVariant && selectedSpec !== null && product.specs
+                ? [product.specs[selectedSpec]].filter(Boolean)
+                : null;
+            addToCart(product._id, quantity, product.currency, variantName, specs);
         }
+    };
+
+    const selectSpec = (index) => {
+        // If selecting a spec, clear variant
+        if (selectedVariant) {
+            setSelectedVariant(null);
+        }
+        setSelectedSpec(prev => prev === index ? null : index);
+    };
+
+    // Helper to check if a spec value is a color
+    const isColorSpec = (label, value) => {
+        const colorLabels = ['color', 'colour', 'couleur'];
+        return colorLabels.some(cl => label.toLowerCase().includes(cl));
+    };
+
+    // Helper to check if a spec value is a size
+    const isSizeSpec = (label, value) => {
+        const sizeLabels = ['size', 'taille', 'dimension'];
+        return sizeLabels.some(sl => label.toLowerCase().includes(sl));
+    };
+
+    // Helper to get color value from attributes
+    const getColorValue = (colorName) => {
+        const colorMap = {
+            'Red': '#EF4444',
+            'Blue': '#3B82F6',
+            'Green': '#10B981',
+            'Yellow': '#F59E0B',
+            'Purple': '#8B5CF6',
+            'Pink': '#EC4899',
+            'Black': '#000000',
+            'White': '#FFFFFF',
+            'Gray': '#6B7280',
+            'Orange': '#F97316',
+        };
+        return colorMap[colorName] || '#6B7280';
+    };
+
+    // Helper to get attribute value by name
+    const getAttributeValue = (variant, attrName) => {
+        if (!variant?.attributes) return null;
+        const attr = variant.attributes.find(a => a.name === attrName);
+        return attr?.value || null;
     };
 
     const handleAddToWishlist = async () => {
@@ -162,6 +222,12 @@ export default function ProductDetail() {
                         {/* Responsive Carousel for mobile */}
                         <div className="w-full h-auto relative overflow-hidden rounded-t-xl">
                             <Carousel images={p.images} alt={p.name} />
+                            {/* Badge overlay on image */}
+                            {p && p.badge && !p.outOfStock && (
+                                <div className="absolute top-3 left-3 bg-rose-500 px-2 py-1 rounded-md shadow-lg z-10">
+                                    <span className="text-white text-xs font-medium">{p.badge}</span>
+                                </div>
+                            )}
                         </div>
                        
                     </div>
@@ -172,31 +238,174 @@ export default function ProductDetail() {
                                 <div className="text-white text-xl font-semibold font-sans leading-relaxed">
                                     <AmountCurrency amount={totalPrice || p.price || 0} fromCurrency={p.currency || 'USDT'} />
                                 </div>
-                            </div>
-                            <div className="flex flex-col gap-6">
-                                {/* Variant selector as shadcn/ui select */}
-                                {p.variants && p.variants.length > 0 && (
-                                    <div className="w-full max-w-xs rounded-lg flex flex-col gap-2">
-                                        <div className="text-gray-200 text-base font-medium font-sans leading-normal">Variant</div>
-                                        <Select value={selectedColor} onValueChange={setSelectedColor}>
-                                            <SelectTrigger className="w-full px-3.5 py-3 rounded-lg outline outline-1 outline-offset-[-1px] outline-neutral-700 flex items-center gap-2 border-none text-base font-sans">
-                                                <SelectValue placeholder="Select Variant" />
-                                            </SelectTrigger>
-                                            <SelectContent className="rounded-lg mt-1">
-                                                {p.variants.map((variant) => (
-                                                    <SelectItem key={variant.name} value={variant.name} className="text-gray-400 text-base font-normal px-4 py-2 cursor-pointer">
-                                                        {variant.name}
-                                                        {variant.attributes && variant.attributes.length > 0 && (
-                                                            <span className="text-xs text-gray-500 ml-2">
-                                                                ({variant.attributes.map(attr => `${attr.name}: ${attr.value}`).join(', ')})
-                                                            </span>
-                                                        )}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
+                                {p.description && (
+                                    <div className="text-gray-300 text-sm font-normal font-sans leading-relaxed whitespace-pre-wrap">
+                                        {p.description}
                                     </div>
                                 )}
+                            </div>
+                            <div className="flex flex-col gap-6">
+                                {/* Variant Selector */}
+                                {p.variants && p.variants.length > 0 && (
+                                    <div className="w-full flex flex-col gap-4">
+                                        <div className="text-gray-200 text-base font-medium font-sans leading-normal">Select Variant</div>
+                                        
+                                        {/* All Variants in a single list */}
+                                        <div className="space-y-2">
+                                            {p.variants.map((variant) => {
+                                                const isSelected = selectedVariant?._id === variant._id || selectedVariant?.name === variant.name;
+                                                const inStock = (variant.stock || 0) > 0;
+                                                return (
+                                                    <button
+                                                        key={variant.name || variant._id}
+                                                        onClick={() => {
+                                                            if (!inStock) return;
+                                                            // Toggle selection - if already selected, deselect
+                                                            if (isSelected) {
+                                                                setSelectedVariant(null);
+                                                            } else {
+                                                                // When selecting variant, clear spec
+                                                                setSelectedSpec(null);
+                                                                setSelectedVariant(variant);
+                                                            }
+                                                        }}
+                                                        disabled={!inStock}
+                                                        className={`w-full text-left px-4 py-3 rounded-lg border-2 transition-all ${
+                                                            isSelected 
+                                                                ? 'border-rose-500 bg-rose-500/10 text-rose-400' 
+                                                                : inStock
+                                                                ? 'border-neutral-600 text-gray-300 hover:border-neutral-400 hover:bg-neutral-800'
+                                                                : 'border-neutral-700 text-neutral-500 cursor-not-allowed opacity-50'
+                                                        }`}
+                                                    >
+                                                        <div className="flex items-center justify-between">
+                                                            <span className="font-medium">{variant.name}</span>
+                                                            <span className="text-sm">
+                                                                <AmountCurrency 
+                                                                    amount={variant.price || p.price || 0} 
+                                                                    fromCurrency={variant.currency || p.currency || 'USDT'} 
+                                                                />
+                                                            </span>
+                                                        </div>
+                                                        {variant.attributes && variant.attributes.length > 0 && (
+                                                            <div className="text-xs text-gray-400 mt-1">
+                                                                {variant.attributes.map(attr => `${attr.name}: ${attr.value}`).join(', ')}
+                                                            </div>
+                                                        )}
+                                                        {!inStock && <span className="text-xs text-red-400 ml-2">(Out of Stock)</span>}
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                )}
+                                
+                                {/* Specs Selector - Only show if no variant is selected */}
+                                {!selectedVariant && p.specs && p.specs.length > 0 && (
+                                    <div className="w-full flex flex-col gap-4">
+                                        <div className="text-gray-200 text-base font-medium font-sans leading-normal">Select Specifications</div>
+                                        
+                                        {/* Group specs by type */}
+                                        {(() => {
+                                            const colorSpecs = p.specs.filter((spec, idx) => isColorSpec(spec.label, spec.value));
+                                            const sizeSpecs = p.specs.filter((spec, idx) => isSizeSpec(spec.label, spec.value));
+                                            const otherSpecs = p.specs.filter((spec, idx) => 
+                                                !isColorSpec(spec.label, spec.value) && !isSizeSpec(spec.label, spec.value)
+                                            );
+
+                                            return (
+                                                <div className="space-y-4">
+                                                    {/* Color Specs */}
+                                                    {colorSpecs.length > 0 && (
+                                                        <div>
+                                                            <label className="text-gray-300 text-sm mb-2 block">
+                                                                {colorSpecs[0].label}
+                                                            </label>
+                                                            <div className="flex flex-wrap gap-2">
+                                                                {colorSpecs.map((spec, idx) => {
+                                                                    const originalIdx = p.specs.indexOf(spec);
+                                                                    const isSelected = selectedSpec === originalIdx;
+                                                                    const colorValue = getColorValue(spec.value);
+                                                                    return (
+                                                                        <button
+                                                                            key={originalIdx}
+                                                                            onClick={() => selectSpec(originalIdx)}
+                                                                            className={`w-10 h-10 rounded-full border-2 transition-all ${
+                                                                                isSelected 
+                                                                                    ? 'border-rose-500 ring-2 ring-rose-500/50 scale-110' 
+                                                                                    : 'border-neutral-600 hover:border-neutral-400'
+                                                                            }`}
+                                                                            style={{ backgroundColor: colorValue }}
+                                                                            title={spec.value}
+                                                                        />
+                                                                    );
+                                                                })}
+                                                            </div>
+                                                        </div>
+                                                    )}
+
+                                                    {/* Size Specs */}
+                                                    {sizeSpecs.length > 0 && (
+                                                        <div>
+                                                            <label className="text-gray-300 text-sm mb-2 block">
+                                                                {sizeSpecs[0].label}
+                                                            </label>
+                                                            <div className="flex flex-wrap gap-2">
+                                                                {sizeSpecs.map((spec, idx) => {
+                                                                    const originalIdx = p.specs.indexOf(spec);
+                                                                    const isSelected = selectedSpec === originalIdx;
+                                                                    return (
+                                                                        <button
+                                                                            key={originalIdx}
+                                                                            onClick={() => selectSpec(originalIdx)}
+                                                                            className={`px-4 py-2 rounded-lg border-2 transition-all text-sm font-medium ${
+                                                                                isSelected 
+                                                                                    ? 'border-rose-500 bg-rose-500/10 text-rose-400' 
+                                                                                    : 'border-neutral-600 text-gray-300 hover:border-neutral-400 hover:bg-neutral-800'
+                                                                            }`}
+                                                                        >
+                                                                            {spec.value}
+                                                                        </button>
+                                                                    );
+                                                                })}
+                                                            </div>
+                                                        </div>
+                                                    )}
+
+                                                    {/* Other Specs */}
+                                                    {otherSpecs.length > 0 && (
+                                                        <div>
+                                                            <label className="text-gray-300 text-sm mb-2 block">Other Options</label>
+                                                            <div className="space-y-2">
+                                                                {otherSpecs.map((spec, idx) => {
+                                                                    const originalIdx = p.specs.indexOf(spec);
+                                                                    const isSelected = selectedSpec === originalIdx;
+                                                                    return (
+                                                                        <button
+                                                                            key={originalIdx}
+                                                                            onClick={() => selectSpec(originalIdx)}
+                                                                            className={`w-full text-left px-4 py-3 rounded-lg border-2 transition-all ${
+                                                                                isSelected 
+                                                                                    ? 'border-rose-500 bg-rose-500/10 text-rose-400' 
+                                                                                    : 'border-neutral-600 text-gray-300 hover:border-neutral-400 hover:bg-neutral-800'
+                                                                            }`}
+                                                                        >
+                                                                            <div className="flex items-center justify-between">
+                                                                                <span className="font-medium">{spec.label}</span>
+                                                                                <span className="text-sm">{spec.value}</span>
+                                                                            </div>
+                                                                        </button>
+                                                                    );
+                                                                })}
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            );
+                                        })()}
+                                    </div>
+                                )}
+                                
                                 {/* Quantity selector */}
                                 <div className="w-36 flex flex-col gap-2">
                                     <div className="text-white text-sm font-medium font-sans leading-tight">Quantity</div>
@@ -209,12 +418,6 @@ export default function ProductDetail() {
                                     </div>
                                 </div>
                             </div>
-                          
-                            {p && p.badge && !p.outOfStock && (
-                                    <div className="w-40 h-10 bg-rose-500 rounded-lg inline-flex items-center justify-center">
-                                        <span className="text-white text-sm font-normal leading-tight">{p.badge}</span>
-                                    </div>
-                                )}
                                 {p && p.outOfStock ? (<div className="inline-flex flex-col justify-start items-start gap-4">
                                     <div className="justify-start text-white text-base font-semibold font-['Mona_Sans'] leading-normal">Out of stock</div>
                                     <Button onClick={handleAddToWishlist} disabled={addingToWishlist} className="w-full px-7 py-3 bg-rose-500 rounded-xl inline-flex justify-center items-center gap-2.5">
@@ -254,31 +457,174 @@ export default function ProductDetail() {
                                         <div className="text-white text-[28px] font-semibold    leading-[44px]">
                                             <AmountCurrency amount={totalPrice} fromCurrency={p.currency} />
                                         </div>
-                                    </div>
-                                    <div className="flex flex-col gap-6">
-                                        {/* Variant selector as shadcn/ui dropdown */}
-                                        {p.variants && p.variants.length > 0 && (
-                                            <div className="w-64 rounded-lg flex flex-col gap-2">
-                                                <div className="text-gray-200 text-base font-medium   ">Variant</div>
-                                                <Select value={selectedColor} onValueChange={setSelectedColor}>
-                                                    <SelectTrigger className="self-stretch px-3.5 py-5 rounded-lg outline outline-1 outline-offset-[-1px] outline-neutral-700 inline-flex flex-col justify-start items-start gap-2.5 border-none">
-                                                        <SelectValue placeholder="Select Variant" />
-                                                    </SelectTrigger>
-                                                    <SelectContent className=" rounded-lg mt-1 ">
-                                                        {p.variants.map((variant) => (
-                                                            <SelectItem key={variant.name} value={variant.name} className="text-gray-400 text-base font-normal    px-4 py-2 cursor-pointer">
-                                                                {variant.name}
-                                                                {variant.attributes && variant.attributes.length > 0 && (
-                                                                    <span className="text-xs text-gray-500 ml-2">
-                                                                        ({variant.attributes.map(attr => `${attr.name}: ${attr.value}`).join(', ')})
-                                                                    </span>
-                                                                )}
-                                                            </SelectItem>
-                                                        ))}
-                                                    </SelectContent>
-                                                </Select>
+                                        {p.description && (
+                                            <div className="text-gray-300 text-base font-normal leading-relaxed whitespace-pre-wrap">
+                                                {p.description}
                                             </div>
                                         )}
+                                    </div>
+                                    <div className="flex flex-col gap-6">
+                                        {/* Variant Selector - Desktop */}
+                                        {p.variants && p.variants.length > 0 && (
+                                            <div className="w-full flex flex-col gap-4">
+                                                <div className="text-gray-200 text-base font-medium">Select Variant</div>
+                                                
+                                                {/* All Variants in a single list */}
+                                                <div className="space-y-2">
+                                                    {p.variants.map((variant) => {
+                                                        const isSelected = selectedVariant?._id === variant._id || selectedVariant?.name === variant.name;
+                                                        const inStock = (variant.stock || 0) > 0;
+                                                        return (
+                                                            <button
+                                                                key={variant.name || variant._id}
+                                                                onClick={() => {
+                                                                    if (!inStock) return;
+                                                                    // Toggle selection - if already selected, deselect
+                                                                    if (isSelected) {
+                                                                        setSelectedVariant(null);
+                                                                    } else {
+                                                                        // When selecting variant, clear spec
+                                                                        setSelectedSpec(null);
+                                                                        setSelectedVariant(variant);
+                                                                    }
+                                                                }}
+                                                                disabled={!inStock}
+                                                                className={`w-full text-left px-4 py-3 rounded-lg border-2 transition-all ${
+                                                                    isSelected 
+                                                                        ? 'border-rose-500 bg-rose-500/10 text-rose-400' 
+                                                                        : inStock
+                                                                        ? 'border-neutral-600 text-gray-300 hover:border-neutral-400 hover:bg-neutral-800'
+                                                                        : 'border-neutral-700 text-neutral-500 cursor-not-allowed opacity-50'
+                                                                }`}
+                                                            >
+                                                                <div className="flex items-center justify-between">
+                                                                    <span className="font-medium">{variant.name}</span>
+                                                                    <span className="text-sm">
+                                                                        <AmountCurrency 
+                                                                            amount={variant.price || p.price || 0} 
+                                                                            fromCurrency={variant.currency || p.currency || 'USDT'} 
+                                                                        />
+                                                                    </span>
+                                                                </div>
+                                                                {variant.attributes && variant.attributes.length > 0 && (
+                                                                    <div className="text-xs text-gray-400 mt-1">
+                                                                        {variant.attributes.map(attr => `${attr.name}: ${attr.value}`).join(', ')}
+                                                                    </div>
+                                                                )}
+                                                                {!inStock && <span className="text-xs text-red-400 ml-2">(Out of Stock)</span>}
+                                                            </button>
+                                                        );
+                                                    })}
+                                                </div>
+                                            </div>
+                                        )}
+                                        
+                                        {/* Specs Selector - Desktop - Only show if no variant is selected */}
+                                        {!selectedVariant && p.specs && p.specs.length > 0 && (
+                                            <div className="w-full flex flex-col gap-4">
+                                                <div className="text-gray-200 text-base font-medium">Select Specifications</div>
+                                                
+                                                {/* Group specs by type */}
+                                                {(() => {
+                                                    const colorSpecs = p.specs.filter((spec, idx) => isColorSpec(spec.label, spec.value));
+                                                    const sizeSpecs = p.specs.filter((spec, idx) => isSizeSpec(spec.label, spec.value));
+                                                    const otherSpecs = p.specs.filter((spec, idx) => 
+                                                        !isColorSpec(spec.label, spec.value) && !isSizeSpec(spec.label, spec.value)
+                                                    );
+
+                                                    return (
+                                                        <div className="space-y-4">
+                                                            {/* Color Specs */}
+                                                            {colorSpecs.length > 0 && (
+                                                                <div>
+                                                                    <label className="text-gray-300 text-sm mb-2 block">
+                                                                        {colorSpecs[0].label}
+                                                                    </label>
+                                                                    <div className="flex flex-wrap gap-2">
+                                                                        {colorSpecs.map((spec, idx) => {
+                                                                            const originalIdx = p.specs.indexOf(spec);
+                                                                            const isSelected = selectedSpec === originalIdx;
+                                                                            const colorValue = getColorValue(spec.value);
+                                                                            return (
+                                                                                <button
+                                                                                    key={originalIdx}
+                                                                                    onClick={() => selectSpec(originalIdx)}
+                                                                                    className={`w-12 h-12 rounded-full border-2 transition-all ${
+                                                                                        isSelected 
+                                                                                            ? 'border-rose-500 ring-2 ring-rose-500/50 scale-110' 
+                                                                                            : 'border-neutral-600 hover:border-neutral-400'
+                                                                                    }`}
+                                                                                    style={{ backgroundColor: colorValue }}
+                                                                                    title={spec.value}
+                                                                                />
+                                                                            );
+                                                                        })}
+                                                                    </div>
+                                                                </div>
+                                                            )}
+
+                                                            {/* Size Specs */}
+                                                            {sizeSpecs.length > 0 && (
+                                                                <div>
+                                                                    <label className="text-gray-300 text-sm mb-2 block">
+                                                                        {sizeSpecs[0].label}
+                                                                    </label>
+                                                                    <div className="flex flex-wrap gap-2">
+                                                                        {sizeSpecs.map((spec, idx) => {
+                                                                            const originalIdx = p.specs.indexOf(spec);
+                                                                            const isSelected = selectedSpec === originalIdx;
+                                                                            return (
+                                                                                <button
+                                                                                    key={originalIdx}
+                                                                                    onClick={() => selectSpec(originalIdx)}
+                                                                                    className={`px-5 py-2.5 rounded-lg border-2 transition-all text-sm font-medium ${
+                                                                                        isSelected 
+                                                                                            ? 'border-rose-500 bg-rose-500/10 text-rose-400' 
+                                                                                            : 'border-neutral-600 text-gray-300 hover:border-neutral-400 hover:bg-neutral-800'
+                                                                                    }`}
+                                                                                >
+                                                                                    {spec.value}
+                                                                                </button>
+                                                                            );
+                                                                        })}
+                                                                    </div>
+                                                                </div>
+                                                            )}
+
+                                                            {/* Other Specs */}
+                                                            {otherSpecs.length > 0 && (
+                                                                <div>
+                                                                    <label className="text-gray-300 text-sm mb-2 block">Other Options</label>
+                                                                    <div className="space-y-2">
+                                                                        {otherSpecs.map((spec, idx) => {
+                                                                            const originalIdx = p.specs.indexOf(spec);
+                                                                            const isSelected = selectedSpec === originalIdx;
+                                                                            return (
+                                                                                <button
+                                                                                    key={originalIdx}
+                                                                                    onClick={() => selectSpec(originalIdx)}
+                                                                                    className={`w-full text-left px-4 py-3 rounded-lg border-2 transition-all ${
+                                                                                        isSelected 
+                                                                                            ? 'border-rose-500 bg-rose-500/10 text-rose-400' 
+                                                                                            : 'border-neutral-600 text-gray-300 hover:border-neutral-400 hover:bg-neutral-800'
+                                                                                    }`}
+                                                                                >
+                                                                                    <div className="flex items-center justify-between">
+                                                                                        <span className="font-medium">{spec.label}</span>
+                                                                                        <span className="text-sm">{spec.value}</span>
+                                                                                    </div>
+                                                                                </button>
+                                                                            );
+                                                                        })}
+                                                                    </div>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    );
+                                                })()}
+                                            </div>
+                                        )}
+                                        
                                         {/* Quantity selector (static for now) */}
                                         <div className="w-36 flex flex-col gap-2">
                                             <div className="text-white text-sm font-medium   ">Quantity</div>
@@ -292,11 +638,6 @@ export default function ProductDetail() {
                                         </div>
                                     </div>
                                 </div>
-                                {p && p.badge && !p.outOfStock && (
-                                    <div className="w-40 h-10 bg-rose-500 rounded-lg inline-flex items-center justify-center">
-                                        <span className="text-white text-sm font-normal leading-tight">{p.badge}</span>
-                                    </div>
-                                )}
                                 {p && p.outOfStock ? (<div className="inline-flex flex-col justify-start items-start gap-4">
                                     <div className="justify-start text-white text-base font-semibold font-['Mona_Sans'] leading-normal">Out of stock</div>
                                     <Button onClick={handleAddToWishlist} disabled={addingToWishlist} className="w-96 px-7 py-3 bg-rose-500 rounded-xl inline-flex justify-center items-center gap-2.5">
@@ -323,14 +664,54 @@ export default function ProductDetail() {
                         </div>
                         <div className="flex flex-col gap-8">
                             <div className="text-white text-2xl font-semibold    leading-loose whitespace-pre-wrap break-words max-w-full">{p.description}</div>
-                            <div className="flex flex-col gap-6">
-                                {p.specs && p.specs.map((spec, idx) => (
-                                    <div key={idx} className="flex gap-2">
-                                        <div className="w-28 text-white text-base font-medium   ">{spec.label}</div>
-                                        <div className="flex-1 text-white text-base font-normal   ">{spec.value}</div>
+                            {/* Specs Selection - Only show if no variant is selected */}
+                            {!selectedVariant && p.specs && p.specs.length > 0 && (
+                                <div className="flex flex-col gap-6">
+                                    <div className="text-rose-500 text-xl font-semibold leading-relaxed">Specifications</div>
+                                    <div className="flex flex-col gap-3">
+                                        {p.specs.map((spec, idx) => {
+                                            const isSelected = selectedSpec === idx;
+                                            return (
+                                                <button
+                                                    key={idx}
+                                                    onClick={() => selectSpec(idx)}
+                                                    disabled={!!selectedVariant}
+                                                    className={`flex gap-2 p-3 rounded-lg border-2 transition-all text-left ${
+                                                        isSelected
+                                                            ? 'border-rose-500 bg-rose-500/10'
+                                                            : selectedVariant
+                                                            ? 'border-neutral-700 bg-neutral-800/50 opacity-50 cursor-not-allowed'
+                                                            : 'border-neutral-600 hover:border-neutral-400'
+                                                    }`}
+                                                >
+                                                    <div className="w-28 text-white text-base font-medium">{spec.label}</div>
+                                                    <div className="flex-1 text-white text-base font-normal">{spec.value}</div>
+                                                    {isSelected && (
+                                                        <div className="text-rose-400 text-sm">✓</div>
+                                                    )}
+                                                </button>
+                                            );
+                                        })}
                                     </div>
-                                ))}
-                            </div>
+                                </div>
+                            )}
+                            {/* Show specs as read-only if variant is selected */}
+                            {selectedVariant && p.specs && p.specs.length > 0 && (
+                                <div className="flex flex-col gap-6">
+                                    <div className="text-rose-500 text-xl font-semibold leading-relaxed">Product Specifications</div>
+                                    <div className="flex flex-col gap-3">
+                                        {p.specs.map((spec, idx) => (
+                                            <div
+                                                key={idx}
+                                                className="flex gap-2 p-3 rounded-lg border border-neutral-700 bg-neutral-800/30"
+                                            >
+                                                <div className="w-28 text-gray-400 text-base font-medium">{spec.label}</div>
+                                                <div className="flex-1 text-white text-base font-normal">{spec.value}</div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </div>
                     {/* You may also like */}

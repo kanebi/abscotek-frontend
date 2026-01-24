@@ -9,6 +9,7 @@ import {
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import OrderSummary from "@/components/ui/OrderSummary";
+import AmountCurrency from "@/components/ui/AmountCurrency";
 import React from "react";
 
 export const OrderDetailsSection = ({ order, onBackToList }) => {
@@ -261,7 +262,10 @@ export const OrderDetailsSection = ({ order, onBackToList }) => {
                       x{order.product.quantity}
                     </div>
                     <div className="w-[74px] font-body-large-large-semibold text-defaultwhite text-center">
-                      {order.product.price}
+                      <AmountCurrency 
+                        amount={order.product.price || 0} 
+                        fromCurrency={order.product.currency || order.currency || 'USDT'} 
+                      />
                     </div>
                   </div>
                 </div>
@@ -277,7 +281,10 @@ export const OrderDetailsSection = ({ order, onBackToList }) => {
                       Subtotal
                     </div>
                     <div className="font-body-large-large-medium text-defaultwhite text-right">
-                      {order.pricing.subtotal}
+                      <AmountCurrency 
+                        amount={order.pricing.subtotal || 0} 
+                        fromCurrency={order.currency || 'USDT'} 
+                      />
                     </div>
                   </div>
                   <div className="flex items-center justify-between w-full">
@@ -285,7 +292,10 @@ export const OrderDetailsSection = ({ order, onBackToList }) => {
                       Delivery
                     </div>
                     <div className="font-body-large-large-medium text-defaultwhite text-right">
-                      {order.pricing.delivery}
+                      <AmountCurrency 
+                        amount={order.pricing.delivery || 0} 
+                        fromCurrency={order.currency || 'USDT'} 
+                      />
                     </div>
                   </div>
                 </div>
@@ -297,7 +307,10 @@ export const OrderDetailsSection = ({ order, onBackToList }) => {
                       Order Total
                     </div>
                     <div className="font-body-xlarge-xlarge-semibold text-defaultwhite text-right">
-                      {order.pricing.total}
+                      <AmountCurrency 
+                        amount={order.pricing.total || 0} 
+                        fromCurrency={order.currency || 'USDT'} 
+                      />
                     </div>
                   </div>
                 </div>

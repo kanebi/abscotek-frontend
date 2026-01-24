@@ -87,7 +87,7 @@ function CheckoutPage() {
   const [orderedSuccess, setOrderedSuccess] = useState(false);
   const [pendingOrderId, setPendingOrderId] = useState(null);
   const [paymentMethod, setPaymentMethod] = useState('wallet'); // 'wallet' or 'paystack'
-  const [selectedCurrency, setSelectedCurrency] = useState('USDT'); // 'USDT', 'USD', 'NGN'
+  const [selectedCurrency, setSelectedCurrency] = useState('USDT'); // includes fiat and chain base currencies
   const [convertedAmount, setConvertedAmount] = useState(0);
   const [paymentAmount, setPaymentAmount] = useState(0); // Separate state for payment button amount
   const [isLoading, setIsLoading] = useState(true); // Single loading state
@@ -195,39 +195,30 @@ function CheckoutPage() {
   // Handle currency conversion and payment method selection
   useEffect(() => {
     const updatePaymentMethod = async () => {
-      if (selectedCurrency === 'USDT') {
-        setPaymentMethod('wallet');
-      } else {
-        setPaymentMethod('paystack');
-      }
+      const isCrypto = ['USDT','ETH','BTC','BNB','MATIC'].includes(selectedCurrency);
+      setPaymentMethod(isCrypto ? 'wallet' : 'paystack');
 
-      // Convert amount to selected currency
       if (cart && cart.items && cart.items.length > 0 && selectedDeliveryMethod) {
         try {
           const cartTotal = cart.items.reduce((total, item) => {
             return total + (item.product?.price || item.price || item.unitPrice) * item.quantity;
           }, 0);
-          
-          // Convert delivery cost from NGN to userCurrency first
+
           const deliveryCostInUserCurrency = await currencyConversionService.convertCurrency(
             selectedDeliveryMethod.price,
-            selectedDeliveryMethod.currency, // NGN
-            userCurrency // USDT
+            selectedDeliveryMethod.currency,
+            userCurrency
           );
-          
-          // Add cart total and converted delivery cost
-          const totalAmount = cartTotal + deliveryCostInUserCurrency;
-          
-          // Set the total amount (always in user's currency)
+
+          const totalAmount = cartTotal + Number(deliveryCostInUserCurrency);
           setConvertedAmount(totalAmount);
-          
-          // Convert total to selected currency for payment button
+
           const paymentConverted = await currencyConversionService.convertCurrency(
-            totalAmount, 
-            userCurrency, 
+            totalAmount,
+            userCurrency,
             selectedCurrency
           );
-          setPaymentAmount(paymentConverted);
+          setPaymentAmount(Number(paymentConverted));
         } catch (error) {
           console.error('Currency conversion failed:', error);
           setConvertedAmount(0);

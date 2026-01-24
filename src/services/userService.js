@@ -68,6 +68,11 @@ const deleteUser = async (id) => {
   return response.data;
 };
 
+const approveUser = async (id, data) => {
+  const response = await apiClient.patch(`/admin/users/${id}/approve`, data);
+  return response.data;
+};
+
 export default {
   // User methods
   getUser,
@@ -85,4 +90,5 @@ export default {
   createUser,
   updateUserById,
   deleteUser,
+  approveUser,
 };

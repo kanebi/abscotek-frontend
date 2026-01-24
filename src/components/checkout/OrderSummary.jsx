@@ -142,12 +142,29 @@ function OrderSummary({
                 {/* Product Info */}
                 <div className="flex-1 min-w-0">
                   <h3 className="text-white font-medium text-base mb-1 leading-tight">{item.product?.name || item.name}</h3>
+                  {item.variant?.name && (
+                    <div className="text-neutralneutral-300 text-sm mb-1">
+                      Variant: {item.variant.name}
+                    </div>
+                  )}
+                  {item.specs && item.specs.length > 0 && (
+                    <div className="text-neutralneutral-300 text-sm mb-1">
+                      {item.specs.map((spec, idx) => (
+                        <span key={idx}>
+                          {spec.label}: {spec.value}
+                          {idx < item.specs.length - 1 && ', '}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                   <div className="flex items-center gap-3 text-sm text-neutralneutral-400 mb-2">
                     <span>Qty: {item.quantity}</span>
-                    <span>Color: Blue</span>
                   </div>
                   <div className="text-white font-[510] text-base">
-                    <AmountCurrency amount={(item.product?.price || item.price || item.unitPrice) * item.quantity} fromCurrency={userCurrency} />
+                    <AmountCurrency 
+                      amount={(item.unitPrice || item.product?.price || item.price) * item.quantity} 
+                      fromCurrency={item.currency || item.product?.currency || cart.currency || 'USDT'} 
+                    />
                   </div>
                 </div>
               </div>
@@ -164,7 +181,7 @@ function OrderSummary({
           <div className="flex justify-between text-white text-base">
             <span>Subtotal</span>
             <span className="font-medium">
-              <AmountCurrency amount={getCartTotal()} fromCurrency={userCurrency} />
+              <AmountCurrency amount={cart.subtotal || getCartTotal()} fromCurrency={cart.currency || 'USDT'} />
             </span>
           </div>
           
@@ -180,7 +197,7 @@ function OrderSummary({
           <div className="flex justify-between text-white text-lg font-semibold">
             <span>Order Total</span>
             <span>
-              <AmountCurrency amount={orderTotal} fromCurrency={userCurrency} />
+              <AmountCurrency amount={orderTotal} fromCurrency={cart.currency || 'USDT'} />
             </span>
           </div>
           

@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import AmountCurrency from "@/components/ui/AmountCurrency";
 import React from "react";
 
 const OrderCard = ({ order, onViewOrder }) => {
@@ -52,9 +53,21 @@ const OrderCard = ({ order, onViewOrder }) => {
                   <h3 className="relative self-stretch mt-[-1.00px] font-body-large-large-medium font-[number:var(--body-large-large-medium-font-weight)] text-defaultgrey-2 text-[length:var(--body-large-large-medium-font-size)] tracking-[var(--body-large-large-medium-letter-spacing)] leading-[var(--body-large-large-medium-line-height)] [font-style:var(--body-large-large-medium-font-style)]">
                     {order.product.name}
                   </h3>
-                  <p className="relative w-fit font-body-large-large-medium font-[number:var(--body-large-large-medium-font-weight)] text-neutralneutral-100 text-[length:var(--body-large-large-medium-font-size)] tracking-[var(--body-large-large-medium-letter-spacing)] leading-[var(--body-large-large-medium-line-height)] whitespace-nowrap [font-style:var(--body-large-large-medium-font-style)]">
-                    {order.product.variant}
-                  </p>
+                  {order.product.variant && (
+                    <p className="relative w-fit font-body-large-large-medium font-[number:var(--body-large-large-medium-font-weight)] text-neutralneutral-100 text-[length:var(--body-large-large-medium-font-size)] tracking-[var(--body-large-large-medium-letter-spacing)] leading-[var(--body-large-large-medium-line-height)] whitespace-nowrap [font-style:var(--body-large-large-medium-font-style)]">
+                      {typeof order.product.variant === 'string' ? order.product.variant : order.product.variant.name}
+                    </p>
+                  )}
+                  {order.product.specs && order.product.specs.length > 0 && (
+                    <div className="text-xs text-neutralneutral-300 mt-1">
+                      {order.product.specs.map((spec, idx) => (
+                        <span key={idx}>
+                          {spec.label}: {spec.value}
+                          {idx < order.product.specs.length - 1 && ', '}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </div>
 
                 <div className="inline-flex items-start gap-6 relative flex-[0_0_auto]">
@@ -72,7 +85,10 @@ const OrderCard = ({ order, onViewOrder }) => {
                       Price
                     </span>
                     <span className="relative w-fit font-body-large-large-semibold font-[number:var(--body-large-large-semibold-font-weight)] text-defaultwhite text-[length:var(--body-large-large-semibold-font-size)] text-center tracking-[var(--body-large-large-semibold-letter-spacing)] leading-[var(--body-large-large-semibold-line-height)] whitespace-nowrap [font-style:var(--body-large-large-semibold-font-style)]">
-                      {order.product.price}
+                      <AmountCurrency 
+                        amount={order.product.price || 0} 
+                        fromCurrency={order.product.currency || order.currency || 'USDT'} 
+                      />
                     </span>
                   </div>
                 </div>
@@ -86,7 +102,10 @@ const OrderCard = ({ order, onViewOrder }) => {
                     Order Total:
                   </span>
                   <span className="relative w-fit mt-[-1.00px] font-heading-header-6-header-6-semibold font-[number:var(--heading-header-6-header-6-semibold-font-weight)] text-defaultwhite text-[length:var(--heading-header-6-header-6-semibold-font-size)] text-right tracking-[var(--heading-header-6-header-6-semibold-letter-spacing)] leading-[var(--heading-header-6-header-6-semibold-line-height)] whitespace-nowrap [font-style:var(--heading-header-6-header-6-semibold-font-style)]">
-                    {order.total}
+                    <AmountCurrency 
+                      amount={order.total || 0} 
+                      fromCurrency={order.currency || 'USDT'} 
+                    />
                   </span>
                 </div>
 
@@ -143,9 +162,21 @@ const OrderCard = ({ order, onViewOrder }) => {
                   <h3 className="relative w-full mt-[-1.00px] font-body-xlarge-xlarge-semibold font-[number:var(--body-xlarge-xlarge-semibold-font-weight)] text-defaultgrey-2 text-sm md:text-[length:var(--body-xlarge-xlarge-semibold-font-size)] tracking-[var(--body-xlarge-xlarge-semibold-letter-spacing)] leading-[18px] md:leading-[var(--body-xlarge-xlarge-semibold-line-height)] truncate [font-style:var(--body-xlarge-xlarge-semibold-font-style)]">
                     {order.product.name}
                   </h3>
-                  <p className="relative w-full font-body-large-large-medium font-[number:var(--body-large-large-medium-font-weight)] text-neutralneutral-100 text-xs md:text-[length:var(--body-large-large-medium-font-size)] tracking-[var(--body-large-large-medium-letter-spacing)] leading-[16px] md:leading-[var(--body-large-large-medium-line-height)] truncate [font-style:var(--body-large-large-medium-font-style)]">
-                    {order.product.variant}
-                  </p>
+                  {order.product.variant && (
+                    <p className="relative w-full font-body-large-large-medium font-[number:var(--body-large-large-medium-font-weight)] text-neutralneutral-100 text-xs md:text-[length:var(--body-large-large-medium-font-size)] tracking-[var(--body-large-large-medium-letter-spacing)] leading-[16px] md:leading-[var(--body-large-large-medium-line-height)] truncate [font-style:var(--body-large-large-medium-font-style)]">
+                      {typeof order.product.variant === 'string' ? order.product.variant : order.product.variant.name}
+                    </p>
+                  )}
+                  {order.product.specs && order.product.specs.length > 0 && (
+                    <div className="text-xs text-neutralneutral-300 mt-1">
+                      {order.product.specs.map((spec, idx) => (
+                        <span key={idx}>
+                          {spec.label}: {spec.value}
+                          {idx < order.product.specs.length - 1 && ', '}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </div>
 
                 {/* Quantity and Price - Mobile: Row, Desktop: Columns */}
@@ -164,7 +195,10 @@ const OrderCard = ({ order, onViewOrder }) => {
                       Price
                     </p>
                     <p className="relative w-fit font-body-large-large-semibold font-[number:var(--body-large-large-semibold-font-weight)] text-defaultwhite text-sm md:text-[length:var(--body-large-large-semibold-font-size)] text-center tracking-[var(--body-large-large-semibold-letter-spacing)] leading-[18px] md:leading-[var(--body-large-large-semibold-line-height)] whitespace-nowrap [font-style:var(--body-large-large-semibold-font-style)]">
-                      {order.product.price}
+                      <AmountCurrency 
+                        amount={order.product.price || 0} 
+                        fromCurrency={order.product.currency || order.currency || 'USDT'} 
+                      />
                     </p>
                   </div>
                 </div>
@@ -177,7 +211,10 @@ const OrderCard = ({ order, onViewOrder }) => {
                     Order Total:
                   </p>
                   <p className="relative w-fit mt-[-1.00px] font-heading-header-4-header-4-semibold font-[number:var(--heading-header-4-header-4-semibold-font-weight)] text-defaultwhite text-sm md:text-[length:var(--heading-header-4-header-4-semibold-font-size)] text-right tracking-[var(--heading-header-4-header-4-semibold-letter-spacing)] leading-[18px] md:leading-[var(--heading-header-4-header-4-semibold-line-height)] whitespace-nowrap [font-style:var(--heading-header-4-header-4-semibold-font-style)]">
-                    {order.total}
+                    <AmountCurrency 
+                      amount={order.total || 0} 
+                      fromCurrency={order.currency || 'USDT'} 
+                    />
                   </p>
                 </div>
 

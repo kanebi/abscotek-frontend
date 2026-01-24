@@ -1,5 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import AmountCurrency from "@/components/ui/AmountCurrency";
 import React from "react";
 
 export default function OrderSummary({ order }) {
@@ -68,7 +69,10 @@ export default function OrderSummary({ order }) {
                 </span>
 
                 <span className="relative w-fit mt-[-1.00px] font-body-base-base-medium font-[number:var(--body-base-base-medium-font-weight)] text-defaultwhite text-[length:var(--body-base-base-medium-font-size)] text-right tracking-[var(--body-base-base-medium-letter-spacing)] leading-[var(--body-base-base-medium-line-height)] whitespace-nowrap [font-style:var(--body-base-base-medium-font-style)]">
-                  {item.value}
+                  <AmountCurrency 
+                    amount={item.value || 0} 
+                    fromCurrency={order.currency || 'USDT'} 
+                  />
                 </span>
               </div>
             ))}
@@ -83,7 +87,10 @@ export default function OrderSummary({ order }) {
               </span>
 
               <span className="relative w-fit mt-[-1.00px] font-body-large-large-semibold font-[number:var(--body-large-large-semibold-font-weight)] text-defaultwhite text-[length:var(--body-large-large-semibold-font-size)] text-right tracking-[var(--body-large-large-semibold-letter-spacing)] leading-[var(--body-large-large-semibold-line-height)] whitespace-nowrap [font-style:var(--body-large-large-semibold-font-style)]">
-                {orderDetails.total}
+                <AmountCurrency 
+                  amount={orderDetails.total || 0} 
+                  fromCurrency={order.currency || 'USDT'} 
+                />
               </span>
             </div>
           </div>

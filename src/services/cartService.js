@@ -16,13 +16,23 @@ const getCart = async () => {
   }
 };
 
-const addToCart = async (productId, quantity, currency, variantName, isAuthenticated, walletAddress) => {
+const addToCart = async (productId, quantity, currency, variantName, specs, isAuthenticated, walletAddress) => {
+  // Mutual exclusion: if variant is selected, clear specs; if specs are selected, clear variant
+  const finalVariantName = variantName || null;
+  const finalSpecs = (variantName || !specs || specs.length === 0) ? null : specs;
+  
   if (shouldUseApi(isAuthenticated, walletAddress)) {
-    const response = await apiClient.post('/cart', { productId, quantity, currency, variantName });
+    const response = await apiClient.post('/cart', { productId, quantity, currency, variantName: finalVariantName, specs: finalSpecs });
     return response.data;
   } else {
     const cart = getGuestCart();
-    const existingItemIndex = cart.items.findIndex((item) => item.product._id === productId && item.variant?.name === variantName);
+    // Check for existing item with same product, variant, and specs
+    const existingItemIndex = cart.items.findIndex((item) => {
+      const sameProduct = item.product._id === productId;
+      const sameVariant = item.variant?.name === finalVariantName;
+      const sameSpecs = JSON.stringify(item.specs || []) === JSON.stringify(finalSpecs || []);
+      return sameProduct && sameVariant && sameSpecs;
+    });
     if (existingItemIndex > -1) {
       const newItems = [...cart.items];
       newItems[existingItemIndex].quantity += quantity;
@@ -32,20 +42,28 @@ const addToCart = async (productId, quantity, currency, variantName, isAuthentic
     } else {
       const product = await productService.getProduct(productId);
       const variant = product.variants?.find(v => v.name === variantName);
+      // Use variant price if available, otherwise use product price
+      const finalPrice = variant?.price || product.price;
+      const finalCurrency = variant?.currency || product.currency;
       const newProduct = {
         product: {
           _id: product._id,
           name: product.name,
-          price: product.price,
+          price: finalPrice,
           images: product.images,
-          currency: product.currency,
+          currency: finalCurrency,
         },
-        variant: variant ? {
+        variant: finalVariantName && variant ? {
           name: variant.name,
+          price: variant.price,
+          currency: variant.currency,
           attributes: variant.attributes || [],
           additionalPrice: variant.additionalPrice || 0
         } : null,
+        specs: finalSpecs || null,
         quantity,
+        unitPrice: finalPrice,
+        currency: finalCurrency,
       };
       const newItems = [...cart.items, newProduct];
       const newCart = { ...cart, items: newItems };
@@ -108,7 +126,7 @@ const mergeGuestCart = async () => {
     for (const item of guestCart.items) {
       try {
         console.log('Merging item:', item.product._id, item.quantity);
-        await addToCart(item.product._id, item.quantity, userCurrency, item.variant?.name, isAuthenticated, walletAddress);
+        await addToCart(item.product._id, item.quantity, userCurrency, item.variant?.name, item.specs, isAuthenticated, walletAddress);
       } catch (error) {
         console.error('Failed to merge cart item:', item.product._id, error);
       }

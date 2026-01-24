@@ -203,7 +203,10 @@ try {
                      </h3>
 
                      <div className="text-white font-bold text-lg mb-4">
-                       <AmountCurrency amount={item.product?.price || item.price || item.unitPrice} fromCurrency="USDT" />
+                       <AmountCurrency 
+                         amount={item.unitPrice || item.product?.price || item.price} 
+                         fromCurrency={item.currency || item.product?.currency || cart.currency || 'USDT'} 
+                       />
                      </div>
                      
                      {/* Quantity Controls and Delete Button Row */}
@@ -257,7 +260,7 @@ try {
                <div className="flex flex-col items-end text-right">
                  <span className="text-white text-sm">Subtotal</span>
                  <div className="text-white text-2xl font-bold">
-                   <AmountCurrency amount={getCartTotal()} fromCurrency={userCurrency} />
+                   <AmountCurrency amount={cart.subtotal || getCartTotal()} fromCurrency={cart.currency || 'USDT'} />
                  </div>
                </div>
                

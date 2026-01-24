@@ -24,6 +24,12 @@ const getProduct = async (idOrSlug) => {
   return response.data;
 };
 
+// Admin: get single product by id (includes unpublished)
+const getAdminProduct = async (id) => {
+  const response = await apiClient.get(`/admin/products/${id}`);
+  return response.data;
+};
+
 // Public: related products
 const getRelatedProducts = async (idOrSlug, limit = 8) => {
   const response = await apiClient.get(`/products/${idOrSlug}/related`, { params: { limit } });
@@ -102,6 +108,7 @@ export default {
   // admin lists
   getAdminProducts,
   getAdminUnpublishedProducts,
+  getAdminProduct,
   // admin CRUD
   createProduct,
   updateProduct,

@@ -6,21 +6,10 @@ import { Button } from '../../components/ui/button';
 import { Card } from '../../components/ui/card';
 import { ArrowLeft, Save, Upload, X, ImagePlus } from 'lucide-react';
 import { AppRoutes } from '../../config/routes';
+import ProductVariantEditor from '../../components/admin/ProductVariantEditor';
+import ProductSpecsEditor from '../../components/admin/ProductSpecsEditor';
+import { PRODUCT_CATEGORIES, PRODUCT_BRANDS } from '../../config/categories';
 
-const DEFAULT_VARIANT_JSON = JSON.stringify([
-  {
-    name: "Red - 128GB",
-    price: 999,
-    currency: "USDT",
-    stock: 10,
-    sku: "PROD-RED-128",
-    attributes: [
-      { name: "Color", value: "Red" },
-      { name: "Storage", value: "128GB" }
-    ],
-    images: []
-  }
-], null, 2);
 
 function ProductEdit() {
   const navigate = useNavigate();
@@ -39,8 +28,8 @@ function ProductEdit() {
     category: '',
     brand: '',
     sku: '',
-    specs: '[]',
-    variants: DEFAULT_VARIANT_JSON,
+    specs: [],
+    variants: [],
     stock: 0,
     published: false,
   });
@@ -57,7 +46,8 @@ function ProductEdit() {
   const fetchProduct = async () => {
     try {
       setLoading(true);
-      const product = await productService.getProduct(id);
+      // Use admin endpoint to get product (includes unpublished)
+      const product = await productService.getAdminProduct(id);
       setFormData({
         name: product.name || '',
         description: product.description || '',
@@ -67,15 +57,16 @@ function ProductEdit() {
         category: product.category || '',
         brand: product.brand || '',
         sku: product.sku || '',
-        specs: JSON.stringify(product.specs || [], null, 2),
-        variants: JSON.stringify(product.variants || [], null, 2) || DEFAULT_VARIANT_JSON,
+        specs: Array.isArray(product.specs) ? product.specs : [],
+        variants: Array.isArray(product.variants) ? product.variants : [],
         stock: product.stock || 0,
-        published: product.published || false,
+        published: product.published !== undefined ? product.published : false,
       });
-      setExistingImages(product.images || []);
+      setExistingImages(Array.isArray(product.images) ? product.images : []);
     } catch (error) {
       console.error('Error fetching product:', error);
-      setErrorMessage('Failed to load product details');
+      const errorMsg = error.response?.data?.errors?.[0]?.msg || error.response?.data?.message || 'Failed to load product details';
+      setErrorMessage(errorMsg);
     } finally {
       setLoading(false);
     }
@@ -101,6 +92,19 @@ function ProductEdit() {
     setSaving(true);
 
     try {
+      // Ensure variants are properly formatted
+      const processedVariants = Array.isArray(formData.variants) 
+        ? formData.variants.map(variant => ({
+            name: variant.name || '',
+            price: Number(variant.price) || 0,
+            currency: variant.currency || 'USDT',
+            stock: Number(variant.stock) || 0,
+            sku: variant.sku || null,
+            attributes: Array.isArray(variant.attributes) ? variant.attributes : [],
+            images: Array.isArray(variant.images) ? variant.images : [],
+          }))
+        : safeParseArray(formData.variants);
+
       const payload = {
         name: formData.name,
         description: formData.description || '',
@@ -110,8 +114,8 @@ function ProductEdit() {
         category: formData.category?.trim() || null,
         brand: formData.brand?.trim() || null,
         sku: formData.sku?.trim() || null,
-        specs: safeParseArray(formData.specs),
-        variants: safeParseArray(formData.variants),
+        specs: Array.isArray(formData.specs) ? formData.specs : safeParseArray(formData.specs),
+        variants: processedVariants,
         stock: Number(formData.stock || 0),
         published: formData.published,
       };
@@ -298,21 +302,87 @@ function ProductEdit() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-neutralneutral-300 text-sm mb-2">Category</label>
-                  <input
-                    type="text"
-                    value={formData.category}
-                    onChange={(e) => handleInputChange('category', e.target.value)}
-                    className="w-full p-3 bg-neutralneutral-800 border border-neutralneutral-600 rounded-lg text-white placeholder-neutralneutral-400"
-                  />
+                  {formData.category && !PRODUCT_CATEGORIES.includes(formData.category) && formData.category !== 'Other' ? (
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={formData.category}
+                        onChange={(e) => handleInputChange('category', e.target.value || null)}
+                        placeholder="Custom Category"
+                        className="flex-1 p-3 bg-neutralneutral-800 border border-neutralneutral-600 rounded-lg text-white placeholder-neutralneutral-400"
+                      />
+                      <Button
+                        type="button"
+                        onClick={() => handleInputChange('category', null)}
+                        variant="outline"
+                        className="border-neutralneutral-600"
+                      >
+                        <X size={16} />
+                      </Button>
+                    </div>
+                  ) : (
+                    <select
+                      value={formData.category || ''}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        if (value === 'Other') {
+                          handleInputChange('category', '');
+                        } else {
+                          handleInputChange('category', value || null);
+                        }
+                      }}
+                      className="w-full p-3 bg-neutralneutral-800 border border-neutralneutral-600 rounded-lg text-white"
+                    >
+                      <option value="">Select Category</option>
+                      {PRODUCT_CATEGORIES.map((cat) => (
+                        <option key={cat} value={cat}>
+                          {cat}
+                        </option>
+                      ))}
+                    </select>
+                  )}
                 </div>
                 <div>
                   <label className="block text-neutralneutral-300 text-sm mb-2">Brand</label>
-                  <input
-                    type="text"
-                    value={formData.brand}
-                    onChange={(e) => handleInputChange('brand', e.target.value)}
-                    className="w-full p-3 bg-neutralneutral-800 border border-neutralneutral-600 rounded-lg text-white placeholder-neutralneutral-400"
-                  />
+                  {formData.brand && !PRODUCT_BRANDS.includes(formData.brand) && formData.brand !== 'Custom' ? (
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={formData.brand}
+                        onChange={(e) => handleInputChange('brand', e.target.value || null)}
+                        placeholder="Custom Brand"
+                        className="flex-1 p-3 bg-neutralneutral-800 border border-neutralneutral-600 rounded-lg text-white placeholder-neutralneutral-400"
+                      />
+                      <Button
+                        type="button"
+                        onClick={() => handleInputChange('brand', null)}
+                        variant="outline"
+                        className="border-neutralneutral-600"
+                      >
+                        <X size={16} />
+                      </Button>
+                    </div>
+                  ) : (
+                    <select
+                      value={formData.brand || ''}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        if (value === 'Custom') {
+                          handleInputChange('brand', '');
+                        } else {
+                          handleInputChange('brand', value || null);
+                        }
+                      }}
+                      className="w-full p-3 bg-neutralneutral-800 border border-neutralneutral-600 rounded-lg text-white"
+                    >
+                      <option value="">Select Brand</option>
+                      {PRODUCT_BRANDS.map((brand) => (
+                        <option key={brand} value={brand}>
+                          {brand}
+                        </option>
+                      ))}
+                    </select>
+                  )}
                 </div>
               </div>
 
@@ -348,27 +418,18 @@ function ProductEdit() {
               </div>
 
               <div>
-                <label className="block text-neutralneutral-300 text-sm mb-2">Specs (JSON array)</label>
-                <textarea
-                  value={formData.specs}
-                  onChange={(e) => handleInputChange('specs', e.target.value)}
-                  placeholder='[{"label": "Screen Size", "value": "6.1 inches"}]'
-                  className="w-full p-3 bg-neutralneutral-800 border border-neutralneutral-600 rounded-lg text-white placeholder-neutralneutral-400 font-mono text-sm"
-                  rows="4"
+                <ProductSpecsEditor
+                  specs={Array.isArray(formData.specs) ? formData.specs : safeParseArray(formData.specs)}
+                  onChange={(specs) => handleInputChange('specs', specs)}
                 />
               </div>
 
               <div>
-                <label className="block text-neutralneutral-300 text-sm mb-2">Variants (JSON array)</label>
-                <textarea
-                  value={formData.variants}
-                  onChange={(e) => handleInputChange('variants', e.target.value)}
-                  className="w-full p-3 bg-neutralneutral-800 border border-neutralneutral-600 rounded-lg text-white placeholder-neutralneutral-400 font-mono text-sm"
-                  rows="6"
+                <ProductVariantEditor
+                  variants={formData.variants}
+                  onChange={(variants) => handleInputChange('variants', variants)}
+                  productPrice={Number(formData.price) || 0}
                 />
-                <p className="text-neutralneutral-500 text-xs mt-1">
-                  Each variant must have: name, price, currency, stock, attributes (array of name/value pairs)
-                </p>
               </div>
 
               <div className="flex items-center gap-3">

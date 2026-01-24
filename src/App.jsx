@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
 
@@ -43,12 +43,18 @@ import Layout from './components/Layout';
 import Web3AuthProvider from './components/Web3AuthProvider';
 import AuthSync from './components/AuthSync';
 import AdminAuthSync from './components/AdminAuthSync';
+import useStore from './store/useStore';
 
 // Configuration
 import { AppRoutes } from './config/routes';
 import './App.css';
 
 function App() {
+  const { initDefaultCurrency } = useStore();
+
+  useEffect(() => {
+    initDefaultCurrency();
+  }, [initDefaultCurrency]);
   return (
     <Web3AuthProvider>
       <AuthSync />

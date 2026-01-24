@@ -6,7 +6,8 @@ import useStore from "@/store/useStore";
 import WalletConnectButton from "@/components/widgets/WalletConnectButton";
 import { useWeb3Auth } from "@/hooks/useWeb3Auth";
 
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu"
+import { PRODUCT_CATEGORIES } from "@/config/categories"
 import SliderCart from "@/components/ui/SliderCart";
 import { useNavigate } from 'react-router-dom';
 import { AppRoutes } from '@/config/routes';
@@ -20,6 +21,8 @@ import MobileSearchModal from "@/components/widgets/MobileSearchModal";
 export default function Frame() {
     const user = useStore((state) => state.currentUser);
     const isAuthenticated = useStore((state) => state.isAuthenticated);
+    const userCurrency = useStore((state) => state.userCurrency);
+    const setUserCurrency = useStore((state) => state.setUserCurrency);
     const { authenticateAndLogin } = useWeb3Auth();
 
     const [referModalOpen, setReferModalOpen] = React.useState(false);
@@ -101,6 +104,7 @@ export default function Frame() {
                         >
                             <Heart className="w-5 h-5 text-white" />
                         </Button>
+
                         {showUserMenu ? (
                             <UserPopover user={user}>
                                 <div className="cursor-pointer">
@@ -170,6 +174,7 @@ export default function Frame() {
                             <Heart className="relative w-5 h-5 text-white" />
                         </Button>
 
+
                         <SliderCart />
                         {/* Menu button - currently disabled */}
                         {/* <Button
@@ -204,19 +209,62 @@ export default function Frame() {
 
 export function NavigationBar() {
     const navigate = useNavigate();
-    const navItems = ["Computer", "Phone", "Web3 Accessories", "Web3 Gaming", "Smartwatches", "Tablets", "Audio"]
-    const TodayPrices = [
-        { Label: "USDT: $1.01", value: "usdt", rate: "1.01", iconSrc: "/images/usdt-icon.svg", bg: '#00A478' },
-        { Label: "BTC: $43,250", value: "btc", rate: "43250", iconSrc: "/images/btc-icon.svg", bg: '#F7931A' },
-        { Label: "ETH: $2,580", value: "eth", rate: "2580", iconSrc: "/images/eth-icon.svg", bg: '#3C3C3D' }
-    ]
-    const [selectedPrice] = React.useState(TodayPrices[0]);
-
-    const handleNavigation = (category) => {
-        navigate(`${AppRoutes.productList.path}?category=${encodeURIComponent(category)}`);
+    // Main navigation items (visible in header)
+    const mainNavItems = ["Laptops", "Phone", "Smartwatches", "Tablets", "Audio", "Headphones", "TVs & Monitors"];
+    
+    // Get all other categories for "More" dropdown (exclude main nav items)
+    const moreCategories = PRODUCT_CATEGORIES.filter(cat => {
+        // Map main nav items to match category names
+        const categoryMap = {
+            "Laptops": ["Laptops"],
+            "Phone": ["Smartphones"],
+            "Smartwatches": ["Smart Watches"],
+            "Tablets": ["Tablets"],
+            "Audio": ["Speakers", "Audio Equipment"],
+            "Headphones": ["Headphones & Earbuds"],
+            "TVs & Monitors": ["TVs & Monitors"]
+        };
+        
+        // Check if category is in any of the main nav items
+        const isInMainNav = Object.values(categoryMap).some(mainCats => 
+            mainCats.some(mainCat => mainCat.toLowerCase() === cat.toLowerCase())
+        );
+        
+        return !isInMainNav;
+    });
+    
+    const userCurrency = useStore((state) => state.userCurrency);
+    const setUserCurrency = useStore((state) => state.setUserCurrency);
+    const CurrencyOptions = [
+        { label: "NGN", value: "NGN" },
+        { label: "USD", value: "USD" },
+        { label: "GHC", value: "GHC" }
+    ];
+    const currencyIconMap = {
+        NGN: { src: "/images/ngn-icon.svg" },
+        USD: { src: "/images/usd-icon.svg" },
+        GHC: { src: "/images/ghc-icon.svg" },
+        USDT: { src: "/images/usdt-icon.svg" },
     };
 
-    let bg = selectedPrice? selectedPrice.bg : '#00A478'
+    // Map navigation item names to actual category names
+    const navToCategoryMap = {
+        "Laptops": "Laptops",
+        "Phone": "Smartphones",
+        "Smartwatches": "Smart Watches",
+        "Tablets": "Tablets",
+        "Audio": "Speakers",
+        "Headphones": "Headphones & Earbuds",
+        "TVs & Monitors": "TVs & Monitors"
+    };
+
+    const handleNavigation = (category) => {
+        // Use mapped category if it exists, otherwise use the category as-is
+        const actualCategory = navToCategoryMap[category] || category;
+        navigate(`${AppRoutes.productList.path}?category=${encodeURIComponent(actualCategory)}`);
+    };
+
+    let bg = '#00A478'
     return (
         <nav className=" text-defaultwhite">
             <div className="flex items-center  justify-between max-w-full   py-2">
@@ -226,26 +274,24 @@ export function NavigationBar() {
                     <div className="flex items-center gap-2">
                         {/* <TrendingUp className="w-4 h-4 text-primaryp-300" /> */}
                         <DropdownMenu modal >
-                            <DropdownMenuTrigger asChild disabled>
+                            <DropdownMenuTrigger asChild>
                                 <Button
                                     variant="ghost"
                                     className={`text-defaultwhite w-36 relative hover:text-defaultwhite hover:bg-defaulttop-background h-auto font-normal outline-none border-none hover:outline-none flex items-center gap-1 `}
                                 >
-                                    <div className={`absolute bg-[${bg}] bg-opacity-15 left-0 rounded-full overflow-hidden p-2 `}>
-                                        <img src={selectedPrice.iconSrc} className="w-4 h-4" />
-                                       
+                                    <div className="flex items-center gap-2 pl-2">
+                                        <img src={currencyIconMap[userCurrency || 'USDT']?.src} className="w-4 h-4" />
+                                        <span className="text-sm font-medium">{userCurrency || 'USDT'}</span>
                                     </div>
-
-                                    <span className="pl-3 text-sm font-medium">{selectedPrice.Label}</span>
                                     <img src="/images/dropdown.svg" alt="Dropdown Icon" className=" absolute right-0" />
                                 </Button>
                             </DropdownMenuTrigger >
                             <DropdownMenuContent   style={DROPDOWN_MENU_CONTENT_STYLE} className="text-sm text-white border-neutral-600" align="start">
-                                {TodayPrices.map((price) => (
-                                    <DropdownMenuItem key={price.value} className=" hover:var(--bg-defaulttop-background)">
+                                {CurrencyOptions.map((c) => (
+                                    <DropdownMenuItem key={c.value} onClick={() => setUserCurrency(c.value)}>
                                         <div className="flex items-center gap-2" >
-                                            <img src={price.iconSrc} alt={price.Label} className="w-4 h-4" />
-                                            <span>{price.Label}</span>
+                                            <img src={currencyIconMap[c.value]?.src} className="w-4 h-4" />
+                                            <span>{c.label}</span>
                                         </div>
                                     </DropdownMenuItem>
                                 ))}
@@ -256,7 +302,7 @@ export function NavigationBar() {
 
                 {/* Right side - Navigation menu */}
                 <div className="hidden lg:flex items-center gap-2 ">
-                    {navItems.map((item) => (
+                    {mainNavItems.map((item) => (
                         <Button
                             key={item} variant="ghost"
                             onClick={() => handleNavigation(item)}
@@ -265,6 +311,36 @@ export function NavigationBar() {
                             {item}
                         </Button>
                     ))}
+                    
+                    {/* More dropdown */}
+                    {moreCategories.length > 0 && (
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button
+                                    variant="ghost"
+                                    className="text-defaultwhite hover:bg-defaulttop-background hover:text-defaultwhite px-4 py-2 text-sm font-normal h-auto cursor-pointer"
+                                >
+                                    More
+                                    <img src="/images/dropdown.svg" alt="Dropdown" className="ml-1 w-3 h-3" />
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent 
+                                style={DROPDOWN_MENU_CONTENT_STYLE} 
+                                className="text-sm text-white border-neutral-600 max-h-[400px] overflow-y-auto"
+                                align="end"
+                            >
+                                {moreCategories.map((category) => (
+                                    <DropdownMenuItem 
+                                        key={category}
+                                        onClick={() => handleNavigation(category)}
+                                        className="text-defaultwhite hover:bg-defaulttop-background cursor-pointer"
+                                    >
+                                        {category}
+                                    </DropdownMenuItem>
+                                ))}
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    )}
                 </div>
 
                 {/* Mobile menu button */}
@@ -277,8 +353,8 @@ export function NavigationBar() {
                                 </svg>
                             </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="bg-defaulttop-background border-defaultgrey w-48">
-                            {navItems.map((item) => (
+                        <DropdownMenuContent align="end" className="bg-defaulttop-background border-defaultgrey w-48 max-h-[400px] overflow-y-auto">
+                            {mainNavItems.map((item) => (
                                 <DropdownMenuItem 
                                     key={item} 
                                     onClick={() => handleNavigation(item)}
@@ -287,6 +363,20 @@ export function NavigationBar() {
                                     {item}
                                 </DropdownMenuItem>
                             ))}
+                            {moreCategories.length > 0 && (
+                                <>
+                                    <DropdownMenuSeparator className="bg-neutral-600" />
+                                    {moreCategories.map((category) => (
+                                        <DropdownMenuItem 
+                                            key={category}
+                                            onClick={() => handleNavigation(category)}
+                                            className="text-defaultwhite hover:bg-defaulttop-background cursor-pointer"
+                                        >
+                                            {category}
+                                        </DropdownMenuItem>
+                                    ))}
+                                </>
+                            )}
                         </DropdownMenuContent>
                     </DropdownMenu>
                 </div>
@@ -294,5 +384,3 @@ export function NavigationBar() {
         </nav>
     )
 }
-
-

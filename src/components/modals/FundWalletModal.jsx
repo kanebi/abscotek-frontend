@@ -6,7 +6,7 @@ import { Copy } from 'lucide-react'; // Import Copy icon
 import useStore from '../../store/useStore'; // Import useStore
 import { useAccount } from 'wagmi';
 
-function FundWalletModal({ isOpen, onClose, cartTotal, usdtBalance, userCurrency, walletAddress }) {
+function FundWalletModal({ isOpen, onClose, cartTotal, usdtBalance, cartCurrency, userCurrency, walletAddress }) {
   const [copyStatus, setCopyStatus] = useState(''); // State for copy confirmation
   const { setConnectWalletModalOpen } = useStore(); // Get action to open connect wallet modal
   const { isConnected } = useAccount();
@@ -49,11 +49,11 @@ function FundWalletModal({ isOpen, onClose, cartTotal, usdtBalance, userCurrency
         <div className="grid gap-4 py-4">
           <div className="flex justify-between items-center">
             <span className="text-neutralneutral-300">Cart Total:</span>
-            <AmountCurrency amount={cartTotal} fromCurrency={userCurrency} className="text-white font-semibold" />
+            <AmountCurrency amount={cartTotal} fromCurrency={cartCurrency || 'USDT'} className="text-white font-semibold" />
           </div>
           <div className="flex justify-between items-center">
             <span className="text-neutralneutral-300">Your {userCurrency} Balance:</span>
-            <AmountCurrency amount={usdtBalance} fromCurrency={userCurrency} className="text-white font-semibold" />
+            <AmountCurrency amount={usdtBalance} fromCurrency="USDT" className="text-white font-semibold" />
           </div>
           {isConnected && walletAddress ? (
             <div className="flex justify-between items-center mt-2">

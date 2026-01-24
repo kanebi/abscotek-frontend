@@ -31,12 +31,12 @@ const useStore = create((set, get) => {
   const storedWalletAddress = localStorage.getItem('walletAddress');
   
   let initialUser = null;
-  let initialCurrency = 'USDT';
+  let initialCurrency = localStorage.getItem('userCurrency') || 'USD';
   
   if (storedUserInfo) {
     try {
       initialUser = JSON.parse(storedUserInfo);
-      initialCurrency = initialUser?.preferences?.currency || 'USDT';
+      initialCurrency = initialUser?.preferences?.currency || initialCurrency;
     } catch (error) {
       console.error('Error parsing stored user info:', error);
       localStorage.removeItem('userInfo');
@@ -98,7 +98,7 @@ const useStore = create((set, get) => {
           token,
           currentUser: user,
           isAuthenticated: true,
-          userCurrency: user?.preferences?.currency || 'USDT',
+          userCurrency: user?.preferences?.currency || initialCurrency,
           walletAddress: user?.walletAddress || localStorage.getItem('walletAddress') || null
         });
         console.log('Session validated successfully:', { user: user.name, email: user.email });
@@ -110,7 +110,7 @@ const useStore = create((set, get) => {
           currentUser: null,
           isAuthenticated: false,
           walletAddress: null,
-          userCurrency: 'USDT'
+          userCurrency: 'USD'
         });
         return false;
       }
@@ -155,7 +155,8 @@ const useStore = create((set, get) => {
     }
   },
   setCurrentUser: (user) => {
-    set({ currentUser: user, userCurrency: user?.preferences?.currency || 'USDT' });
+    const currency = user?.preferences?.currency || get().userCurrency || 'USD';
+    set({ currentUser: user, userCurrency: currency });
     if (user) {
       localStorage.setItem('userInfo', JSON.stringify(user));
     } else {
@@ -163,7 +164,23 @@ const useStore = create((set, get) => {
     }
   },
   setIsLoading: (isLoading) => set({ isLoading }),
-  setUserCurrency: (currency) => set({ userCurrency: currency }),
+  setUserCurrency: (currency) => {
+    set({ userCurrency: currency });
+    try { localStorage.setItem('userCurrency', currency); } catch (e) { void e; }
+  },
+  initDefaultCurrency: async () => {
+    const stored = localStorage.getItem('userCurrency');
+    if (stored) return;
+    try {
+      const currencyService = (await import('../services/currencyService')).default;
+      const detected = await currencyService.getUserCurrencyByLocation();
+      const chosen = detected === 'USDT' ? 'USD' : detected;
+      set({ userCurrency: chosen });
+      try { localStorage.setItem('userCurrency', chosen); } catch (e) { void e; }
+    } catch (e) {
+      set({ userCurrency: 'USD' });
+    }
+  },
   setConnectWalletModalOpen: (isOpen) => set({ isConnectWalletModalOpen: isOpen }),
 
   // Wallet and Chain ID (managed externally by a React component using useReownWalletInfo)
@@ -235,12 +252,12 @@ const useStore = create((set, get) => {
     }
   },
 
-  addToCart: async (productId, quantity = 1, color) => {
+  addToCart: async (productId, quantity = 1, currency, variantName, specs) => {
     set({ cartUpdating: true });
     try {
       const { isAuthenticated, userCurrency, walletAddress } = get();
       let response;
-      response = await cartService.addToCart(productId, quantity, userCurrency, color, isAuthenticated, walletAddress);
+      response = await cartService.addToCart(productId, quantity, userCurrency || currency, variantName, specs, isAuthenticated, walletAddress);
       set({ cart: response });
       useNotificationStore.getState().addNotification('Item added to cart', 'success');
     } catch (error) {
