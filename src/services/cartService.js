@@ -34,9 +34,24 @@ const addToCart = async (productId, quantity, currency, variantName, specs, isAu
       return sameProduct && sameVariant && sameSpecs;
     });
     if (existingItemIndex > -1) {
+      // Update existing item quantity
       const newItems = [...cart.items];
       newItems[existingItemIndex].quantity += quantity;
-      const newCart = { ...cart, items: newItems };
+      
+      // Recalculate totals
+      const subtotal = newItems.reduce((sum, item) => {
+        const price = item.unitPrice || item.product?.price || item.price || 0;
+        const variantPrice = item.variant?.additionalPrice || 0;
+        return sum + ((price + variantPrice) * item.quantity);
+      }, 0);
+      
+      const newCart = { 
+        ...cart, 
+        items: newItems,
+        subtotal: subtotal,
+        total: subtotal,
+        currency: cart.currency || finalCurrency || 'USDT'
+      };
       localStorage.setItem('guestCart', JSON.stringify(newCart));
       return newCart;
     } else {
@@ -66,25 +81,60 @@ const addToCart = async (productId, quantity, currency, variantName, specs, isAu
         currency: finalCurrency,
       };
       const newItems = [...cart.items, newProduct];
-      const newCart = { ...cart, items: newItems };
+      
+      // Recalculate totals
+      const subtotal = newItems.reduce((sum, item) => {
+        const price = item.unitPrice || item.product?.price || item.price || 0;
+        const variantPrice = item.variant?.additionalPrice || 0;
+        return sum + ((price + variantPrice) * item.quantity);
+      }, 0);
+      
+      const newCart = { 
+        ...cart, 
+        items: newItems,
+        subtotal: subtotal,
+        total: subtotal,
+        currency: cart.currency || finalCurrency || 'USDT'
+      };
       localStorage.setItem('guestCart', JSON.stringify(newCart));
       return newCart;
     }
   }
 };
 
-const updateItemQuantity = async (productId, quantity) => {
+const updateItemQuantity = async (productId, quantity, variantName = null, specs = null) => {
   const { isAuthenticated, walletAddress } = useStore.getState();
   if (shouldUseApi(isAuthenticated, walletAddress)) {
-    const response = await apiClient.put('/cart', { productId, quantity });
+    const response = await apiClient.put('/cart', { productId, quantity, variantName, specs });
     return response.data;
   } else {
     const cart = getGuestCart();
-    const itemIndex = cart.items.findIndex((item) => item.product._id === productId);
+    // Find item by productId, variant, and specs for precise matching
+    const itemIndex = cart.items.findIndex((item) => {
+      const sameProduct = item.product?._id === productId || item.productId === productId;
+      const sameVariant = !variantName && !item.variant?.name || item.variant?.name === variantName;
+      const sameSpecs = JSON.stringify(item.specs || []) === JSON.stringify(specs || []);
+      return sameProduct && sameVariant && sameSpecs;
+    });
+    
     if (itemIndex > -1) {
       const newItems = [...cart.items];
       newItems[itemIndex].quantity = quantity;
-      const newCart = { ...cart, items: newItems };
+      
+      // Recalculate totals
+      const subtotal = newItems.reduce((sum, item) => {
+        const price = item.unitPrice || item.product?.price || item.price || 0;
+        const variantPrice = item.variant?.additionalPrice || 0;
+        return sum + ((price + variantPrice) * item.quantity);
+      }, 0);
+      
+      const newCart = { 
+        ...cart, 
+        items: newItems,
+        subtotal: subtotal,
+        total: subtotal,
+        currency: cart.currency || 'USDT'
+      };
       localStorage.setItem('guestCart', JSON.stringify(newCart));
       return newCart;
     }

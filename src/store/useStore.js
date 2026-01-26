@@ -255,11 +255,34 @@ const useStore = create((set, get) => {
   addToCart: async (productId, quantity = 1, currency, variantName, specs) => {
     set({ cartUpdating: true });
     try {
-      const { isAuthenticated, userCurrency, walletAddress } = get();
-      let response;
-      response = await cartService.addToCart(productId, quantity, userCurrency || currency, variantName, specs, isAuthenticated, walletAddress);
+      const { isAuthenticated, userCurrency, walletAddress, cart } = get();
+      
+      // Check if item already exists (for better UX messaging)
+      let itemExists = false;
+      if (isAuthenticated || walletAddress) {
+        // For authenticated users, backend handles this
+        itemExists = cart?.items?.some(item => {
+          const sameProduct = item.product?._id === productId || item.productId === productId;
+          const sameVariant = item.variant?.name === variantName;
+          const sameSpecs = JSON.stringify(item.specs || []) === JSON.stringify(specs || []);
+          return sameProduct && sameVariant && sameSpecs;
+        });
+      } else {
+        // For guest users, check local cart
+        const guestCart = cartService.getGuestCart();
+        itemExists = guestCart.items.some(item => {
+          const sameProduct = item.product?._id === productId;
+          const sameVariant = item.variant?.name === variantName;
+          const sameSpecs = JSON.stringify(item.specs || []) === JSON.stringify(specs || []);
+          return sameProduct && sameVariant && sameSpecs;
+        });
+      }
+      
+      const response = await cartService.addToCart(productId, quantity, userCurrency || currency, variantName, specs, isAuthenticated, walletAddress);
       set({ cart: response });
-      useNotificationStore.getState().addNotification('Item added to cart', 'success');
+      
+      const message = itemExists ? 'Cart item quantity updated' : 'Item added to cart';
+      useNotificationStore.getState().addNotification(message, 'success');
     } catch (error) {
       console.error('Failed to add to cart:', error);
       useNotificationStore.getState().addNotification('Failed to add item to cart', 'error');
@@ -268,27 +291,14 @@ const useStore = create((set, get) => {
     }
   },
 
-  updateCartQuantity: async (productId, newQuantity) => {
+  updateCartQuantity: async (productId, newQuantity, variantName = null, specs = null) => {
     if (newQuantity < 1) return;
     set({ cartUpdating: true });
     try {
       const { isAuthenticated, walletAddress } = get();
-      if (isAuthenticated || walletAddress) {
-        // Note: The service function is updateItemQuantity
-        const response = await cartService.updateItemQuantity(productId, newQuantity);
-        set({ cart: response });
-      } else {
-        // Handle guest cart update
-        const cart = cartService.getGuestCart();
-        const itemIndex = cart.items.findIndex((item) => item.product._id === productId);
-        if (itemIndex > -1) {
-          const newItems = [...cart.items];
-          newItems[itemIndex].quantity = newQuantity;
-          const newCart = { ...cart, items: newItems };
-          localStorage.setItem('guestCart', JSON.stringify(newCart));
-          set({ cart: newCart });
-        }
-      }
+      // Use service function for both authenticated and guest users for consistency
+      const response = await cartService.updateItemQuantity(productId, newQuantity, variantName, specs);
+      set({ cart: response });
     } catch (error) {
       console.error('Failed to update cart quantity:', error);
       useNotificationStore.getState().addNotification('Failed to update cart quantity', 'error');

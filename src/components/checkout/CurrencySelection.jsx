@@ -1,12 +1,9 @@
 import React from 'react';
 
 const CurrencySelection = ({ selectedCurrency, onCurrencyChange, className = "" }) => {
+  // Only support currencies compatible with Ethereum network (Alchemy setup)
   const currencies = [
     { code: 'USDT', name: 'USDT (Crypto)', type: 'crypto' },
-    { code: 'ETH', name: 'ETH (Chain Base)', type: 'crypto' },
-    { code: 'BTC', name: 'BTC (Chain Base)', type: 'crypto' },
-    { code: 'BNB', name: 'BNB (Chain Base)', type: 'crypto' },
-    { code: 'MATIC', name: 'MATIC (Chain Base)', type: 'crypto' },
     { code: 'USD', name: 'USD (Card/Bank)', type: 'fiat' },
     { code: 'NGN', name: 'NGN (Card/Bank)', type: 'fiat' }
   ];

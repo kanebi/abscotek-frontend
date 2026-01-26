@@ -321,7 +321,7 @@ export function NavigationBar() {
                             {item}
                         </Button>
                     ))}
-                    
+
                     {/* More button - Desktop - Shows categories card */}
                     {moreCategories.length > 0 && (
                         <div className="relative">
@@ -508,9 +508,9 @@ export function NavigationBar() {
                                             <span>{c.label}</span>
                                         </div>
                                     </DropdownMenuItem>
-                                ))}
-                            </DropdownMenuContent>
-                        </DropdownMenu>
+                            ))}
+                        </DropdownMenuContent>
+                    </DropdownMenu>
                     </div>
                 </div>
             </div>

@@ -62,8 +62,8 @@ function CartPage() {
   const isSufficientFunds = true;
 
 
-  const handleUpdateQuantity = (productId, newQuantity) => {
-    updateCartQuantity(productId, newQuantity);
+  const handleUpdateQuantity = (productId, newQuantity, variantName = null, specs = null) => {
+    updateCartQuantity(productId, newQuantity, variantName, specs);
   };
 
   const handleDeleteClick = (item) => {
@@ -187,7 +187,7 @@ function CartPage() {
                     {/* Quantity Controls */}
                     <div className="flex items-center gap-0 border border-[#38383a] rounded-lg w-fit">
                       <button
-                        onClick={() => handleUpdateQuantity(item.product._id, item.quantity - 1)}
+                        onClick={() => handleUpdateQuantity(item.product._id, item.quantity - 1, item.variant?.name, item.specs)}
                         disabled={cartUpdating || item.quantity <= 1}
                         className="w-8 h-8 flex items-center justify-center hover:bg-neutralneutral-700 disabled:opacity-50 rounded-l-lg"
                       >
@@ -197,7 +197,7 @@ function CartPage() {
                         {item.quantity}
                       </span>
                       <button
-                        onClick={() => handleUpdateQuantity(item.product._id, item.quantity + 1)}
+                        onClick={() => handleUpdateQuantity(item.product._id, item.quantity + 1, item.variant?.name, item.specs)}
                         disabled={cartUpdating}
                         className="w-8 h-8 flex items-center justify-center hover:bg-neutralneutral-700 disabled:opacity-50 rounded-r-lg"
                       >
@@ -296,7 +296,7 @@ function CartPage() {
                     {/* Quantity Controls */}
                     <div className="flex items-center gap-0 border border-[#38383a] rounded-lg w-fit">
                       <button
-                        onClick={() => handleUpdateQuantity(item.product._id, item.quantity - 1)}
+                        onClick={() => handleUpdateQuantity(item.product._id, item.quantity - 1, item.variant?.name, item.specs)}
                         disabled={cartUpdating || item.quantity <= 1}
                         className="w-10 h-10 flex items-center justify-center hover:bg-neutralneutral-700 disabled:opacity-50 rounded-l-lg"
                       >
@@ -306,7 +306,7 @@ function CartPage() {
                         {item.quantity}
                       </span>
                       <button
-                        onClick={() => handleUpdateQuantity(item.product._id, item.quantity + 1)}
+                        onClick={() => handleUpdateQuantity(item.product._id, item.quantity + 1, item.variant?.name, item.specs)}
                         disabled={cartUpdating}
                         className="w-10 h-10 flex items-center justify-center hover:bg-neutralneutral-700 disabled:opacity-50 rounded-r-lg"
                       >
@@ -319,7 +319,7 @@ function CartPage() {
                   <div className="flex flex-.col items-end gap-2">
                     {/* Price */}
                     <div className="text-white text-lg font-heading-header-3-header-3-semibold">
-                      <AmountCurrency amount={item.unitPrice || item.product.price} fromCurrency={item.currency || item.product.currency || cart.currency || 'USDT'} />
+                      <AmountCurrency amount={item.unitPrice || item.product?.price || item.price} fromCurrency={item.currency || item.product?.currency || cart.currency || 'USDT'} />
                     </div>
                     
                     {/* Delete Button */}

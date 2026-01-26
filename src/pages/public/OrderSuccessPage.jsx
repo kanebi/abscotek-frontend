@@ -5,6 +5,7 @@ import Layout from '../../components/Layout';
 import { AppRoutes } from '../../config/routes';
 import orderService from '../../services/orderService';
 import useNotificationStore from '../../store/notificationStore';
+import AmountCurrency from '../../components/ui/AmountCurrency';
 
 function OrderSuccessPage() {
   const { orderId } = useParams();
@@ -137,7 +138,14 @@ function OrderSuccessPage() {
                       TOTAL AMOUNT
                     </div>
                     <div className="text-white text-base font-normal font-['Mona_Sans'] leading-normal">
-                      {order.totalAmount.toFixed(2)} {order.currency || 'USDT'}
+                      <AmountCurrency 
+                        amount={
+                          order.totalAmount || 
+                          order.pricing?.total || 
+                          ((order.pricing?.subtotal || order.subTotal || 0) + (order.pricing?.delivery || order.deliveryFee || 0))
+                        } 
+                        fromCurrency={order.currency || 'USDT'} 
+                      />
                     </div>
                   </div>
                 )}

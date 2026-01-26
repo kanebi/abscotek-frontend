@@ -23,6 +23,7 @@ import CurrencySelection from '../../components/checkout/CurrencySelection';
 import currencyConversionService from '../../services/currencyConversionService';
 import WalletConnectButton from '../../components/widgets/WalletConnectButton';
 import useNotificationStore from '../../store/notificationStore';
+import CryptoPaymentModal from '../../components/checkout/CryptoPaymentModal';
 
 // Import Web3Modal for alternative wallet connection (fallback if not available)
 // let web3ModalHook = null;
@@ -86,11 +87,15 @@ function CheckoutPage() {
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [orderedSuccess, setOrderedSuccess] = useState(false);
   const [pendingOrderId, setPendingOrderId] = useState(null);
-  const [paymentMethod, setPaymentMethod] = useState('wallet'); // 'wallet' or 'paystack'
-  const [selectedCurrency, setSelectedCurrency] = useState('USDT'); // includes fiat and chain base currencies
+  const [paymentMethod, setPaymentMethod] = useState('crypto'); // 'crypto' - Direct blockchain payment
+  const [cryptoPaymentData, setCryptoPaymentData] = useState(null); // { orderId, paymentAddress, amount, currency, network, qrCode, expiry }
+  // Initialize with default currency, will be synced with cart.currency when cart loads
+  const [selectedCurrency, setSelectedCurrency] = useState('USDT');
   const [convertedAmount, setConvertedAmount] = useState(0);
   const [paymentAmount, setPaymentAmount] = useState(0); // Separate state for payment button amount
   const [isLoading, setIsLoading] = useState(true); // Single loading state
+  const [subtotalInUSD, setSubtotalInUSD] = useState(0); // Subtotal in base USD
+  const [deliveryCostInUSD, setDeliveryCostInUSD] = useState(0); // Delivery cost in USD
   const { cart, clearCart, userCurrency, usdtBalance, setIsAuthenticated, setWalletAddress, currentUser, walletAddress, cartLoading, fetchCart, isAuthenticated: storeAuthenticated } = useStore();
   const { addNotification } = useNotificationStore();
 
@@ -192,47 +197,124 @@ function CheckoutPage() {
   // Removed redirect logic to prevent blank screen
   // The page will show appropriate content based on cart and auth state
 
-  // Handle currency conversion and payment method selection
+  // Sync selectedCurrency with cart's base currency when cart loads
+  useEffect(() => {
+    if (cart?.currency) {
+      // Use cart's base currency (not converted currency)
+      // This ensures we start with the original currency
+      setSelectedCurrency(cart.currency);
+    }
+  }, [cart?.currency]);
+
+  // Handle currency conversion based on user location and selected currency
   useEffect(() => {
     const updatePaymentMethod = async () => {
-      const isCrypto = ['USDT','ETH','BTC','BNB','MATIC'].includes(selectedCurrency);
-      setPaymentMethod(isCrypto ? 'wallet' : 'paystack');
+      // Set payment method based on selected currency
+      // USDT = crypto, USD/NGN = paystack
+      if (selectedCurrency === 'USDT') {
+        setPaymentMethod('crypto');
+      } else {
+        setPaymentMethod('paystack');
+      }
 
       if (cart && cart.items && cart.items.length > 0) {
         try {
-          // Calculate cart total in cart's currency
+          // Check if user is from Nigeria (currency provider has already converted to NGN)
+          const isUserFromNigeria = userCurrency === 'NGN';
+          // Check if currency provider is on USD (userCurrency is USD)
+          const isCurrencyProviderUSD = userCurrency === 'USD';
+          
+          // Base currency from server (products are stored in USD)
+          const baseCurrency = 'USD';
+          
+          // Calculate cart total in base USD
+          // Use unitPrice first (includes variant price if variant is selected)
+          // Products are always stored in USD on the server
           const cartTotal = cart.items.reduce((total, item) => {
-            return total + (item.product?.price || item.price || item.unitPrice) * item.quantity;
+            // unitPrice is the correct price (includes variant if selected)
+            // product.price should now also reflect unitPrice from backend
+            return total + (item.unitPrice || item.product?.price || item.price) * item.quantity;
           }, 0);
 
-          // Convert cart total from cart currency to user currency
-          const cartTotalInUserCurrency = await currencyConversionService.convertCurrency(
-            cartTotal,
-            cart.currency || 'USDT',
-            userCurrency
-          );
-
-          let totalAmount = Number(cartTotalInUserCurrency);
-
-          // Add delivery cost if delivery method is selected
+          // Calculate delivery cost in USD
+          // Delivery methods are stored in NGN on server, but we need base USD
+          let deliveryCostInUSD = 0;
           if (selectedDeliveryMethod) {
-            const deliveryCostInUserCurrency = await currencyConversionService.convertCurrency(
-              selectedDeliveryMethod.price,
-              selectedDeliveryMethod.currency,
-              userCurrency
-            );
-            totalAmount = totalAmount + Number(deliveryCostInUserCurrency);
+            // Delivery methods are in NGN, convert to USD for base calculation
+            if (selectedDeliveryMethod.currency === 'NGN') {
+              deliveryCostInUSD = await currencyConversionService.convertCurrency(
+                selectedDeliveryMethod.price,
+                'NGN',
+                'USD'
+              );
+            } else {
+              deliveryCostInUSD = selectedDeliveryMethod.price;
+            }
           }
 
-          setConvertedAmount(totalAmount);
+          const totalInBaseUSD = cartTotal + Number(deliveryCostInUSD);
 
-          // Convert total amount from userCurrency to selectedCurrency for payment
-          const paymentConverted = await currencyConversionService.convertCurrency(
-            totalAmount,
-            userCurrency,
-            selectedCurrency
-          );
-          setPaymentAmount(Number(paymentConverted));
+          // Determine final payment amount based on user location and selected currency
+          let paymentAmountInSelectedCurrency = 0;
+
+          if (isUserFromNigeria) {
+            // User is from Nigeria - currency provider has already converted to NGN
+            if (selectedCurrency === 'NGN') {
+              // NGN selected: Use currency provider conversion (already done, no additional conversion)
+              // Cart currency should already be NGN from currency provider
+              paymentAmountInSelectedCurrency = await currencyConversionService.convertCurrency(
+                totalInBaseUSD,
+                'USD',
+                'NGN'
+              );
+            } else {
+              // USD/USDT selected: Convert from NGN (currency provider converted) to USD/USDT
+              // First get NGN amount (what currency provider shows)
+              const totalInNGN = await currencyConversionService.convertCurrency(
+                totalInBaseUSD,
+                'USD',
+                'NGN'
+              );
+              // Then convert to selected currency
+              paymentAmountInSelectedCurrency = await currencyConversionService.convertCurrency(
+                totalInNGN,
+                'NGN',
+                selectedCurrency
+              );
+            }
+          } else if (isCurrencyProviderUSD) {
+            // Currency provider is on USD
+            if (selectedCurrency === 'NGN') {
+              // NGN selected: Convert from USD to NGN (currency provider is USD, user wants NGN)
+              paymentAmountInSelectedCurrency = await currencyConversionService.convertCurrency(
+                totalInBaseUSD,
+                'USD',
+                'NGN'
+              );
+            } else {
+              // USD/USDT selected: Use unconverted base USD figures (original $ figures)
+              paymentAmountInSelectedCurrency = totalInBaseUSD;
+            }
+          } else {
+            // User is NOT from Nigeria and currency provider is NOT USD
+            if (selectedCurrency === 'NGN') {
+              // NGN selected: Convert base USD figures to NGN
+              paymentAmountInSelectedCurrency = await currencyConversionService.convertCurrency(
+                totalInBaseUSD,
+                'USD',
+                'NGN'
+              );
+            } else {
+              // USD/USDT selected: Use unconverted base USD figures (original $ figures)
+              paymentAmountInSelectedCurrency = totalInBaseUSD;
+            }
+          }
+
+          // Store converted payment amount and base USD figures
+          setConvertedAmount(Number(paymentAmountInSelectedCurrency));
+          setPaymentAmount(Number(paymentAmountInSelectedCurrency));
+          setSubtotalInUSD(cartTotal);
+          setDeliveryCostInUSD(Number(deliveryCostInUSD));
         } catch (error) {
           console.error('Currency conversion failed:', error);
           setConvertedAmount(0);
@@ -403,6 +485,17 @@ function CheckoutPage() {
     }
   };
 
+  // Get network based on selected currency (only Ethereum supported)
+  const getNetworkFromCurrency = (currency) => {
+    // All supported currencies use Ethereum network
+    return 'ethereum';
+  };
+
+  // Check if currency is crypto (USDT for crypto payments)
+  const isCryptoCurrency = (currency) => {
+    return currency === 'USDT';
+  };
+
   const handlePlaceOrder = async () => {
     if (!selectedAddressId) {
       addNotification("Please select a shipping address.", "error");
@@ -424,17 +517,8 @@ function CheckoutPage() {
       return;
     }
 
-    // Check wallet balance only if using wallet payment
-    if (paymentMethod === 'wallet') {
-      if (!userWalletAddress) {
-        // For USDT payments, if no wallet is connected, show error and don't proceed
-        // The user should connect wallet first before attempting payment
-        addNotification("Please connect your wallet to pay with USDT.", "error");
-        return;
-      }
-      // For USDT wallet payments, we'll use the platform balance check in the backend
-      console.log('USDT wallet payment selected, balance check will be done in backend');
-    }
+    // All currencies are supported (USDT, USD, NGN)
+    // No need to restrict payment methods
 
     setIsPlacingOrder(true);
     
@@ -449,66 +533,60 @@ function CheckoutPage() {
         convertedAmount: convertedAmount, // Include converted amount
       };
 
-      // For USDT payments, use the USDT wallet payment endpoint
-      if (paymentMethod === 'wallet' && selectedCurrency === 'USDT') {
-        // For USDT wallet payments, we process the payment using platform balance
-        // This should trigger a crypto payment flow, not Paystack
-        console.log('Processing USDT wallet payment with platform balance');
+      // Route to appropriate payment method based on selected currency
+      if (paymentMethod === 'crypto' && selectedCurrency === 'USDT') {
+        // Crypto payment for USDT
+        console.log('Creating crypto payment order...');
+        
+        // Get network from selected currency
+        const network = getNetworkFromCurrency(selectedCurrency);
+        
+        // Determine order currency based on user location
+        // If user is from Nigeria and NGN selected: use NGN (currency provider converted)
+        // Otherwise: use USD (base currency from server)
+        const isUserFromNigeria = userCurrency === 'NGN';
+        const isCurrencyProviderUSD = userCurrency === 'USD';
+        const orderCurrency = (isUserFromNigeria && selectedCurrency === 'NGN') ? 'NGN' : 'USD';
+        
+        const cryptoOrderData = {
+          deliveryMethodId: selectedDeliveryMethod._id,
+          shippingAddressId: selectedAddressId,
+          currency: selectedCurrency, // Payment currency (what user selected to pay with)
+          orderCurrency: orderCurrency, // Currency for order calculations (NGN if Nigeria+NGN, else USD)
+          network: network,
+          notes: ""
+        };
+        
+        console.log('Crypto payment order data:', {
+          isUserFromNigeria,
+          isCurrencyProviderUSD,
+          orderCurrency, // NGN if Nigeria+NGN, else USD
+          paymentCurrency: selectedCurrency, // What user pays with
+          network,
+          convertedAmount
+        });
 
-        const response = await orderService.checkout(orderData); // Use regular checkout for now
-        console.log('USDT wallet payment response:', response);
+        const cryptoResponse = await orderService.createCryptoPaymentOrder(cryptoOrderData);
+        console.log('Crypto payment order created:', cryptoResponse);
 
-        setOrderedSuccess(true);
-        await clearCart();
+        // Store crypto payment data to show modal
+        setCryptoPaymentData({
+          orderId: cryptoResponse.orderId,
+          paymentAddress: cryptoResponse.paymentAddress,
+          amount: cryptoResponse.amount,
+          currency: cryptoResponse.currency,
+          network: cryptoResponse.network,
+          qrCode: cryptoResponse.qrCode,
+          expiry: cryptoResponse.expiry
+        });
 
-        const orderNumber = response.orderNumber || response.order?.orderNumber;
-        if (!orderNumber) {
-          console.error('No order number found in USDT wallet payment response:', response);
-          throw new Error('No order number found in response');
-        }
-
-        console.log('USDT wallet payment order number:', orderNumber);
-        navigate(AppRoutes.orderSuccess.path.replace(':orderId?', orderNumber));
-        return;
-      }
-
-      // For non-USDT wallet payments or Paystack payments, use the regular checkout endpoint
-      const response = await orderService.checkout(orderData);
-      console.log('Checkout response:', response);
-      console.log('Response structure:', {
-        hasId: !!response._id,
-        hasOrder: !!response.order,
-        orderHasId: !!response.order?._id,
-        responseKeys: Object.keys(response)
-      });
-
-      // For wallet payments (non-USDT), the order is created immediately
-      if (paymentMethod === 'wallet' && selectedCurrency !== 'USDT') {
-      setOrderedSuccess(true);
-        await clearCart();
-
-        // Extract order number - response should now have orderNumber
-        const orderNumber = response.orderNumber || response.order?.orderNumber;
-        if (!orderNumber) {
-          console.error('No order number found in wallet payment response:', response);
-          throw new Error('No order number found in response');
-        }
-
-        console.log('Wallet payment order number:', orderNumber, 'type:', typeof orderNumber);
-        // Use order number for navigation
-        navigate(AppRoutes.orderSuccess.path.replace(':orderId?', orderNumber));
+        setIsPlacingOrder(false);
       } else {
-        // For Paystack payments, the order is created with pending status
-        // Store the order ID for later use in success handler
-        const orderId = response.orderId || response.order?._id || response._id;
-        if (!orderId) {
-          console.error('No order ID found in Paystack response:', response);
-          throw new Error('No order ID found in Paystack response');
-        }
-
-        setPendingOrderId(String(orderId));
-        console.log('Order created with pending status for Paystack payment:', orderId, 'type:', typeof orderId);
-        // Don't clear cart or navigate yet - let Paystack success handler do that
+        // Paystack payment for USD/NGN
+        // The PaystackButton component will handle the payment
+        // Just set processing state
+        setIsPlacingOrder(false);
+        // PaystackButton will trigger handlePaystackSuccess when payment is complete
       }
     } catch (error) {
       console.error('Error placing order:', error);
@@ -696,62 +774,42 @@ function CheckoutPage() {
   }
 
   // Currency and payment method selection component
-  const PaymentMethodSelection = () => (
-    <div className="space-y-6">
-      {/* Currency Selection */}
-      <CurrencySelection 
-        selectedCurrency={selectedCurrency}
-        onCurrencyChange={setSelectedCurrency}
-      />
-      
-      {/* Payment Method Display */}
-      <div className="bg-neutral-800 rounded-lg p-6">
-        <h3 className="text-white text-lg font-semibold mb-4">Payment Method</h3>
-        <div className="space-y-3">
-          {selectedCurrency === 'USDT' ? (
-            <div className="flex items-center space-x-3">
-              <div className="w-4 h-4 text-primaryp-300 bg-neutral-700 border-neutral-600 rounded-full flex items-center justify-center">
-                <div className="w-2 h-2 bg-primaryp-300 rounded-full"></div>
-              </div>
-              <div className="flex-1">
-                <div className="text-white font-medium">
-                  {userWalletAddress ? 'Crypto Wallet (USDT)' : 'Connect Wallet for USDT Payment'}
-                </div>
-                <div className="text-neutral-400 text-sm">
-                  {userWalletAddress
-                    ? `Pay with your connected wallet (${userWalletAddress.slice(0, 6)}...${userWalletAddress.slice(-4)})`
-                    : 'Connect your crypto wallet to pay with USDT'
-                  }
-                </div>
-                {!userWalletAddress && (
-                  <div className="mt-2">
-                    <WalletConnectButton
-                      onConnect={authenticateAndLogin}
-                      className="bg-primaryp-300 hover:bg-primaryp-400 text-white px-4 py-2 rounded text-sm w-full"
-                    >
-                      Connect Wallet for USDT Payment
-                    </WalletConnectButton>
+  const PaymentMethodSelection = () => {
+    const isCrypto = isCryptoCurrency(selectedCurrency);
+    const network = getNetworkFromCurrency(selectedCurrency);
+
+    return (
+      <div className="space-y-6">
+        {/* Currency Selection */}
+        <CurrencySelection 
+          selectedCurrency={selectedCurrency}
+          onCurrencyChange={setSelectedCurrency}
+        />
+        
+        {/* Payment Method Display - Only show for crypto currencies */}
+        {isCrypto && (
+          <div className="bg-neutral-800 rounded-lg p-6">
+            <h3 className="text-white text-lg font-semibold mb-4">Payment Method</h3>
+            <div className="space-y-3">
+              <div className="w-full text-left p-4 rounded-lg border-2 border-primaryp-300 bg-primaryp-300/10">
+                <div className="flex items-center space-x-3">
+                  <div className="w-4 h-4 rounded-full border-2 border-primaryp-300 bg-primaryp-300 flex items-center justify-center">
+                    <div className="w-2 h-2 bg-white rounded-full"></div>
                   </div>
-                )}
-              </div>
-            </div>
-          ) : (
-            <div className="flex items-center space-x-3">
-              <div className="w-4 h-4 text-primaryp-300 bg-neutral-700 border-neutral-600 rounded-full flex items-center justify-center">
-                <div className="w-2 h-2 bg-primaryp-300 rounded-full"></div>
-              </div>
-              <div className="flex-1">
-                <div className="text-white font-medium">Paystack ({selectedCurrency})</div>
-                <div className="text-neutral-400 text-sm">
-                  Pay with your debit/credit card or bank transfer in {selectedCurrency}
+                  <div className="flex-1">
+                    <div className="text-white font-medium">Pay with Crypto Wallet</div>
+                    <div className="text-neutral-400 text-sm">
+                      Pay directly with {selectedCurrency} on Ethereum network - Zero fees, instant confirmation
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
-    </div>
-  );
+    );
+  };
 
   return (
     <Layout>
@@ -819,6 +877,8 @@ function CheckoutPage() {
             userWalletAddress={userWalletAddress}
             onPaystackSuccess={handlePaystackSuccess}
             onPaystackClose={handlePaystackClose}
+            subtotalInUSD={subtotalInUSD}
+            deliveryCostInUSD={deliveryCostInUSD}
           />
         </div>
 
@@ -890,6 +950,44 @@ function CheckoutPage() {
           </div>
         </div>
       </div>
+
+      {/* Crypto Payment Modal */}
+      {cryptoPaymentData && (
+        <CryptoPaymentModal
+          orderId={cryptoPaymentData.orderId}
+          paymentAddress={cryptoPaymentData.paymentAddress}
+          amount={cryptoPaymentData.amount}
+          currency={cryptoPaymentData.currency}
+          network={cryptoPaymentData.network}
+          qrCode={cryptoPaymentData.qrCode}
+          expiry={cryptoPaymentData.expiry}
+          onClose={() => {
+            setCryptoPaymentData(null);
+            // Optionally navigate to orders page
+            navigate(AppRoutes.userOrders.path);
+          }}
+          onPaymentConfirmed={async () => {
+            await clearCart();
+            setCryptoPaymentData(null);
+            addNotification('Payment confirmed! Your order is being processed.', 'success');
+            navigate(AppRoutes.userOrders.path);
+          }}
+          onCancel={async () => {
+            try {
+              // Cancel the order
+              if (cryptoPaymentData.orderId) {
+                await orderService.cancelOrder(cryptoPaymentData.orderId);
+                addNotification('Payment cancelled. Order has been cancelled.', 'info');
+              }
+              setCryptoPaymentData(null);
+              navigate(AppRoutes.userOrders.path);
+            } catch (error) {
+              console.error('Error cancelling order:', error);
+              addNotification('Error cancelling order. Please try again.', 'error');
+            }
+          }}
+        />
+      )}
 
       {/* Payment Processing Overlay */}
       {isProcessingPayment && (

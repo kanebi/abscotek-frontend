@@ -4,18 +4,24 @@ import AmountCurrency from "@/components/ui/AmountCurrency";
 import React from "react";
 
 export default function OrderSummary({ order }) {
+  // Calculate subtotal and delivery from order data
+  const subtotal = order.pricing?.subtotal || order.subTotal || 0;
+  const delivery = order.pricing?.delivery || order.deliveryFee || 0;
+  // Calculate total as subtotal + delivery (ensures correct totaling)
+  const total = order.pricing?.total || order.totalAmount || (subtotal + delivery);
+  
   const orderDetails = {
     product: {
-      name: order.product.name,
-      variant: order.product.variant,
-      quantity: order.product.quantity,
-      image: order.product.images?.[0] || order.product.image || '/images/desktop-1.png',
+      name: order.product?.name || order.productName || 'Product',
+      variant: order.product?.variant || order.variant || 'N/A',
+      quantity: order.product?.quantity || order.quantity || 1,
+      image: order.product?.images?.[0] || order.product?.image || order.productImage || '/images/desktop-1.png',
     },
     pricing: [
-      { label: "Subtotal", value: order.pricing.subtotal },
-      { label: "Delivery", value: order.pricing.delivery },
+      { label: "Subtotal", value: subtotal },
+      { label: "Delivery", value: delivery },
     ],
-    total: order.pricing.total,
+    total: total, // Use calculated total (subtotal + delivery)
   };
 
   return (

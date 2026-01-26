@@ -79,9 +79,9 @@ const OrderCard = ({ order, onViewOrder }) => {
                     {order.product.name}
                   </h3>
                   {order.product.variant && (
-                    <p className="relative w-fit font-body-large-large-medium font-[number:var(--body-large-large-medium-font-weight)] text-neutralneutral-100 text-[length:var(--body-large-large-medium-font-size)] tracking-[var(--body-large-large-medium-letter-spacing)] leading-[var(--body-large-large-medium-line-height)] whitespace-nowrap [font-style:var(--body-large-large-medium-font-style)]">
+                  <p className="relative w-fit font-body-large-large-medium font-[number:var(--body-large-large-medium-font-weight)] text-neutralneutral-100 text-[length:var(--body-large-large-medium-font-size)] tracking-[var(--body-large-large-medium-letter-spacing)] leading-[var(--body-large-large-medium-line-height)] whitespace-nowrap [font-style:var(--body-large-large-medium-font-style)]">
                       {typeof order.product.variant === 'string' ? order.product.variant : order.product.variant.name}
-                    </p>
+                  </p>
                   )}
                   {order.product.specs && order.product.specs.length > 0 && (
                     <div className="text-xs text-neutralneutral-300 mt-1">
@@ -195,9 +195,9 @@ const OrderCard = ({ order, onViewOrder }) => {
                     {order.product.name}
                   </h3>
                   {order.product.variant && (
-                    <p className="relative w-full font-body-large-large-medium font-[number:var(--body-large-large-medium-font-weight)] text-neutralneutral-100 text-xs md:text-[length:var(--body-large-large-medium-font-size)] tracking-[var(--body-large-large-medium-letter-spacing)] leading-[16px] md:leading-[var(--body-large-large-medium-line-height)] truncate [font-style:var(--body-large-large-medium-font-style)]">
+                  <p className="relative w-full font-body-large-large-medium font-[number:var(--body-large-large-medium-font-weight)] text-neutralneutral-100 text-xs md:text-[length:var(--body-large-large-medium-font-size)] tracking-[var(--body-large-large-medium-letter-spacing)] leading-[16px] md:leading-[var(--body-large-large-medium-line-height)] truncate [font-style:var(--body-large-large-medium-font-style)]">
                       {typeof order.product.variant === 'string' ? order.product.variant : order.product.variant.name}
-                    </p>
+                  </p>
                   )}
                   {order.product.specs && order.product.specs.length > 0 && (
                     <div className="text-xs text-neutralneutral-300 mt-1">

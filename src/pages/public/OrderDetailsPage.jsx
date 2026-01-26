@@ -340,9 +340,19 @@ function OrderDetailsPage() {
                         <p className="text-sm text-neutral-400">Qty: {item.quantity}</p>
                       </div>
                     </div>
-                    <p className="text-white font-medium">
-                      <AmountCurrency amount={item.totalPrice || (item.unitPrice * item.quantity)} fromCurrency={item.currency || order.currency || 'USDT'} />
-                    </p>
+                    <div className="text-right">
+                      <p className="text-white font-medium">
+                        <AmountCurrency 
+                          amount={(item.unitPrice || item.price || 0) * (item.quantity || 1)} 
+                          fromCurrency={item.currency || order.currency || 'USDT'} 
+                        />
+                      </p>
+                      {item.unitPrice && item.quantity > 1 && (
+                        <p className="text-xs text-neutral-400 mt-1">
+                          <AmountCurrency amount={item.unitPrice} fromCurrency={item.currency || order.currency || 'USDT'} /> each
+                        </p>
+                      )}
+                    </div>
                   </div>
                 )) || []}
               </div>
@@ -384,7 +394,15 @@ function OrderDetailsPage() {
                 <div className="border-t border-neutral-700 my-2"></div>
                 <div className="flex justify-between text-white font-semibold text-lg">
                   <span>Total</span>
-                  <span><AmountCurrency amount={order.pricing?.total || order.totalAmount || (order.pricing?.subtotal || order.subTotal || 0) + (order.pricing?.delivery || order.deliveryFee || deliveryMethod?.price || 0)} fromCurrency={order.currency || 'USDT'} /></span>
+                  <span>
+                    <AmountCurrency 
+                      amount={
+                        (order.pricing?.subtotal || order.subTotal || 0) + 
+                        (order.pricing?.delivery || order.deliveryFee || deliveryMethod?.price || 0)
+                      } 
+                      fromCurrency={order.currency || 'USDT'} 
+                    />
+                  </span>
                 </div>
               </div>
             </Card>
@@ -485,7 +503,13 @@ function OrderDetailsPage() {
                     <div className="flex justify-between items-center">
                       <span className="text-white font-semibold">Total Amount:</span>
                       <span className="text-white font-semibold">
-                        <AmountCurrency amount={order.pricing?.total || order.totalAmount || (order.pricing?.subtotal || order.subTotal || 0) + (order.pricing?.delivery || order.deliveryFee || deliveryMethod?.price || 0)} fromCurrency={order.currency || 'USDT'} />
+                        <AmountCurrency 
+                          amount={
+                            (order.pricing?.subtotal || order.subTotal || 0) + 
+                            (order.pricing?.delivery || order.deliveryFee || deliveryMethod?.price || 0)
+                          } 
+                          fromCurrency={order.currency || 'USDT'} 
+                        />
                       </span>
                     </div>
                   </div>

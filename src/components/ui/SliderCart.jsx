@@ -49,8 +49,8 @@ export default function SliderCart({ triggerClassName = ""}) {
     };
   }, [isOpen]);
 
-  const handleUpdateQuantity = (productId, newQuantity) => {
-    updateCartQuantity(productId, newQuantity);
+  const handleUpdateQuantity = (productId, newQuantity, variantName = null, specs = null) => {
+    updateCartQuantity(productId, newQuantity, variantName, specs);
   };
 
   const handleDeleteClick = (item) => {
@@ -214,7 +214,7 @@ try {
                        {/* Quantity Controls */}
                        <div className="flex items-center gap-0 border border-neutralneutral-600 rounded-lg w-fit">
                          <button
-                           onClick={() => handleUpdateQuantity(item.product?._id || item.productId, item.quantity - 1)}
+                           onClick={() => handleUpdateQuantity(item.product?._id || item.productId, item.quantity - 1, item.variant?.name, item.specs)}
                            disabled={cartUpdating || item.quantity <= 1}
                            className="w-10 h-10 flex items-center justify-center hover:bg-neutralneutral-800 disabled:opacity-50 rounded-l-lg"
                          >
@@ -224,7 +224,7 @@ try {
                            {item.quantity}
                          </span>
                          <button
-                           onClick={() => handleUpdateQuantity(item.product?._id || item.productId, item.quantity + 1)}
+                           onClick={() => handleUpdateQuantity(item.product?._id || item.productId, item.quantity + 1, item.variant?.name, item.specs)}
                            disabled={cartUpdating}
                            className="w-10 h-10 flex items-center justify-center hover:bg-neutralneutral-800 disabled:opacity-50 rounded-r-lg"
                          >

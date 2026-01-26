@@ -86,6 +86,18 @@ const processUSDTWalletPayment = async (paymentData) => {
   return response.data;
 };
 
+// Create order with crypto payment (blockchain)
+const createCryptoPaymentOrder = async (orderData) => {
+  const response = await apiClient.post('/orders/create-crypto-payment', orderData);
+  return response.data;
+};
+
+// Check crypto payment status
+const checkCryptoPaymentStatus = async (orderId) => {
+  const response = await apiClient.get(`/orders/${orderId}/crypto-payment-status`);
+  return response.data;
+};
+
 export default {
   createOrder,
   checkout,
@@ -96,6 +108,8 @@ export default {
   getOrderByPaystackReference,
   verifyPaymentAndCreateOrder,
   processUSDTWalletPayment,
+  createCryptoPaymentOrder,
+  checkCryptoPaymentStatus,
   updateOrderStatus,
   cancelOrder,
   adminGetAllOrders,

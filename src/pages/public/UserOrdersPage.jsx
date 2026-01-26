@@ -196,7 +196,14 @@ function UserOrdersPage() {
                       <div>
                         <span className="text-neutral-500">Total:</span>
                         <span className="ml-2 text-primary-400 font-body-base-base-bold">
-                          <AmountCurrency amount={order.totalAmount} fromCurrency={order.currency || "USDT"} />
+                          <AmountCurrency 
+                            amount={
+                              order.totalAmount || 
+                              order.pricing?.total || 
+                              ((order.pricing?.subtotal || order.subTotal || 0) + (order.pricing?.delivery || order.deliveryFee || 0))
+                            } 
+                            fromCurrency={order.currency || "USDT"} 
+                          />
                         </span>
                       </div>
                       {order.trackingNumber && (

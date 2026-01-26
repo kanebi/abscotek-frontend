@@ -275,7 +275,7 @@ export const OrderDetailsSection = ({ order, onBackToList }) => {
                     </div>
                     <div className="w-[74px] font-body-large-large-semibold text-defaultwhite text-center">
                       <AmountCurrency 
-                        amount={order.product.price || 0} 
+                        amount={order.product.unitPrice || order.product.price || 0} 
                         fromCurrency={order.product.currency || order.currency || 'USDT'} 
                       />
                     </div>
@@ -294,7 +294,7 @@ export const OrderDetailsSection = ({ order, onBackToList }) => {
                     </div>
                     <div className="font-body-large-large-medium text-defaultwhite text-right">
                       <AmountCurrency 
-                        amount={order.pricing.subtotal || 0} 
+                        amount={order.pricing?.subtotal || order.subTotal || 0} 
                         fromCurrency={order.currency || 'USDT'} 
                       />
                     </div>
@@ -305,7 +305,7 @@ export const OrderDetailsSection = ({ order, onBackToList }) => {
                     </div>
                     <div className="font-body-large-large-medium text-defaultwhite text-right">
                       <AmountCurrency 
-                        amount={order.pricing.delivery || 0} 
+                        amount={order.pricing?.delivery || order.deliveryFee || 0} 
                         fromCurrency={order.currency || 'USDT'} 
                       />
                     </div>
@@ -320,7 +320,11 @@ export const OrderDetailsSection = ({ order, onBackToList }) => {
                     </div>
                     <div className="font-body-xlarge-xlarge-semibold text-defaultwhite text-right">
                       <AmountCurrency 
-                        amount={order.pricing.total || 0} 
+                        amount={
+                          order.pricing?.total || 
+                          order.totalAmount || 
+                          ((order.pricing?.subtotal || order.subTotal || 0) + (order.pricing?.delivery || order.deliveryFee || 0))
+                        } 
                         fromCurrency={order.currency || 'USDT'} 
                       />
                     </div>

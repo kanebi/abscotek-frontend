@@ -211,16 +211,18 @@ function OrderDetail() {
                           <div className="text-right">
                             <p className="text-white font-body-large-large-bold">
                               <AmountCurrency 
-                                amount={item.totalPrice || (item.unitPrice * item.quantity)} 
+                                amount={(item.unitPrice || item.price || 0) * (item.quantity || 1)} 
                                 fromCurrency={item.currency || order.currency || 'USDT'} 
                               />
                             </p>
+                            {item.unitPrice && item.quantity > 1 && (
                             <p className="text-neutralneutral-400 text-sm">
                               <AmountCurrency 
                                 amount={item.unitPrice} 
                                 fromCurrency={item.currency || order.currency || 'USDT'} 
                               /> each
                             </p>
+                            )}
                           </div>
                         </div>
                       );
