@@ -9,6 +9,7 @@ import { AppRoutes } from '../../config/routes';
 import ProductVariantEditor from '../../components/admin/ProductVariantEditor';
 import ProductSpecsEditor from '../../components/admin/ProductSpecsEditor';
 import { PRODUCT_CATEGORIES, PRODUCT_BRANDS } from '../../config/categories';
+import currencyConversionService from '../../services/currencyConversionService';
 
 
 function ProductEdit() {
@@ -38,10 +39,23 @@ function ProductEdit() {
   const [uploadUrls, setUploadUrls] = useState(['']);
   const [isUploading, setIsUploading] = useState(false);
   const [existingImages, setExistingImages] = useState([]);
+  const [convertedAmounts, setConvertedAmounts] = useState({ ngn: null, ghc: null });
 
   useEffect(() => {
     fetchProduct();
   }, [id]);
+
+  useEffect(() => {
+    const amt = parseFloat(formData.price);
+    const curr = formData.currency;
+    if (amt && !isNaN(amt) && (curr === 'USD' || curr === 'USDT')) {
+      currencyConversionService.convertCurrency(amt, 'USD', 'NGN')
+        .then(ngn => currencyConversionService.convertCurrency(amt, 'USD', 'GHC').then(ghc => setConvertedAmounts({ ngn, ghc })))
+        .catch(() => setConvertedAmounts({ ngn: null, ghc: null }));
+    } else {
+      setConvertedAmounts({ ngn: null, ghc: null });
+    }
+  }, [formData.price, formData.currency]);
 
   const fetchProduct = async () => {
     try {
@@ -72,8 +86,37 @@ function ProductEdit() {
     }
   };
 
+  const updateConvertedAmounts = async (priceVal, currencyVal) => {
+    const amt = parseFloat(priceVal);
+    const curr = currencyVal || formData.currency;
+    if (!amt || isNaN(amt)) {
+      setConvertedAmounts({ ngn: null, ghc: null });
+      return;
+    }
+    const isUSD = curr === 'USD' || curr === 'USDT';
+    if (!isUSD) {
+      setConvertedAmounts({ ngn: null, ghc: null });
+      return;
+    }
+    try {
+      const ngn = await currencyConversionService.convertCurrency(amt, 'USD', 'NGN');
+      const ghc = await currencyConversionService.convertCurrency(amt, 'USD', 'GHC');
+      setConvertedAmounts({ ngn, ghc });
+    } catch {
+      setConvertedAmounts({ ngn: null, ghc: null });
+    }
+  };
+
   const handleInputChange = (field, value) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData(prev => {
+      const next = { ...prev, [field]: value };
+      if (field === 'price' || field === 'currency') {
+        const p = field === 'price' ? value : prev.price;
+        const c = field === 'currency' ? value : prev.currency;
+        updateConvertedAmounts(p, c);
+      }
+      return next;
+    });
   };
 
   const safeParseArray = (val) => {
@@ -277,7 +320,7 @@ function ProductEdit() {
                   />
                 </div>
                 <div>
-                  <label className="block text-neutralneutral-300 text-sm mb-2">Price (USDT) *</label>
+                  <label className="block text-neutralneutral-300 text-sm mb-2">Price (USD/USDT) *</label>
                   <input
                     type="number"
                     step="0.01"
@@ -286,6 +329,16 @@ function ProductEdit() {
                     className="w-full p-3 bg-neutralneutral-800 border border-neutralneutral-600 rounded-lg text-white placeholder-neutralneutral-400"
                     required
                   />
+                  {(convertedAmounts.ngn != null || convertedAmounts.ghc != null) && (
+                    <div className="mt-2 text-sm text-neutralneutral-400 space-y-1">
+                      {convertedAmounts.ngn != null && (
+                        <div>NGN: {currencyConversionService.formatCurrency(convertedAmounts.ngn, 'NGN')}</div>
+                      )}
+                      {convertedAmounts.ghc != null && (
+                        <div>GHC: {currencyConversionService.formatCurrency(convertedAmounts.ghc, 'GHC')}</div>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
 

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Copy, Check, Loader2 } from 'lucide-react';
 import { Button } from '../ui/button';
-import AmountCurrency from '../ui/AmountCurrency';
+import currencyConversionService from '../../services/currencyConversionService';
 import orderService from '../../services/orderService';
 import useNotificationStore from '../../store/notificationStore';
 
@@ -87,7 +87,16 @@ function CryptoPaymentModal({
   };
 
   const getNetworkDetails = () => {
+    // Crypto (USDT) payments use Base network
+    const effectiveNetwork = (currency === 'USDT' || currency === 'USD') ? 'base' : (network || 'base');
     const networks = {
+      base: {
+        name: 'Base',
+        symbol: 'ETH',
+        explorer: 'https://basescan.org',
+        blockTime: '~2 seconds',
+        confirmations: 3
+      },
       ethereum: {
         name: 'Ethereum',
         symbol: 'ETH',
@@ -110,7 +119,7 @@ function CryptoPaymentModal({
         confirmations: 3
       }
     };
-    return networks[network] || networks.ethereum;
+    return networks[effectiveNetwork] || networks.base;
   };
 
   const networkDetails = getNetworkDetails();
@@ -129,11 +138,11 @@ function CryptoPaymentModal({
         </div>
 
         <div className="space-y-4">
-          {/* Amount */}
+          {/* Amount - always display in USDT (native crypto currency) */}
           <div className="text-center">
             <p className="text-neutral-400 text-sm mb-1">Amount to Pay</p>
             <p className="text-2xl font-bold text-white">
-              <AmountCurrency amount={amount} fromCurrency={currency} />
+              {currencyConversionService.formatCurrency(Number(amount), 'USDT')}
             </p>
             <div className="mt-2 p-3 bg-[#2C2C2E] rounded-lg">
               <p className="text-neutral-300 text-sm font-medium">{networkDetails.name} Network</p>
@@ -215,7 +224,7 @@ function CryptoPaymentModal({
           <div className="bg-[#2C2C2E] rounded-lg p-4">
             <p className="text-sm text-neutral-400 mb-2">Instructions:</p>
             <ol className="text-xs text-neutral-500 space-y-1 list-decimal list-inside">
-              <li>Send exactly <strong className="text-white"><AmountCurrency amount={amount} fromCurrency={currency} /></strong> to the address above</li>
+              <li>Send exactly <strong className="text-white">{currencyConversionService.formatCurrency(Number(amount), 'USDT')}</strong> to the address above</li>
               <li>Wait for blockchain confirmations (usually 1-3 minutes)</li>
               <li>Your order will be confirmed automatically</li>
             </ol>
@@ -223,21 +232,21 @@ function CryptoPaymentModal({
 
           {/* Action Buttons - List View */}
           <div className="flex flex-col space-y-3">
+            <Button
+              onClick={onClose}
+              className="w-full bg-primaryp-300 hover:bg-primaryp-400 text-white"
+            >
+              Continue Later
+            </Button>
             {onCancel && (
               <Button
                 onClick={onCancel}
                 variant="outline"
                 className="w-full border-red-500/50 text-red-400 hover:bg-red-500/10 hover:border-red-500"
               >
-                Cancel Payment
+                Cancel Order
               </Button>
             )}
-            <Button
-              onClick={onClose}
-              className="w-full bg-primaryp-300 hover:bg-primaryp-400 text-white"
-            >
-              Close (Payment will continue processing)
-            </Button>
           </div>
         </div>
       </div>

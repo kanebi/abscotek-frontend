@@ -20,7 +20,6 @@ const adminSignup = async (userData) => {
     name: userData.name,
     email: userData.email,
     password: userData.password,
-    role: userData.role,
     companyName: userData.companyName,
     phone: userData.phone
   });

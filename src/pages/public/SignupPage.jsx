@@ -12,7 +12,6 @@ function SignupPage() {
     email: '',
     password: '',
     confirmPassword: '',
-    role: 'vendor', // default to vendor
     companyName: '',
     phone: ''
   });
@@ -72,13 +71,7 @@ function SignupPage() {
       setIsAuthenticated(true);
       setToken(response.token);
       setCurrentUser(response.user);
-      
-      // Redirect based on role
-      if (response.user.role === 'admin') {
-        navigate(AppRoutes.admin.path);
-      } else {
-        navigate(AppRoutes.vendor.path || '/vendor');
-      }
+      navigate(AppRoutes.admin.path);
     } catch (error) {
       const errorMessage = authService.extractErrorMessage(error);
       setMessage(errorMessage);
@@ -109,21 +102,6 @@ function SignupPage() {
         
         <form className="mt-8 space-y-6" onSubmit={handleSignup}>
           <div className="rounded-md shadow-sm -space-y-px">
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-neutralneutral-300 mb-2">
-                Account Type
-              </label>
-              <select
-                name="role"
-                value={formData.role}
-                onChange={handleInputChange}
-                className="w-full px-3 py-2 bg-neutralneutral-800 border border-neutralneutral-600 rounded-md shadow-sm focus:outline-none focus:ring-primaryp-500 focus:border-primaryp-500 text-white"
-              >
-                <option value="vendor">Vendor</option>
-                <option value="admin">Admin</option>
-              </select>
-            </div>
-
             <div className="mb-4">
               <label htmlFor="name" className="block text-sm font-medium text-neutralneutral-300 mb-2">
                 Full Name
@@ -156,22 +134,20 @@ function SignupPage() {
               />
             </div>
 
-            {formData.role === 'vendor' && (
-              <div className="mb-4">
-                <label htmlFor="companyName" className="block text-sm font-medium text-neutralneutral-300 mb-2">
-                  Company Name
-                </label>
-                <input
-                  id="companyName"
-                  name="companyName"
-                  type="text"
-                  value={formData.companyName}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 bg-neutralneutral-800 border border-neutralneutral-600 rounded-md shadow-sm focus:outline-none focus:ring-primaryp-500 focus:border-primaryp-500 text-white placeholder-neutralneutral-400"
-                  placeholder="Enter company name"
-                />
-              </div>
-            )}
+            <div className="mb-4">
+              <label htmlFor="companyName" className="block text-sm font-medium text-neutralneutral-300 mb-2">
+                Company Name
+              </label>
+              <input
+                id="companyName"
+                name="companyName"
+                type="text"
+                value={formData.companyName}
+                onChange={handleInputChange}
+                className="w-full px-3 py-2 bg-neutralneutral-800 border border-neutralneutral-600 rounded-md shadow-sm focus:outline-none focus:ring-primaryp-500 focus:border-primaryp-500 text-white placeholder-neutralneutral-400"
+                placeholder="Enter company name"
+              />
+            </div>
 
             <div className="mb-4">
               <label htmlFor="phone" className="block text-sm font-medium text-neutralneutral-300 mb-2">

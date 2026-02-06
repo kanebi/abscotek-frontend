@@ -12,21 +12,27 @@ export default function UserPopover({ children }) {
   const { currentUser, walletAddress } = useStore();
   const { disconnect } = useWeb3Auth();
   
-  // Get user data from store
+  // Prefer crypto payment address (tied to user), then wallet, then name
+  const paymentAddress = currentUser?.cryptoPaymentAddress;
+  const walletToShow = walletAddress || currentUser?.walletAddress;
+  const addressToShow = paymentAddress || walletToShow;
   const displayName = currentUser?.name || currentUser?.email || 'User';
-  const displayAddress = walletAddress;
+  const displayAddress = addressToShow
+    ? `${addressToShow.slice(0, 6)}...${addressToShow.slice(-4)}`
+    : displayName;
   
-  // Create safe user object
+  // Create safe user object - prefer wallet when available
   const safeUser = {
-    address: typeof (displayAddress || displayName) === 'string' ? (displayAddress || displayName) : 'User',
+    address: typeof displayAddress === 'string' ? displayAddress : 'User',
     avatar: '/images/0e48610f4fecc933e17441d93f63ddcc9c4d1943 (1).png',
     profileUrl: '/profile',
   };
 
   const handleCopyAddress = async () => {
-    if (displayAddress) {
+    const toCopy = addressToShow || currentUser?.email || displayName;
+    if (toCopy) {
       try {
-        await navigator.clipboard.writeText(displayAddress);
+        await navigator.clipboard.writeText(toCopy);
         // You could add a toast notification here
         console.log('Address copied to clipboard');
       } catch (err) {

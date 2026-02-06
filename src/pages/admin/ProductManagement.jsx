@@ -10,6 +10,7 @@ import { AppRoutes } from '../../config/routes';
 import ProductVariantEditor from '../../components/admin/ProductVariantEditor';
 import ProductSpecsEditor from '../../components/admin/ProductSpecsEditor';
 import { PRODUCT_CATEGORIES, PRODUCT_BRANDS } from '../../config/categories';
+import currencyConversionService from '../../services/currencyConversionService';
 
 function ProductManagement() {
   const navigate = useNavigate();
@@ -119,6 +120,17 @@ function ProductManagement() {
   };
 
   const canUploadMore = (filesLen, urlsArr) => filesLen + urlsArr.filter(Boolean).length < 10;
+
+  useEffect(() => {
+    const amt = parseFloat(newProduct.price);
+    if (amt && !isNaN(amt)) {
+      currencyConversionService.convertCurrency(amt, 'USD', 'NGN')
+        .then(ngn => currencyConversionService.convertCurrency(amt, 'USD', 'GHC').then(ghc => setConvertedAmounts({ ngn, ghc })))
+        .catch(() => setConvertedAmounts({ ngn: null, ghc: null }));
+    } else {
+      setConvertedAmounts({ ngn: null, ghc: null });
+    }
+  }, [newProduct.price]);
 
   const handleFilesSelected = (e) => {
     const files = Array.from(e.target.files || []);
@@ -260,8 +272,22 @@ function ProductManagement() {
             {createStep === 1 && (
               <form onSubmit={handleCreateDetails} className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <input type="text" placeholder="Product Name" value={newProduct.name} onChange={(e) => setNewProduct({ ...newProduct, name: e.target.value })} className="p-3 bg-neutralneutral-800 border border-neutralneutral-600 rounded-lg text-white placeholder-neutralneutral-400" required />
-                  <input type="number" placeholder="Price (USDT)" value={newProduct.price} onChange={(e) => setNewProduct({ ...newProduct, price: e.target.value })} className="p-3 bg-neutralneutral-800 border border-neutralneutral-600 rounded-lg text-white placeholder-neutralneutral-400" required />
+                  <div>
+                    <input type="text" placeholder="Product Name" value={newProduct.name} onChange={(e) => setNewProduct({ ...newProduct, name: e.target.value })} className="w-full p-3 bg-neutralneutral-800 border border-neutralneutral-600 rounded-lg text-white placeholder-neutralneutral-400" required />
+                  </div>
+                  <div>
+                    <input type="number" placeholder="Price (USD/USDT)" value={newProduct.price} onChange={(e) => setNewProduct({ ...newProduct, price: e.target.value })} className="w-full p-3 bg-neutralneutral-800 border border-neutralneutral-600 rounded-lg text-white placeholder-neutralneutral-400" required />
+                    {(convertedAmounts.ngn != null || convertedAmounts.ghc != null) && (
+                      <div className="mt-2 text-sm text-neutralneutral-400 space-y-1">
+                        {convertedAmounts.ngn != null && (
+                          <div>NGN: {currencyConversionService.formatCurrency(convertedAmounts.ngn, 'NGN')}</div>
+                        )}
+                        {convertedAmounts.ghc != null && (
+                          <div>GHC: {currencyConversionService.formatCurrency(convertedAmounts.ghc, 'GHC')}</div>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </div>
                 <textarea placeholder="Product Description" value={newProduct.description} onChange={(e) => setNewProduct({ ...newProduct, description: e.target.value })} className="w-full p-3 bg-neutralneutral-800 border border-neutralneutral-600 rounded-lg text-white placeholder-neutralneutral-400" rows="3" />
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

@@ -156,7 +156,13 @@ const useStore = create((set, get) => {
   },
   setCurrentUser: (user) => {
     const currency = user?.preferences?.currency || get().userCurrency || 'USD';
-    set({ currentUser: user, userCurrency: currency });
+    const updates = { currentUser: user, userCurrency: currency };
+    // Sync walletAddress from user (set during crypto checkout) when store doesn't have one
+    if (user?.walletAddress && !get().walletAddress) {
+      updates.walletAddress = user.walletAddress;
+      try { localStorage.setItem('walletAddress', user.walletAddress); } catch (e) { void e; }
+    }
+    set(updates);
     if (user) {
       localStorage.setItem('userInfo', JSON.stringify(user));
     } else {

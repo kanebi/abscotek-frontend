@@ -422,6 +422,38 @@ function OrderDetailsPage() {
               )}
             </Card>
 
+            {/* Continue Payment - For pending crypto orders */}
+            {order.status?.toLowerCase() === 'pending' &&
+              order.paymentMethod === 'crypto' &&
+              order.paymentStatus !== 'paid' &&
+              order.paymentAddress && (
+              <Card className="bg-[#1F1F21] border-none p-6 rounded-xl">
+                <h2 className="text-xl font-semibold text-white mb-4">Complete Payment</h2>
+                <p className="text-neutral-300 text-sm mb-3">
+                  Send exactly <strong className="text-white">{order.totalAmount ?? ((order.pricing?.subtotal || order.subTotal || 0) + (order.pricing?.delivery || order.deliveryFee || 0))}</strong> USDT to your payment address:
+                </p>
+                <div className="bg-[#2C2C2E] rounded-lg p-3 flex items-center justify-between gap-2">
+                  <code className="text-xs text-white break-all font-mono flex-1">
+                    {order.paymentAddress}
+                  </code>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      navigator.clipboard.writeText(order.paymentAddress);
+                      addNotification('Address copied to clipboard!', 'success');
+                    }}
+                    className="flex-shrink-0"
+                  >
+                    Copy
+                  </Button>
+                </div>
+                <p className="text-neutral-400 text-xs mt-2">
+                  This is your tied payment address. Use it for all crypto orders.
+                </p>
+              </Card>
+            )}
+
             {/* Cancel Order Section - Only show for cancellable orders */}
             {['pending', 'confirmed', 'processing'].includes(order.status?.toLowerCase()) && (
               <Card className="bg-[#1F1F21] border-none p-6 rounded-xl">

@@ -45,7 +45,7 @@ const CurrencySelection = ({ selectedCurrency, onCurrencyChange, className = "" 
                   <div className="text-white font-medium">{currency.name}</div>
                   <div className="text-neutral-400 text-sm">
                     {currency.type === 'crypto' 
-                      ? 'Pay with your connected crypto wallet'
+                      ? 'Pay from wallet'
                       : 'Pay with card or bank transfer via Paystack'
                     }
                   </div>

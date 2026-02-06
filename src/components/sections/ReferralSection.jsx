@@ -4,16 +4,40 @@ import WithdrawBonusDialog from "@/components/modals/WithdrawBonusDialog";
 import SuccessModal from "@/components/modals/SuccessModal";
 import React, { useState, useEffect } from "react";
 import referralService from "@/services/referralService";
+import userService from "@/services/userService";
+import useStore from "@/store/useStore";
 
 const ReferralSection = () => {
+  const { walletAddress, currentUser } = useStore();
   const [showWithdrawDialog, setShowWithdrawDialog] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [stats, setStats] = useState({ totalReferrals: 0, referralBonus: 0 });
+  const [walletBalance, setWalletBalance] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  const walletToUse = walletAddress || currentUser?.walletAddress;
 
   useEffect(() => {
     fetchReferralStats();
   }, []);
+
+  useEffect(() => {
+    if (walletToUse) {
+      fetchWalletBalance();
+    } else {
+      setWalletBalance(null);
+    }
+  }, [walletToUse]);
+
+  const fetchWalletBalance = async () => {
+    try {
+      const data = await userService.getWalletBalance();
+      setWalletBalance(parseFloat(data.balance || 0));
+    } catch (error) {
+      console.error('Error fetching wallet balance:', error);
+      setWalletBalance(null);
+    }
+  };
 
   const fetchReferralStats = async () => {
     try {
@@ -76,6 +100,22 @@ const ReferralSection = () => {
       label: "Referral Bonus",
       bgColor: "bg-[#ff50591a]",
     },
+    // Only show Wallet Balance when user has an address (from crypto checkout)
+    ...(walletToUse
+      ? [
+          {
+            icon: (
+              <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M16 4L4 10v12l12 6 12-6V10L16 4z" stroke="#FF5059" strokeWidth="2" strokeLinejoin="round" fill="none"/>
+                <path d="M4 10l12 6 12-6M16 16v12" stroke="#FF5059" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            ),
+            value: walletBalance === null ? "..." : `${(walletBalance || 0).toFixed(2)} USDT`,
+            label: "Wallet Balance",
+            bgColor: "bg-[#ff50591a]",
+          },
+        ]
+      : []),
   ];
 
   return (

@@ -14,6 +14,7 @@ import { AppRoutes } from '@/config/routes';
 import AvatarBlock from "@/components/ui/avatar";
 import UserPopover from "@/components/ui/UserPopover";
 import ReferModal from '@/components/ui/ReferModal';
+import ComingSoonModal from '@/components/modals/ComingSoonModal';
 import {DROPDOWN_MENU_CONTENT_STYLE} from "@/components/constants";
 import MobileSearchModal from "@/components/widgets/MobileSearchModal";
 
@@ -26,7 +27,13 @@ export default function Frame() {
     const { authenticateAndLogin } = useWeb3Auth();
 
     const [referModalOpen, setReferModalOpen] = React.useState(false);
+    const [comingSoonOpen, setComingSoonOpen] = React.useState(false);
+    const [comingSoonTitle, setComingSoonTitle] = React.useState('Coming Soon');
     const [searchOpen, setSearchOpen] = React.useState(false);
+    const openComingSoon = (title) => {
+      setComingSoonTitle(title);
+      setComingSoonOpen(true);
+    };
     const defaultTopBackground = "rgba(36, 36, 36, 1)";
     const navigate = useNavigate();
 
@@ -38,7 +45,7 @@ export default function Frame() {
         <header className="overflow-hidden relative w-full md:h-[156px] h-[221px] bg-neutral-900">
             {/* Desktop Header */}
             <div className="hidden md:flex w-[86%] items-center justify-between mt-3.5 mx-auto">
-                <div className="inline-flex items-center gap-[52px] relative flex-[0_0_auto]">
+                <div className="inline-flex items-center gap-[52px] relative flex-[0_0_auto] mr-6">
                     <div 
                         className="inline-flex items-center gap-[10.1px] relative flex-[0_0_auto] cursor-pointer"
                         onClick={() => navigate(AppRoutes.home.path)}
@@ -72,28 +79,43 @@ export default function Frame() {
                         </div>
                     </div>
                 </div>
-                <div className="inline-flex items-start gap-3 relative flex-[0_0_auto]">
+                <div className="inline-flex items-start gap-3 relative flex-[0_0_auto] mr-4">
                     <div className="inline-flex items-center gap-3 relative flex-[0_0_auto]">
-                        <div className="inline-flex items-center gap-3 relative flex-[0_0_auto]">
+                        <div className="inline-flex items-center gap-1.5 md:gap-2 flex-wrap">
                             <Button
                                 variant="secondary"
-                                className="inline-flex flex-col items-start px-5 py-3 relative flex-[0_0_auto] rounded-xl overflow-hidden h-auto border-0 transition-colors hover:!bg-[rgba(36,36,36,0.8)]"
+                                className="inline-flex items-center gap-1.5 md:gap-2 px-3 md:px-4 py-2 md:py-2.5 rounded-lg md:rounded-xl overflow-hidden h-auto border-0 transition-colors hover:!bg-[rgba(36,36,36,0.8)]"
                                 style={{ background: `var(--defaulttop-background, ${defaultTopBackground})` }}
                                 onClick={() => setReferModalOpen(true)}
                                 onMouseOver={e => e.currentTarget.style.background = 'rgba(36,36,36,0.8)'}
                                 onMouseOut={e => e.currentTarget.style.background = `var(--defaulttop-background, ${defaultTopBackground})`}
                             >
-                                <div className="inline-flex items-center gap-2 relative flex-[0_0_auto]">
-                                    <img
-                                        className="w-6 h-6 text-white "
-                                        alt="Group"
-                                        src="/images/ion-gift-sharp.svg"
-                                    />
-                                    <div className="relative w-fit mt-[-1.00px] font-body-large-large-medium font-[number:var(--body-large-large-medium-font-weight)] text-white text-[length:var(--body-large-large-medium-font-size)] tracking-[var(--body-large-large-medium-letter-spacing)] leading-[var(--body-large-large-medium-line-height)] whitespace-nowrap [font-style:var(--body-large-large-medium-font-style)]">
-                                        Refers & Earn
-                                    </div>
-                                </div>
+                                <img className="w-4 h-4 md:w-5 md:h-5" alt="" src="/images/ion-gift-sharp.svg" />
+                                <span className="text-xs md:text-sm font-medium text-white whitespace-nowrap">Refers & Earn</span>
                             </Button>
+                            <style>{`
+                                .repair-device-btn { background: linear-gradient(90deg, #2a2a2c 0%, #1a3a2e 25%, #2a2a2c 50%, #1a2a3a 75%, #2a2a2c 100%); background-size: 200% 100%; animation: repairGradient 4s ease-in-out infinite; color: #a0e0c0; border: none; font-weight: 500; }
+                                .repair-device-btn:hover { color: #c8f0d8; box-shadow: 0 0 20px rgba(160, 224, 192, 0.15); }
+                                @keyframes repairGradient { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+                                .giveaway-btn { background: linear-gradient(135deg, #FF5059 0%, #ff6b73 25%, #FF5059 50%, #ff3d47 75%, #FF5059 100%); background-size: 200% 200%; animation: giveawayShine 2.5s ease-in-out infinite; color: white; border: none; font-weight: 500; box-shadow: 0 0 15px rgba(255, 80, 89, 0.4); }
+                                .giveaway-btn::before { content: ''; position: absolute; inset: 0; background: linear-gradient(105deg, transparent 0%, rgba(255,255,255,0.3) 50%, transparent 100%); animation: shimmer 2s infinite; }
+                                .giveaway-btn:hover { box-shadow: 0 0 25px rgba(255, 80, 89, 0.6); }
+                                @keyframes giveawayShine { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+                                @keyframes shimmer { 0% { transform: translateX(-100%); opacity: 0.5; } 100% { transform: translateX(100%); opacity: 0.5; } }
+                            `}</style>
+                            <button onClick={() => openComingSoon('Repair Device')} className="repair-device-btn inline-flex items-center gap-1.5 md:gap-2 px-3 md:px-4 py-2 md:py-2.5 rounded-lg md:rounded-xl overflow-hidden h-auto relative text-xs md:text-sm">
+                                <svg className="w-4 h-4 md:w-5 md:h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                </svg>
+                                <span className="hidden sm:inline whitespace-nowrap">Repair Device</span>
+                            </button>
+                            <button onClick={() => openComingSoon('Giveaway')} className="giveaway-btn inline-flex items-center gap-1.5 md:gap-2 px-3 md:px-4 py-2 md:py-2.5 rounded-lg md:rounded-xl overflow-hidden h-auto relative text-xs md:text-sm">
+                                <svg className="w-4 h-4 md:w-5 md:h-5 relative z-10 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M20 6h-2.18c.11-.31.18-.65.18-1 0-1.66-1.34-3-3-3-1.05 0-1.96.54-2.5 1.35l-.5.67-.5-.68C10.96 2.54 10.05 2 9 2 7.34 2 6 3.34 6 5c0 .35.07.69.18 1H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zm-5-2c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zM9 4c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm11 15H4v-2h16v2zm0-5H4V8h5.08L7 10.83 8.62 12 11 8.76l1-1.36 1 1.36L15.38 12 17 10.83 14.92 8H20v6z"/>
+                                </svg>
+                                <span className="hidden sm:inline relative z-10 whitespace-nowrap">Giveaway</span>
+                            </button>
                         </div>
                         {/* Wishlist Icon */}
                         <Button
@@ -145,7 +167,7 @@ export default function Frame() {
                             </div>
                         </div>
                     </div>
-                    <div className="inline-flex gap-2 flex-[0_0_auto] items-center relative">
+                    <div className="inline-flex gap-1.5 md:gap-2 flex-[0_0_auto] items-center relative">
                         <Button
                             variant="ghost"
                             size="icon"
@@ -157,6 +179,17 @@ export default function Frame() {
                         >
                             <Search className="relative w-5 h-5 text-[#858585]" />
                         </Button>
+                        <button onClick={() => openComingSoon('Repair Device')} className="repair-device-btn flex w-10 h-10 items-center justify-center rounded-[13.33px] overflow-hidden flex-shrink-0" title="Repair Device">
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
+                        </button>
+                        <button onClick={() => openComingSoon('Giveaway')} className="giveaway-btn flex w-10 h-10 items-center justify-center rounded-[13.33px] overflow-hidden flex-shrink-0" title="Giveaway">
+                            <svg className="w-5 h-5 relative z-10" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M20 6h-2.18c.11-.31.18-.65.18-1 0-1.66-1.34-3-3-3-1.05 0-1.96.54-2.5 1.35l-.5.67-.5-.68C10.96 2.54 10.05 2 9 2 7.34 2 6 3.34 6 5c0 .35.07.69.18 1H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zm-5-2c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zM9 4c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm11 15H4v-2h16v2zm0-5H4V8h5.08L7 10.83 8.62 12 11 8.76l1-1.36 1 1.36L15.38 12 17 10.83 14.92 8H20v6z"/>
+                            </svg>
+                        </button>
                         {showUserMenu ? (
                             <UserPopover user={user}>
                                 <div className="cursor-pointer">
@@ -208,6 +241,7 @@ export default function Frame() {
 
             </div>
             <ReferModal open={referModalOpen} onClose={() => setReferModalOpen(false)} />
+            <ComingSoonModal open={comingSoonOpen} onOpenChange={setComingSoonOpen} title={comingSoonTitle} />
         </header>
     );
 }

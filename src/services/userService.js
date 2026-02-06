@@ -16,6 +16,16 @@ const getUserStats = async () => {
   return response.data;
 };
 
+const getWalletBalance = async () => {
+  const response = await apiClient.get('/users/wallet-balance');
+  return response.data;
+};
+
+const getCryptoPaymentAddress = async () => {
+  const response = await apiClient.get('/users/crypto-payment-address');
+  return response.data;
+};
+
 const updateUserPreferences = async (preferences) => {
   const response = await apiClient.put('/users/preferences', preferences);
   return response.data;
@@ -78,6 +88,8 @@ export default {
   getUser,
   updateUser,
   getUserStats,
+  getWalletBalance,
+  getCryptoPaymentAddress,
   updateUserPreferences,
   getUserAddresses,
   createUserAddress,

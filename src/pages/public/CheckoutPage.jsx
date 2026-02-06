@@ -554,7 +554,8 @@ function CheckoutPage() {
           currency: selectedCurrency, // Payment currency (what user selected to pay with)
           orderCurrency: orderCurrency, // Currency for order calculations (NGN if Nigeria+NGN, else USD)
           network: network,
-          notes: ""
+          notes: "",
+          walletAddress: userWalletAddress || undefined, // User's connected wallet - attach to user if not already set
         };
         
         console.log('Crypto payment order data:', {
@@ -799,7 +800,7 @@ function CheckoutPage() {
                   <div className="flex-1">
                     <div className="text-white font-medium">Pay with Crypto Wallet</div>
                     <div className="text-neutral-400 text-sm">
-                      Pay directly with {selectedCurrency} on Ethereum network - Zero fees, instant confirmation
+                      Pay directly with {selectedCurrency} on Base network - Zero fees, instant confirmation
                     </div>
                   </div>
                 </div>
@@ -963,7 +964,7 @@ function CheckoutPage() {
           expiry={cryptoPaymentData.expiry}
           onClose={() => {
             setCryptoPaymentData(null);
-            // Optionally navigate to orders page
+            addNotification('Order saved. You can continue payment later from My Orders.', 'info');
             navigate(AppRoutes.userOrders.path);
           }}
           onPaymentConfirmed={async () => {

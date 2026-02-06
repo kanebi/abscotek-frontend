@@ -281,7 +281,7 @@ function OrderSummary({
       {/* Action Buttons - Outside Card */}
       <div className="space-y-4 pt-6 md:px-2 relative">
         {paymentMethod === 'crypto' ? (
-          // Crypto payment button (USDT)
+          // Crypto payment button (USDT) - always show amount in USDT, never convert to user currency
           <Button 
             onClick={onPlaceOrder}
             disabled={isPlacingOrder || !hasSelectedAddress || (requireDeliveryMethod && !deliveryMethod)}
@@ -290,11 +290,9 @@ function OrderSummary({
             {isPlacingOrder ? 'Creating Payment...' : (
               <>
                 Pay{' '}
-                <AmountCurrency 
-                  amount={convertedAmount > 0 ? convertedAmount : orderTotal} 
-                  fromCurrency={currency || orderTotalCurrency} 
-                  className="ml-1"
-                />
+                <span className="ml-1 text-white">
+                  {currencyConversionService.formatCurrency(orderTotal, 'USDT')}
+                </span>
               </>
             )}
           </Button>
