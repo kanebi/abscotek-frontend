@@ -41,6 +41,7 @@ function ProductManagement() {
   // Creation wizard state
   const [createStep, setCreateStep] = useState(1); // 1 = details, 2 = images
   const [createdProductId, setCreatedProductId] = useState(null);
+  const [convertedAmounts, setConvertedAmounts] = useState({ ngn: null, ghc: null });
   const [uploadFiles, setUploadFiles] = useState([]); // File[]
   const [uploadUrls, setUploadUrls] = useState(['']); // string[]
   const [isUploading, setIsUploading] = useState(false);

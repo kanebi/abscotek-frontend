@@ -36,7 +36,7 @@ import AdminLoginPage from './pages/admin/AdminLoginPage';
 
 // Components
 import PrivateRoute from './components/PrivateRoute';
-import AdminPrivateRoute from './components/AdminPrivateRoute';
+import AdminRouteGuard from './components/AdminRouteGuard';
 import ConnectWalletModal from './components/widgets/ConnectWalletModal';
 import Toast from './components/Toast';
 import Layout from './components/Layout';
@@ -104,49 +104,21 @@ function App() {
                 element={<SearchResultsPage />}
               />
 
-              {/* Protected Admin Routes */}
-              <Route
-                path={AppRoutes.admin.path}
-                element={<AdminPrivateRoute><AdminDashboard /></AdminPrivateRoute>}
-              />
-              
-              {/* Protected Vendor Routes */}
-              <Route
-                path={AppRoutes.vendor.path}
-                element={<AdminPrivateRoute><VendorDashboard /></AdminPrivateRoute>}
-              />
-              <Route
-                path={AppRoutes.adminUsers.path}
-                element={<AdminPrivateRoute><UserManagement /></AdminPrivateRoute>}
-              />
-              <Route
-                path={AppRoutes.adminProducts.path}
-                element={<AdminPrivateRoute><ProductManagement /></AdminPrivateRoute>}
-              />
-              <Route
-                path="/admin/products/:id/edit"
-                element={<AdminPrivateRoute><ProductEdit /></AdminPrivateRoute>}
-              />
-              <Route
-                path={AppRoutes.adminOrders.path}
-                element={<AdminPrivateRoute><OrderManagement /></AdminPrivateRoute>}
-              />
-              <Route
-                path="/admin/orders/:id"
-                element={<AdminPrivateRoute><OrderDetail /></AdminPrivateRoute>}
-              />
-              <Route
-                path={AppRoutes.adminCarts.path}
-                element={<AdminPrivateRoute><CartManagement /></AdminPrivateRoute>}
-              />
-              <Route
-                path={AppRoutes.adminDeliveryMethods.path}
-                element={<AdminPrivateRoute><DeliveryMethodManagement /></AdminPrivateRoute>}
-              />
-              <Route
-                path={AppRoutes.adminWishlist.path}
-                element={<AdminPrivateRoute><WishlistManagement /></AdminPrivateRoute>}
-              />
+              {/* Protected Admin/Vendor Routes - guarded by AdminRouteGuard (isAuthenticated + role admin|vendor) */}
+              <Route path={AppRoutes.admin.path} element={<AdminRouteGuard />}>
+                <Route index element={<AdminDashboard />} />
+                <Route path="users" element={<UserManagement />} />
+                <Route path="products" element={<ProductManagement />} />
+                <Route path="products/:id/edit" element={<ProductEdit />} />
+                <Route path="orders" element={<OrderManagement />} />
+                <Route path="orders/:id" element={<OrderDetail />} />
+                <Route path="carts" element={<CartManagement />} />
+                <Route path="delivery-methods" element={<DeliveryMethodManagement />} />
+                <Route path="wishlist" element={<WishlistManagement />} />
+              </Route>
+              <Route path={AppRoutes.vendor.path} element={<AdminRouteGuard />}>
+                <Route index element={<VendorDashboard />} />
+              </Route>
             </Routes>
           </div>
         </Router>
