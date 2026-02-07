@@ -31,7 +31,7 @@ function WithdrawalPage() {
     {
       id: 'WD002',
       amount: 75.50,
-      method: 'USDT Wallet',
+      method: 'USDC Wallet',
       status: 'pending',
       date: '2024-01-20',
       fee: 2.00
@@ -40,7 +40,7 @@ function WithdrawalPage() {
 
   const withdrawalMethods = [
     { id: 'bank', name: 'Bank Transfer', fee: 5.00, minAmount: 50 },
-    { id: 'usdt', name: 'USDT Wallet', fee: 2.00, minAmount: 20 },
+    { id: 'usdc', name: 'USDC Wallet', fee: 2.00, minAmount: 20 },
     { id: 'paypal', name: 'PayPal', fee: 3.50, minAmount: 25 },
     { id: 'crypto', name: 'Crypto Wallet', fee: 1.50, minAmount: 10 }
   ];
@@ -83,7 +83,7 @@ function WithdrawalPage() {
         id: `WD${Date.now()}`,
         amount: amount,
         method: withdrawalMethod === 'bank' ? 'Bank Transfer' :
-                withdrawalMethod === 'usdt' ? 'USDT Wallet' :
+                withdrawalMethod === 'usdc' ? 'USDC Wallet' :
                 withdrawalMethod === 'paypal' ? 'PayPal' :
                 withdrawalMethod === 'crypto' ? 'Crypto Wallet' : 'Unknown',
         status: 'pending',
@@ -156,7 +156,7 @@ function WithdrawalPage() {
                       Available Balance
                     </h2>
                     <p className="text-2xl font-heading-header-2-header-2-bold text-primaryp-400">
-                      <AmountCurrency amount={availableBalance} fromCurrency="USDT" />
+                      <AmountCurrency amount={availableBalance} fromCurrency="USDC" />
                     </p>
                   </div>
                 </div>
@@ -172,7 +172,7 @@ function WithdrawalPage() {
                   {/* Amount */}
                   <div>
                     <label className="block text-neutralneutral-300 text-sm mb-2">
-                      Withdrawal Amount (USDT)
+                      Withdrawal Amount (USDC)
                     </label>
                     <input
                       type="number"
@@ -242,7 +242,7 @@ function WithdrawalPage() {
                       <div className="flex justify-between items-start mb-2">
                         <div>
                           <p className="text-white font-body-base-base-semibold">
-                            <AmountCurrency amount={withdrawal.amount} fromCurrency="USDT" />
+                            <AmountCurrency amount={withdrawal.amount} fromCurrency="USDC" />
                           </p>
                           <p className="text-neutralneutral-400 text-xs">{withdrawal.method}</p>
                         </div>

@@ -280,6 +280,7 @@ export function NavigationBar() {
     const userCurrency = useStore((state) => state.userCurrency);
     const setUserCurrency = useStore((state) => state.setUserCurrency);
     const CurrencyOptions = [
+        { label: "USDC", value: "USDC" },
         { label: "NGN", value: "NGN" },
         { label: "USD", value: "USD" },
         { label: "GHC", value: "GHC" }
@@ -288,7 +289,7 @@ export function NavigationBar() {
         NGN: { src: "/images/ngn-icon.svg" },
         USD: { src: "/images/usd-icon.svg" },
         GHC: { src: "/images/ghc-icon.svg" },
-        USDT: { src: "/images/usdt-icon.svg" },
+        USDC: { src: "/images/usdc-icon.svg" },
     };
 
     // Map navigation item names to actual category names
@@ -324,8 +325,8 @@ export function NavigationBar() {
                                     className={`text-defaultwhite w-36 relative hover:text-defaultwhite hover:bg-defaulttop-background h-auto font-normal outline-none border-none hover:outline-none flex items-center gap-1 `}
                                 >
                                     <div className="flex items-center gap-2 pl-2">
-                                        <img src={currencyIconMap[userCurrency || 'USDT']?.src} className="w-4 h-4" />
-                                        <span className="text-sm font-medium">{userCurrency || 'USDT'}</span>
+                                        <img src={currencyIconMap[userCurrency || 'USDC']?.src} className="w-4 h-4" />
+                                        <span className="text-sm font-medium">{userCurrency || 'USDC'}</span>
                                     </div>
                                     <img src="/images/dropdown.svg" alt="Dropdown Icon" className=" absolute right-0" />
                                 </Button>
@@ -528,8 +529,8 @@ export function NavigationBar() {
                                     className={`text-defaultwhite w-28 relative hover:text-defaultwhite hover:bg-defaulttop-background h-auto font-normal outline-none border-none hover:outline-none flex items-center gap-1 text-xs`}
                                 >
                                     <div className="flex items-center gap-1.5 pl-1">
-                                        <img src={currencyIconMap[userCurrency || 'USDT']?.src} className="w-3 h-3" />
-                                        <span className="text-xs font-medium">{userCurrency || 'USDT'}</span>
+                                        <img src={currencyIconMap[userCurrency || 'USDC']?.src} className="w-3 h-3" />
+                                        <span className="text-xs font-medium">{userCurrency || 'USDC'}</span>
                                     </div>
                                     <img src="/images/dropdown.svg" alt="Dropdown Icon" className="absolute right-0 w-2 h-2" />
                                 </Button>

@@ -29,7 +29,7 @@ const ProductGridSection = ({ products = [], activePage = 1, totalPages = 1, onP
     name: p?.name,
     price: p?.price,
     description: p?.description,
-    currency: p?.currency || "USDT",
+    currency: p?.currency || "USDC",
     image: p?.images?.[0] || p?.image || "https://via.placeholder.com/300x240",
     stock: p?.stock || 0,
   }));
@@ -94,18 +94,22 @@ const ProductGridSection = ({ products = [], activePage = 1, totalPages = 1, onP
         {/* Vertical divider */}
         <div className="hidden md:block w-px bg-neutral-700 self-stretch" />
 
-        {/* Product grid */}
+        {/* Product grid - flexbox for responsive layout (avoids grid overlap on Android) */}
         <div className="w-full md:ml-1 md:w-[73%] h-full inline-flex flex-col items-center justify-center gap-4 pt-8 pb-0 px-0 relative flex-[0_0_auto]">
-          <div className="grid grid-cols-2 md:gap-6 gap-3 md:grid-cols-3 relative flex-[0_0_auto] w-full ">
+          <div className="flex flex-wrap gap-3 md:gap-6 w-full">
             {normalized.map((product) => (
               <Card
                 key={product.id}
-                className="flex   w-[100%] p-0  flex-col  items-start gap-4 relative bg-transparent border-none"
+                className={`flex flex-col items-start gap-4 relative bg-transparent border-none p-0 min-w-0 max-w-full ${
+                  normalized.length === 1
+                    ? 'w-[50%] md:w-[30%]'
+                    : 'min-[140px] flex-[1_1_calc(50%-6px)] md:flex-[1_1_calc(33.333%-16px)]'
+                }`}
               >
-                <CardContent style={{ padding: "0px" }} className="p-0">
-                  <div className="relative self-stretch w-full h-[230px] md:h-[267.2px]  bg-neutral-800 rounded-[15.95px] overflow-hidden" onClick={() => handleNavigate(product.id)}>
+                <CardContent style={{ padding: "0px" }} className="p-0 w-full min-w-0">
+                  <div className="relative w-full aspect-[296/267] bg-neutral-800 rounded-[15.95px] overflow-hidden" onClick={() => handleNavigate(product.id)}>
                     <img
-                      className="absolute w-[296px] h-[267px] top-0 left-0 object-cover"
+                      className="w-full h-full object-cover"
                       alt={product.name}
                       src={product.image}
                     />
@@ -136,7 +140,7 @@ const ProductGridSection = ({ products = [], activePage = 1, totalPages = 1, onP
                       </div>
 
                       <div className="relative self-stretch [font-family:'Mona_Sans-SemiBold',Helvetica] font-semibold text-defaultwhite text-[17.6px] tracking-[0] leading-[21.1px]">
-                        <AmountCurrency amount={product.price} fromCurrency={product.currency} />
+                        <AmountCurrency amount={product.price} fromCurrency="USD" />
                       </div>
                     </div>
 

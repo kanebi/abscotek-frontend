@@ -7,7 +7,7 @@ This document defines JSON Schemas for the domain models involved in cart, check
 - Money values are in minor or major units depending on backend; UI assumes major units and always displays using `AmountCurrency` with conversion based on user currency.
 
 #### Conventions
-- All `currency` fields should use ISO codes (e.g., "USDT", "USD", "NGN", "EUR").
+- All `currency` fields should use ISO codes (e.g., "USDC", "USD", "NGN", "EUR").
 - IDs may appear as `_id` (backend) or `id` (frontend). Where both are present, `_id` is the canonical backend identifier.
 - Timestamps use ISO 8601 `date-time` strings.
 
@@ -35,7 +35,7 @@ This document defines JSON Schemas for the domain models involved in cart, check
     "preferences": {
       "type": "object",
       "properties": {
-        "currency": { "type": "string", "enum": ["USDT", "USD", "NGN", "EUR"] }
+        "currency": { "type": "string", "enum": ["USDC", "USD", "NGN", "EUR"] }
       },
       "additionalProperties": false
     },
@@ -91,7 +91,7 @@ This document defines JSON Schemas for the domain models involved in cart, check
     "name": { "type": "string" },
     "description": { "type": "string" },
     "price": { "type": "number", "minimum": 0 },
-    "currency": { "type": "string", "enum": ["USDT", "USD", "NGN", "EUR"], "default": "USDT" },
+    "currency": { "type": "string", "enum": ["USDC", "USD", "NGN", "EUR"], "default": "USDC" },
     "estimatedDeliveryTime": { "type": "string", "examples": ["1-2 days", "3-5 business days"] },
     "targetRegion": { "type": "string", "enum": ["lagos", "other-state"], "description": "Optional segmentation used in UI" },
     "active": { "type": "boolean", "default": true },
@@ -117,7 +117,7 @@ This document defines JSON Schemas for the domain models involved in cart, check
     "_id": { "type": "string" },
     "name": { "type": "string" },
     "price": { "type": "number" },
-    "currency": { "type": "string", "enum": ["USDT", "USD", "NGN", "EUR"], "default": "USDT" },
+    "currency": { "type": "string", "enum": ["USDC", "USD", "NGN", "EUR"], "default": "USDC" },
     "image": { "type": "string", "format": "uri" },
     "images": { "type": "array", "items": { "type": "string", "format": "uri" } },
     "badge": { "type": "string" },
@@ -142,7 +142,7 @@ This document defines JSON Schemas for the domain models involved in cart, check
     "product": { "$ref": "https://abscotek.com/schemas/product-snapshot.json" },
     "quantity": { "type": "integer", "minimum": 1 },
     "unitPrice": { "type": "number", "minimum": 0 },
-    "currency": { "type": "string", "enum": ["USDT", "USD", "NGN", "EUR"] },
+    "currency": { "type": "string", "enum": ["USDC", "USD", "NGN", "EUR"] },
     "totalPrice": { "type": "number", "readOnly": true }
   },
   "required": ["productId", "quantity"],
@@ -164,7 +164,7 @@ This document defines JSON Schemas for the domain models involved in cart, check
     "userId": { "type": "string" },
     "walletAddress": { "type": "string", "pattern": "^0x[0-9a-fA-F]{40}$" },
     "items": { "type": "array", "items": { "$ref": "https://abscotek.com/schemas/cart-item.json" } },
-    "currency": { "type": "string", "enum": ["USDT", "USD", "NGN", "EUR"], "default": "USDT" },
+    "currency": { "type": "string", "enum": ["USDC", "USD", "NGN", "EUR"], "default": "USDC" },
     "subtotal": { "type": "number", "readOnly": true },
     "deliveryFee": { "type": "number", "readOnly": true, "default": 0 },
     "discount": { "type": "number", "readOnly": true, "default": 0 },
@@ -193,7 +193,7 @@ This document defines JSON Schemas for the domain models involved in cart, check
     "product": { "$ref": "https://abscotek.com/schemas/product-snapshot.json" },
     "quantity": { "type": "integer", "minimum": 1 },
     "unitPrice": { "type": "number", "minimum": 0 },
-    "currency": { "type": "string", "enum": ["USDT", "USD", "NGN", "EUR"] },
+    "currency": { "type": "string", "enum": ["USDC", "USD", "NGN", "EUR"] },
     "totalPrice": { "type": "number", "readOnly": true }
   },
   "required": ["productId", "quantity"],
@@ -212,10 +212,10 @@ This document defines JSON Schemas for the domain models involved in cart, check
   "type": "object",
   "properties": {
     "transactionId": { "type": "string" },
-    "method": { "type": "string", "enum": ["USDT", "CRYPTO", "CARD", "BANK_TRANSFER", "CASH_ON_DELIVERY"] },
+    "method": { "type": "string", "enum": ["USDC", "CRYPTO", "CARD", "BANK_TRANSFER", "CASH_ON_DELIVERY"] },
     "provider": { "type": "string", "description": "Gateway/provider identifier (e.g., walletconnect)" },
     "amount": { "type": "number" },
-    "currency": { "type": "string", "enum": ["USDT", "USD", "NGN", "EUR"] },
+    "currency": { "type": "string", "enum": ["USDC", "USD", "NGN", "EUR"] },
     "status": { "type": "string", "enum": ["pending", "confirmed", "failed", "refunded"] },
     "paidAt": { "type": "string", "format": "date-time" },
     "metadata": { "type": "object", "additionalProperties": true }
@@ -249,7 +249,7 @@ This document defines JSON Schemas for the domain models involved in cart, check
     "deliveryFee": { "type": "number" },
     "discount": { "type": "number", "default": 0 },
     "totalAmount": { "type": "number" },
-    "currency": { "type": "string", "enum": ["USDT", "USD", "NGN", "EUR"], "default": "USDT" },
+    "currency": { "type": "string", "enum": ["USDC", "USD", "NGN", "EUR"], "default": "USDC" },
     "status": { "type": "string", "enum": ["pending", "paid", "processing", "shipped", "delivered", "cancelled", "refunded"], "default": "pending" },
     "payment": { "$ref": "https://abscotek.com/schemas/payment.json" },
     "createdAt": { "type": "string", "format": "date-time" },
@@ -286,7 +286,7 @@ This document defines JSON Schemas for the domain models involved in cart, check
     "shippingAddressId": { "type": "string" },
     "shippingAddress": { "$ref": "https://abscotek.com/schemas/delivery-address.json" },
     "deliveryMethodId": { "type": "string" },
-    "currency": { "type": "string", "enum": ["USDT", "USD", "NGN", "EUR"] },
+    "currency": { "type": "string", "enum": ["USDC", "USD", "NGN", "EUR"] },
     "totalAmount": { "type": "number", "description": "Client-calculated total, server should re-verify" },
     "walletAddress": { "type": "string", "pattern": "^0x[0-9a-fA-F]{40}$" },
     "notes": { "type": "string" }
@@ -339,11 +339,11 @@ Cart example
 {
   "_id": "cart_abc",
   "walletAddress": "0x0123456789abcdef0123456789abcdef01234567",
-  "currency": "USDT",
+  "currency": "USDC",
   "items": [
     {
       "productId": "p_1",
-      "product": { "_id": "p_1", "name": "Phone X", "price": 300, "currency": "USDT", "image": "/img/1.png" },
+      "product": { "_id": "p_1", "name": "Phone X", "price": 300, "currency": "USDC", "image": "/img/1.png" },
       "quantity": 2,
       "unitPrice": 300
     }
@@ -365,7 +365,7 @@ Order example
   "deliveryFee": 5000,
   "discount": 0,
   "totalAmount": 5600,
-  "currency": "USDT",
+  "currency": "USDC",
   "status": "pending"
 }
 ```

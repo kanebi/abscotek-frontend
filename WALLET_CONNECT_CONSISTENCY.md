@@ -35,7 +35,7 @@ const { authenticateAndLogin } = useWeb3Auth();
 ### 2. Checkout Page
 **File:** `frontend/src/pages/public/CheckoutPage.jsx`
 - Login prompt (line ~684)
-- USDT payment wallet connection (line ~720)
+- USDC payment wallet connection (line ~720)
 - **Action:** `authenticateAndLogin` from `useWeb3Auth`
 
 ### 3. Referral Modal
@@ -91,7 +91,7 @@ When user clicks disconnect (in UserPopover):
 
 - [ ] Header login button works
 - [ ] Checkout page login prompt works
-- [ ] Checkout USDT wallet connection works
+- [ ] Checkout USDC wallet connection works
 - [ ] Referral modal login works
 - [ ] All buttons show connected state when authenticated
 - [ ] Disconnect properly clears all auth state

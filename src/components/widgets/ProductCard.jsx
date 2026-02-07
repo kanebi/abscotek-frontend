@@ -79,7 +79,7 @@ export default function ProductCard({ image, name, price, badge, outOfStock, _id
             {name}
           </div>
           <div className="self-stretch justify-start text-white text-xs font-semibold font-sans leading-none">
-            <AmountCurrency amount={price} />
+            <AmountCurrency amount={price} fromCurrency="USD" />
           </div>
         </div>
       </div>
@@ -125,7 +125,7 @@ export default function ProductCard({ image, name, price, badge, outOfStock, _id
             </div>
           </CardTitle>
           <div className="text-white text-lg font-semibold leading-snug">
-            <AmountCurrency amount={price} />
+            <AmountCurrency amount={price} fromCurrency="USD" />
           </div>
         </CardContent>
       </Card>

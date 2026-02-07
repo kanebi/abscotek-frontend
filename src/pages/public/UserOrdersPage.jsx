@@ -202,7 +202,7 @@ function UserOrdersPage() {
                               order.pricing?.total || 
                               ((order.pricing?.subtotal || order.subTotal || 0) + (order.pricing?.delivery || order.deliveryFee || 0))
                             } 
-                            fromCurrency={order.currency || "USDT"} 
+                            fromCurrency={order.currency || "USDC"} 
                           />
                         </span>
                       </div>
@@ -321,20 +321,20 @@ function UserOrdersPage() {
                       <div className="flex justify-between items-center">
                         <span className="text-neutral-300">Subtotal:</span>
                         <span className="text-neutral-300">
-                          <AmountCurrency amount={orderToCancel.pricing?.subtotal || orderToCancel.subTotal || 0} fromCurrency={orderToCancel.currency || 'USDT'} />
+                          <AmountCurrency amount={orderToCancel.pricing?.subtotal || orderToCancel.subTotal || 0} fromCurrency={orderToCancel.currency || 'USDC'} />
                         </span>
                       </div>
                       <div className="flex justify-between items-center">
                         <span className="text-neutral-300">Shipping:</span>
                         <span className="text-neutral-300">
-                          <AmountCurrency amount={orderToCancel.pricing?.delivery || orderToCancel.deliveryFee || orderToCancel.deliveryMethod?.price || 0} fromCurrency={orderToCancel.pricing?.deliveryCurrency || orderToCancel.deliveryMethod?.currency || orderToCancel.currency || 'USDT'} />
+                          <AmountCurrency amount={orderToCancel.pricing?.delivery || orderToCancel.deliveryFee || orderToCancel.deliveryMethod?.price || 0} fromCurrency={orderToCancel.pricing?.deliveryCurrency || orderToCancel.deliveryMethod?.currency || orderToCancel.currency || 'USDC'} />
                         </span>
                       </div>
                       <div className="border-t border-neutral-600 my-2"></div>
                       <div className="flex justify-between items-center">
                         <span className="text-white font-semibold">Total Amount:</span>
                         <span className="text-white font-semibold">
-                          <AmountCurrency amount={orderToCancel.pricing?.total || orderToCancel.totalAmount || (orderToCancel.pricing?.subtotal || orderToCancel.subTotal || 0) + (orderToCancel.pricing?.delivery || orderToCancel.deliveryFee || orderToCancel.deliveryMethod?.price || 0)} fromCurrency={orderToCancel.currency || 'USDT'} />
+                          <AmountCurrency amount={orderToCancel.pricing?.total || orderToCancel.totalAmount || (orderToCancel.pricing?.subtotal || orderToCancel.subTotal || 0) + (orderToCancel.pricing?.delivery || orderToCancel.deliveryFee || orderToCancel.deliveryMethod?.price || 0)} fromCurrency={orderToCancel.currency || 'USDC'} />
                         </span>
                       </div>
                     </div>

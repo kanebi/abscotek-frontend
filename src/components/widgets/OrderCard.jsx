@@ -112,7 +112,7 @@ const OrderCard = ({ order, onViewOrder }) => {
                     <span className="relative w-fit font-body-large-large-semibold font-[number:var(--body-large-large-semibold-font-weight)] text-defaultwhite text-[length:var(--body-large-large-semibold-font-size)] text-center tracking-[var(--body-large-large-semibold-letter-spacing)] leading-[var(--body-large-large-semibold-line-height)] whitespace-nowrap [font-style:var(--body-large-large-semibold-font-style)]">
                       <AmountCurrency 
                         amount={order.product.price || 0} 
-                        fromCurrency={order.product.currency || order.currency || 'USDT'} 
+                        fromCurrency={order.product.currency || order.currency || 'USDC'} 
                       />
                     </span>
                   </div>
@@ -129,7 +129,7 @@ const OrderCard = ({ order, onViewOrder }) => {
                   <span className="relative w-fit mt-[-1.00px] font-heading-header-6-header-6-semibold font-[number:var(--heading-header-6-header-6-semibold-font-weight)] text-defaultwhite text-[length:var(--heading-header-6-header-6-semibold-font-size)] text-right tracking-[var(--heading-header-6-header-6-semibold-letter-spacing)] leading-[var(--heading-header-6-header-6-semibold-line-height)] whitespace-nowrap [font-style:var(--heading-header-6-header-6-semibold-font-style)]">
                     <AmountCurrency 
                       amount={order.total || 0} 
-                      fromCurrency={order.currency || 'USDT'} 
+                      fromCurrency={order.currency || 'USDC'} 
                     />
                   </span>
                 </div>
@@ -229,7 +229,7 @@ const OrderCard = ({ order, onViewOrder }) => {
                     <p className="relative w-fit font-body-large-large-semibold font-[number:var(--body-large-large-semibold-font-weight)] text-defaultwhite text-sm md:text-[length:var(--body-large-large-semibold-font-size)] text-center tracking-[var(--body-large-large-semibold-letter-spacing)] leading-[18px] md:leading-[var(--body-large-large-semibold-line-height)] whitespace-nowrap [font-style:var(--body-large-large-semibold-font-style)]">
                       <AmountCurrency 
                         amount={order.product.price || 0} 
-                        fromCurrency={order.product.currency || order.currency || 'USDT'} 
+                        fromCurrency={order.product.currency || order.currency || 'USDC'} 
                       />
                     </p>
                   </div>
@@ -245,7 +245,7 @@ const OrderCard = ({ order, onViewOrder }) => {
                   <p className="relative w-fit mt-[-1.00px] font-heading-header-4-header-4-semibold font-[number:var(--heading-header-4-header-4-semibold-font-weight)] text-defaultwhite text-sm md:text-[length:var(--heading-header-4-header-4-semibold-font-size)] text-right tracking-[var(--heading-header-4-header-4-semibold-letter-spacing)] leading-[18px] md:leading-[var(--heading-header-4-header-4-semibold-line-height)] whitespace-nowrap [font-style:var(--heading-header-4-header-4-semibold-font-style)]">
                     <AmountCurrency 
                       amount={order.total || 0} 
-                      fromCurrency={order.currency || 'USDT'} 
+                      fromCurrency={order.currency || 'USDC'} 
                     />
                   </p>
                 </div>

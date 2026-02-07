@@ -52,7 +52,7 @@ function ProductVariantEditor({ variants = [], onChange, productPrice = 0 }) {
   const [newVariant, setNewVariant] = useState({
     name: '',
     price: '',
-    currency: 'USDT',
+    currency: 'USDC',
     stock: 0,
     sku: '',
     attributes: [],
@@ -77,7 +77,7 @@ function ProductVariantEditor({ variants = [], onChange, productPrice = 0 }) {
     const variant = {
       name: newVariant.name.trim(),
       price: variantPrice,
-      currency: newVariant.currency || 'USDT',
+      currency: newVariant.currency || 'USDC',
       stock: Number(newVariant.stock) || 0,
       sku: newVariant.sku || null,
       attributes: newVariant.attributes || [],
@@ -91,7 +91,7 @@ function ProductVariantEditor({ variants = [], onChange, productPrice = 0 }) {
     setNewVariant({
       name: '',
       price: '',
-      currency: 'USDT',
+      currency: 'USDC',
       stock: 0,
       sku: '',
       attributes: [],
@@ -230,7 +230,7 @@ function ProductVariantEditor({ variants = [], onChange, productPrice = 0 }) {
                     </div>
                     <div>
                       <label className="block text-neutralneutral-300 text-sm mb-1">
-                        Price (USDT) {productPrice > 0 && <span className="text-xs text-neutralneutral-400">(Default: {productPrice})</span>}
+                        Price (USDC) {productPrice > 0 && <span className="text-xs text-neutralneutral-400">(Default: {productPrice})</span>}
                       </label>
                       <input
                         type="number"
@@ -453,7 +453,7 @@ function ProductVariantEditor({ variants = [], onChange, productPrice = 0 }) {
             </div>
             <div>
               <label className="block text-neutralneutral-300 text-sm mb-1">
-                Price (USDT) {productPrice > 0 && <span className="text-xs text-neutralneutral-400">(Default: {productPrice})</span>}
+                Price (USDC) {productPrice > 0 && <span className="text-xs text-neutralneutral-400">(Default: {productPrice})</span>}
               </label>
               <input
                 type="number"
@@ -464,7 +464,7 @@ function ProductVariantEditor({ variants = [], onChange, productPrice = 0 }) {
                 className="w-full p-2 bg-neutralneutral-900 border border-neutralneutral-600 rounded text-white text-sm"
               />
               {productPrice > 0 && !newVariant.price && (
-                <p className="text-xs text-neutralneutral-400 mt-1">Will use product price: {productPrice} USDT</p>
+                <p className="text-xs text-neutralneutral-400 mt-1">Will use product price: {productPrice} USDC</p>
               )}
             </div>
           </div>

@@ -25,58 +25,19 @@ function OrderSummary({
   onPaystackSuccess,
   onPaystackClose,
   subtotalInUSD = 0,
-  deliveryCostInUSD = 0
+  deliveryCostInUSD = 0,
+  subtotalDisplay = 0,
+  deliveryDisplay = 0
 }) {
-  const { cart, userCurrency, getCartTotal, currentUser } = useStore();
+  const { cart, currentUser } = useStore();
   
-  // For USD/USDT: Use base USD figures (subtotal + delivery in USD)
-  // For NGN: Use converted amounts
-  const isUSDOrUSDT = currency === 'USD' || currency === 'USDT';
+  // Display currency: parent passes subtotalDisplay/deliveryDisplay (native USD or converted NGN)
+  const displayCurrency = currency || 'USDC';
   
-  // Use passed props if available, otherwise calculate from cart
-  // Use unitPrice first (includes variant price if variant is selected)
-  const finalSubtotalInUSD = subtotalInUSD > 0 
-    ? subtotalInUSD 
-    : cart.items.reduce((total, item) => {
-        // unitPrice is the correct price (includes variant if selected)
-        // product.price should now also reflect unitPrice from backend
-        return total + (item.unitPrice || item.product?.price || item.price) * item.quantity;
-      }, 0);
-  
-  // Use passed delivery cost in USD if available, otherwise calculate
-  const finalDeliveryCostInUSD = deliveryCostInUSD > 0 
-    ? deliveryCostInUSD 
-    : (deliveryMethod 
-        ? (deliveryMethod.currency === 'NGN' 
-            ? deliveryMethod.price / 1500  // Approximate fallback conversion
-            : deliveryMethod.price)
-        : 0);
-  
-  // Calculate total: subtotal + delivery
-  // For USD/USDT: Use base USD figures (subtotal + delivery)
-  // For NGN: Use convertedAmount (which is total in NGN) or calculate manually
-  let orderTotal = 0;
-  if (isUSDOrUSDT) {
-    // Base USD figures: subtotal + delivery
-    orderTotal = finalSubtotalInUSD + finalDeliveryCostInUSD;
-  } else {
-    // For NGN: convertedAmount should be (subtotal + delivery) in NGN
-    // But if it seems wrong, calculate it manually
-    // Get subtotal - might be in USD, so we'll use convertedAmount which should be total
-    // Or calculate: convert subtotal USD to NGN + delivery NGN
-    if (convertedAmount > 0) {
-      // Use convertedAmount which should be the total (subtotal + delivery) in NGN
-      orderTotal = convertedAmount;
-    } else {
-      // Fallback: calculate manually
-      // Subtotal in USD needs to be converted to NGN
-      const subtotalInNGN = finalSubtotalInUSD * 1500; // Approximate conversion
-      const deliveryInNGN = deliveryMethod?.price || 0;
-      orderTotal = subtotalInNGN + deliveryInNGN;
-    }
-  }
-  
-  const orderTotalCurrency = currency || (cart.currency || 'USDT');
+  // Use passed display values (parent computes from native USD)
+  const subtotalToShow = subtotalDisplay > 0 ? subtotalDisplay : subtotalInUSD;
+  const deliveryToShow = deliveryDisplay > 0 ? deliveryDisplay : deliveryCostInUSD;
+  const orderTotal = convertedAmount > 0 ? convertedAmount : (subtotalToShow + deliveryToShow);
 
   // Validate Paystack parameters
   const validatePaystackParams = () => {
@@ -159,7 +120,7 @@ function OrderSummary({
             <div className="flex justify-between text-white text-base">
               <span>Your Balance</span>
               <span className="font-medium">
-                <AmountCurrency amount={balance} fromCurrency={currency || 'USDT'} />
+                <AmountCurrency amount={balance} fromCurrency={currency === 'USDT' ? 'USDC' : (currency || 'USDC')} />
               </span>
             </div>
             <Separator className="mt-4 bg-[#38383a]" />
@@ -210,7 +171,7 @@ function OrderSummary({
                   <div className="text-white font-[510] text-base">
                     <AmountCurrency 
                       amount={(item.unitPrice || item.product?.price || item.price) * item.quantity} 
-                      fromCurrency={item.currency || item.product?.currency || cart.currency || 'USDT'} 
+                      fromCurrency="USD"
                     />
                   </div>
                 </div>
@@ -223,41 +184,19 @@ function OrderSummary({
           ))}
         </div>
         
-         {/* Order Totals */}
+         {/* Order Totals - all in display currency (native USD for USD/USDC, converted NGN for Paystack) */}
          <div className="space-y-3 ">
           <div className="flex justify-between text-white text-base">
             <span>Subtotal</span>
             <span className="font-medium">
-              {isUSDOrUSDT ? (
-                // For USD/USDT: Show in USD directly (don't convert, use base USD)
-                <span className="text-white leading-snug">
-                  {currencyConversionService.formatCurrency(finalSubtotalInUSD, 'USD')}
-                </span>
-              ) : (
-                // For NGN: Show converted amount (use cart currency which may be NGN)
-                <AmountCurrency 
-                  amount={cart.subtotal || getCartTotal()} 
-                  fromCurrency={cart.currency || 'USD'} 
-                />
-              )}
+              {currencyConversionService.formatCurrency(subtotalToShow, displayCurrency)}
             </span>
           </div>
           
           <div className="flex justify-between text-white text-base">
             <span>Delivery</span>
             <span className="font-medium">
-              {isUSDOrUSDT ? (
-                // For USD/USDT: Show delivery in USD (convert from NGN to USD)
-                <span className="text-white leading-snug">
-                  {currencyConversionService.formatCurrency(finalDeliveryCostInUSD, 'USD')}
-                </span>
-              ) : (
-                // For NGN: Show delivery in NGN
-                <AmountCurrency 
-                  amount={deliveryMethod?.price || 0} 
-                  fromCurrency={deliveryMethod?.currency || 'NGN'} 
-                />
-              )}
+              {currencyConversionService.formatCurrency(deliveryToShow, displayCurrency)}
             </span>
           </div>
           
@@ -266,22 +205,14 @@ function OrderSummary({
           <div className="flex justify-between text-white text-lg font-semibold">
             <span>Order Total</span>
             <span>
-              {isUSDOrUSDT ? (
-                // For USD/USDT: Show total in USD directly (subtotal + delivery)
-                <span className="text-white leading-snug">
-                  {currencyConversionService.formatCurrency(orderTotal, 'USD')}
-                </span>
-              ) : (
-                // For NGN: Show converted total
-                <AmountCurrency amount={orderTotal} fromCurrency={orderTotalCurrency} />
-              )}
+              {currencyConversionService.formatCurrency(orderTotal, displayCurrency)}
             </span>
           </div>
           
       {/* Action Buttons - Outside Card */}
       <div className="space-y-4 pt-6 md:px-2 relative">
         {paymentMethod === 'crypto' ? (
-          // Crypto payment button (USDT) - always show amount in USDT, never convert to user currency
+          // Crypto payment button (USDC) - always show amount in USDC, never convert to user currency
           <Button 
             onClick={onPlaceOrder}
             disabled={isPlacingOrder || !hasSelectedAddress || (requireDeliveryMethod && !deliveryMethod)}
@@ -291,7 +222,7 @@ function OrderSummary({
               <>
                 Pay{' '}
                 <span className="ml-1 text-white">
-                  {currencyConversionService.formatCurrency(orderTotal, 'USDT')}
+                  {currencyConversionService.formatCurrency(orderTotal, 'USDC')}
                 </span>
               </>
             )}
@@ -311,11 +242,9 @@ function OrderSummary({
             {isPlacingOrder ? 'Processing...' : (
               <>
                 Pay{' '}
-                <AmountCurrency 
-                  amount={convertedAmount > 0 ? convertedAmount : orderTotal} 
-                  fromCurrency={currency || orderTotalCurrency} 
-                  className="ml-1"
-                />
+                <span className="ml-1 text-white">
+                  {currencyConversionService.formatCurrency(convertedAmount > 0 ? convertedAmount : orderTotal, displayCurrency)}
+                </span>
               </>
             )}
           </PaystackButton>

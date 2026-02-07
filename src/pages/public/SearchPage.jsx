@@ -79,8 +79,7 @@ function SearchPage() {
         _id: p._id,
         image: p.images?.[0] || p.image,
         name: p.name,
-        price: `${p.price}`,
-        currency: p.currency || 'USDT',
+        price: p.price,
         badge: p.badge || undefined,
         outOfStock: !!p.outOfStock,
         description: p.description

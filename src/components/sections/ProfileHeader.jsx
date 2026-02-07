@@ -69,7 +69,7 @@ const ProfileHeader = () => {
   }, []);
 
   const summaryCards = [
-    { title: "Balance", value: loading ? "..." : `${userBalance.toFixed(2)} USDT` },
+    { title: "Balance", value: loading ? "..." : `${userBalance.toFixed(2)} USDC` },
     { title: "Order", value: loading ? "..." : orderCount.toString() },
   ];
 

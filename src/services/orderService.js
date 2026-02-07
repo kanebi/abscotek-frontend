@@ -80,9 +80,9 @@ const verifyPaymentAndCreateOrder = async (orderData) => {
   return response.data;
 };
 
-// Process USDT payment using Privy wallet
-const processUSDTWalletPayment = async (paymentData) => {
-  const response = await apiClient.post('/orders/usdt-payment', paymentData);
+// Process USDC payment using Privy wallet
+const processUSDCWalletPayment = async (paymentData) => {
+  const response = await apiClient.post('/orders/usdc-payment', paymentData);
   return response.data;
 };
 
@@ -98,6 +98,12 @@ const checkCryptoPaymentStatus = async (orderId) => {
   return response.data;
 };
 
+// Confirm crypto payment (check + sweep + confirm) - for "I have made payment" button
+const confirmCryptoPayment = async (orderId) => {
+  const response = await apiClient.post(`/orders/${orderId}/confirm-crypto-payment`);
+  return response.data;
+};
+
 export default {
   createOrder,
   checkout,
@@ -107,9 +113,10 @@ export default {
   getOrderByNumber,
   getOrderByPaystackReference,
   verifyPaymentAndCreateOrder,
-  processUSDTWalletPayment,
+  processUSDCWalletPayment,
   createCryptoPaymentOrder,
   checkCryptoPaymentStatus,
+  confirmCryptoPayment,
   updateOrderStatus,
   cancelOrder,
   adminGetAllOrders,

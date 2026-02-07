@@ -28,32 +28,29 @@ export default function UserProfileSection() {
   const [paginationData, setPaginationData] = useState({});
   const ordersPerPage = 10;
 
-  // Fetch orders from backend with pagination and filtering
-  useEffect(() => {
-    const fetchOrders = async () => {
+  const fetchOrders = async () => {
+    try {
+      setLoading(true);
+      const response = await orderService.getOrdersPaginated(currentPage, ordersPerPage, orderCategory);
+      setOrders(response.orders || []);
+      setTotalPages(response.pagination?.totalPages || 0);
+      setPaginationData(response.pagination || {});
+    } catch (error) {
+      console.error('Error fetching orders:', error);
       try {
-        setLoading(true);
-        // Use paginated endpoint with category filtering
-        const response = await orderService.getOrdersPaginated(currentPage, ordersPerPage, orderCategory);
-        setOrders(response.orders || []);
-        setTotalPages(response.pagination?.totalPages || 0);
-        setPaginationData(response.pagination || {});
-      } catch (error) {
-        console.error('Error fetching orders:', error);
-        // Fallback to old method if paginated endpoint fails
-        try {
-          const data = await orderService.getOrders(orderCategory);
-          setOrders(data);
-          setTotalPages(Math.ceil(data.length / ordersPerPage));
-          setPaginationData({});
-        } catch (fallbackError) {
-          console.error('Error in fallback order fetch:', fallbackError);
-        }
-      } finally {
-        setLoading(false);
+        const data = await orderService.getOrders(orderCategory);
+        setOrders(data);
+        setTotalPages(Math.ceil(data.length / ordersPerPage));
+        setPaginationData({});
+      } catch (fallbackError) {
+        console.error('Error in fallback order fetch:', fallbackError);
       }
-    };
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchOrders();
   }, [currentPage, orderCategory]);
 
@@ -128,7 +125,10 @@ export default function UserProfileSection() {
       date: new Date(order.orderDate || order.createdAt).toLocaleString(),
       number: order.orderNumber || order._id,
       status: order.status,
-      currency: order.currency || firstItem.currency || 'USDT',
+      paymentMethod: order.paymentMethod,
+      paymentStatus: order.paymentStatus,
+      paymentAddress: order.paymentAddress,
+      currency: order.currency || firstItem.currency || 'USDC',
       product: {
         name: firstItem.product?.name || 'Product',
         variant: firstItem.variant?.name || (firstItem.variant?.attributes?.length > 0
@@ -137,7 +137,7 @@ export default function UserProfileSection() {
         specs: firstItem.specs || null,
         images: productImages, // Use images array instead of single image
         price: firstItem.unitPrice || firstItem.product?.price || 0,
-        currency: firstItem.currency || firstItem.product?.currency || order.currency || 'USDT',
+        currency: firstItem.currency || firstItem.product?.currency || order.currency || 'USDC',
         quantity: firstItem.quantity || 1,
       },
       total: order.totalAmount || order.pricing?.total || ((order.pricing?.subtotal || order.subTotal || 0) + (order.pricing?.delivery || order.deliveryFee || 0)),
@@ -441,7 +441,11 @@ export default function UserProfileSection() {
             <div className="flex-1 min-w-0">
               {/* Conditional Content: Show Order Details, Order List, or Empty State */}
               {selectedOrder ? (
-                <OrderDetailsSection order={selectedOrder} onBackToList={handleBackToOrderList} />
+                <OrderDetailsSection 
+                  order={selectedOrder} 
+                  onBackToList={handleBackToOrderList}
+                  onOrderUpdated={fetchOrders}
+                />
               ) : hasOrders ? (
                 <OrderListWithPagination />
               ) : (

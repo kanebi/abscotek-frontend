@@ -79,7 +79,7 @@ function ReferralPage() {
             <Card className="p-6 text-center">
               <DollarSign size={32} className="text-successs-400 mx-auto mb-3" />
               <h3 className="text-2xl font-heading-header-3-header-3-bold text-white mb-1">
-                <AmountCurrency amount={referralStats.totalEarnings} fromCurrency="USDT" />
+                <AmountCurrency amount={referralStats.totalEarnings} fromCurrency="USDC" />
               </h3>
               <p className="text-neutralneutral-400 text-sm">Total Earnings</p>
             </Card>
@@ -89,7 +89,7 @@ function ReferralPage() {
                 <DollarSign size={20} className="text-warningw-400" />
               </div>
               <h3 className="text-2xl font-heading-header-3-header-3-bold text-white mb-1">
-                <AmountCurrency amount={referralStats.pendingEarnings} fromCurrency="USDT" />
+                <AmountCurrency amount={referralStats.pendingEarnings} fromCurrency="USDC" />
               </h3>
               <p className="text-neutralneutral-400 text-sm">Pending</p>
             </Card>
@@ -99,7 +99,7 @@ function ReferralPage() {
                 <DollarSign size={20} className="text-primaryp-400" />
               </div>
               <h3 className="text-2xl font-heading-header-3-header-3-bold text-white mb-1">
-                <AmountCurrency amount={referralStats.availableBalance} fromCurrency="USDT" />
+                <AmountCurrency amount={referralStats.availableBalance} fromCurrency="USDC" />
               </h3>
               <p className="text-neutralneutral-400 text-sm">Available</p>
             </Card>
@@ -188,7 +188,7 @@ function ReferralPage() {
               </div>
               <div className="flex items-start gap-2">
                 <CheckCircle size={16} className="text-successs-400 mt-0.5 flex-shrink-0" />
-                <p>Minimum withdrawal amount is $50 USDT.</p>
+                <p>Minimum withdrawal amount is $50 USDC.</p>
               </div>
               <div className="flex items-start gap-2">
                 <CheckCircle size={16} className="text-successs-400 mt-0.5 flex-shrink-0" />

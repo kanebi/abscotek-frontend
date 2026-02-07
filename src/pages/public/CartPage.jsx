@@ -181,7 +181,7 @@ function CartPage() {
                       </div>
                     )}
                     <div className="text-white text-lg font-semibold mb-3">
-                      <AmountCurrency amount={item.unitPrice || item.product.price} fromCurrency={item.currency || item.product.currency || cart.currency || 'USDT'} />
+                      <AmountCurrency amount={item.unitPrice || item.product.price} fromCurrency="USD" />
                     </div>
                     
                     {/* Quantity Controls */}
@@ -230,13 +230,13 @@ function CartPage() {
                 <div className="flex justify-between text-white">
                   <span>Subtotal</span>
                   <span className="text-sm">
-                    <AmountCurrency amount={cart.subtotal || getCartTotal()} fromCurrency={cart.currency || 'USDT'} />
+                    <AmountCurrency amount={cart.subtotal || getCartTotal()} fromCurrency="USD" />
                   </span>
                 </div>
                 <div className="flex justify-between text-white text-lg">
                   <span>Order Total</span>
                   <span className="font-semibold">
-                    <AmountCurrency amount={cart.total || getCartTotal()} fromCurrency={cart.currency || 'USDT'} />
+                    <AmountCurrency amount={cart.total || getCartTotal()} fromCurrency="USD" />
                   </span>
                 </div>
               </div>
@@ -319,7 +319,7 @@ function CartPage() {
                   <div className="flex flex-.col items-end gap-2">
                     {/* Price */}
                     <div className="text-white text-lg font-heading-header-3-header-3-semibold">
-                      <AmountCurrency amount={item.unitPrice || item.product?.price || item.price} fromCurrency={item.currency || item.product?.currency || cart.currency || 'USDT'} />
+                      <AmountCurrency amount={item.unitPrice || item.product?.price || item.price} fromCurrency="USD" />
                     </div>
                     
                     {/* Delete Button */}
@@ -352,13 +352,13 @@ function CartPage() {
                 <div className="flex justify-between text-white">
                   <span>Subtotal</span>
                   <span className="text-sm ">
-                    <AmountCurrency  amount={cart.subtotal || getCartTotal()} fromCurrency={cart.currency || 'USDT'} />
+                    <AmountCurrency amount={cart.subtotal || getCartTotal()} fromCurrency="USD" />
                   </span>
                 </div>
                 <div className="flex justify-between text-white text-lg">
                   <span>Order Total</span>
                   <span className="font-semibold" >
-                    <AmountCurrency amount={cart.total || getCartTotal()} fromCurrency={cart.currency || 'USDT'} />
+                    <AmountCurrency amount={cart.total || getCartTotal()} fromCurrency="USD" />
                   </span>
                 </div>
               </div>

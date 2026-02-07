@@ -246,7 +246,7 @@ function OrderManagement() {
                           </div>
                           <div className="flex items-center gap-2 text-neutralneutral-300">
                             <DollarSign size={14} />
-                            <span><AmountCurrency amount={order.totalAmount || 0} fromCurrency={order.currency || 'USDT'} /></span>
+                            <span><AmountCurrency amount={order.totalAmount || 0} fromCurrency={order.currency || 'USDC'} /></span>
                           </div>
                           <div className="flex items-center gap-2 text-neutralneutral-300">
                             <Calendar size={14} />

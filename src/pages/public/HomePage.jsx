@@ -26,10 +26,10 @@ function HomePage() {
         const popularItems = (Array.isArray(popular) ? popular : popular.items || []).map(p => ({
           image: p.images?.[0] || p.image,
           name: p.name,
-          price: `${p.price} ${p.currency || 'USDT'}`,
+          price: p.price,
           badge: p.badge || undefined,
           outOfStock: !!p.outOfStock,
-          _id:p._id,
+          _id: p._id,
           description: p.description
         }));
         setTopCategoryProducts(popularItems);
@@ -39,12 +39,11 @@ function HomePage() {
         const newestItems = (Array.isArray(newest) ? newest : newest.items || []).map(p => ({
           image: p.images?.[0] || p.image,
           name: p.name,
-          price: `${p.price} ${p.currency || 'USDT'}`,
+          price: p.price,
           badge: p.badge || undefined,
           outOfStock: !!p.outOfStock,
-          _id:p._id,
+          _id: p._id,
           description: p.description
-
         }));
         setNewArrivals(newestItems);
       } catch (err) {

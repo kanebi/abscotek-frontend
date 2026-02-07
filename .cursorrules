@@ -230,7 +230,7 @@ export function ProductCard({ product, className, onAddToCart }) {
 ```jsx
 // Currency display
 
-<AmountCurrency amount={price} fromCurrency="USDT" />
+<AmountCurrency amount={price} fromCurrency="USDC" />
 ```Never display any product price withour this component ```
 
 // Responsive layout

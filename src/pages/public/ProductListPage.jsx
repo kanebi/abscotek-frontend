@@ -164,13 +164,13 @@ export default function Desktop() {
   // SEO configuration
   const seoTitle = category ? `${category} - Tech Products | Abscotek` : 'Tech Products & Electronics - Abscotek';
   const seoDescription = category 
-    ? `Browse ${category} products at Abscotek. Find premium tech gadgets, electronics, and accessories with USDT payment options.`
-    : 'Browse our extensive collection of premium tech products including smartphones, laptops, tablets, and accessories. Latest models available with USDT payment.';
+    ? `Browse ${category} products at Abscotek. Find premium tech gadgets, electronics, and accessories with USDC payment options.`
+    : 'Browse our extensive collection of premium tech products including smartphones, laptops, tablets, and accessories. Latest models available with USDC payment.';
   
   const seoData = getPageSEO('products', {
     title: seoTitle,
     description: seoDescription,
-    keywords: category ? `${category}, tech products, electronics, ${category} products, USDT payment` : undefined,
+    keywords: category ? `${category}, tech products, electronics, ${category} products, USDC payment` : undefined,
     path: category ? `/products?category=${category}` : '/products'
   });
 

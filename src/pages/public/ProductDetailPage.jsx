@@ -195,7 +195,7 @@ export default function ProductDetail() {
         image: item.images?.[0] || item.image,
         name: item.name,
         price: item.price,
-        currency: item.currency || 'USDT',
+        currency: item.currency || 'USDC',
         description: item.description,
         _id: item._id
     }));
@@ -236,7 +236,7 @@ export default function ProductDetail() {
                             <div className="self-stretch flex flex-col gap-4">
                                 <div className="text-gray-200 text-2xl font-medium font-sans leading-loose">{p.name}</div>
                                 <div className="text-white text-xl font-semibold font-sans leading-relaxed">
-                                    <AmountCurrency amount={totalPrice || p.price || 0} fromCurrency={p.currency || 'USDT'} />
+                                    <AmountCurrency amount={totalPrice || p.price || 0} fromCurrency={p.currency || 'USDC'} />
                                 </div>
                                 {p.description && (
                                     <div className="text-gray-300 text-sm font-normal font-sans leading-relaxed whitespace-pre-wrap">
@@ -283,7 +283,7 @@ export default function ProductDetail() {
                                                             <span className="text-sm">
                                                                 <AmountCurrency 
                                                                     amount={variant.price || p.price || 0} 
-                                                                    fromCurrency={variant.currency || p.currency || 'USDT'} 
+                                                                    fromCurrency="USD" 
                                                                 />
                                                             </span>
                                                         </div>
@@ -455,7 +455,7 @@ export default function ProductDetail() {
                                     <div className="flex flex-col gap-4">
                                         <h1 className="text-white text-[32px] font-semibold    leading-10">{p.name}</h1>
                                         <div className="text-white text-[28px] font-semibold    leading-[44px]">
-                                            <AmountCurrency amount={totalPrice} fromCurrency={p.currency} />
+                                            <AmountCurrency amount={totalPrice} fromCurrency="USD" />
                                         </div>
                                         {p.description && (
                                             <div className="text-gray-300 text-base font-normal leading-relaxed whitespace-pre-wrap">
@@ -502,7 +502,7 @@ export default function ProductDetail() {
                                                                     <span className="text-sm">
                                                                         <AmountCurrency 
                                                                             amount={variant.price || p.price || 0} 
-                                                                            fromCurrency={variant.currency || p.currency || 'USDT'} 
+                                                                            fromCurrency="USD"
                                                                         />
                                                                     </span>
                                                                 </div>

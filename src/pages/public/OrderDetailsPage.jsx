@@ -22,44 +22,47 @@ function OrderDetailsPage() {
   const [error, setError] = useState(null);
   const [cancelling, setCancelling] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
+  const [completingPayment, setCompletingPayment] = useState(false);
+  const [pollingPayment, setPollingPayment] = useState(false);
 
   useEffect(() => {
-    console.log('OrderDetailsPage useEffect triggered, id from params:', id);
-
     const fetchOrderDetails = async () => {
       if (!id) {
-        console.log('No id provided from useParams, setting loading to false');
         setLoading(false);
         return;
       }
-
       try {
         setLoading(true);
         setError(null);
-        console.log('About to call orderService.getOrderById with ID:', id);
-
-        // Check if user is authenticated
-        const token = localStorage.getItem('token');
-        console.log('Auth token present:', !!token);
-
         const orderDetails = await orderService.getOrderById(id);
-        console.log('Order details received successfully:', orderDetails);
         setOrder(orderDetails);
       } catch (err) {
-        console.error('Error in fetchOrderDetails:', err);
-        console.error('Error message:', err.message);
-        console.error('Error response:', err.response);
-        console.error('Error status:', err.response?.status);
         setError('Failed to fetch order details. The order may not exist or you may not have permission to view it.');
       } finally {
-        console.log('Setting loading to false');
         setLoading(false);
       }
     };
-
-    console.log('Calling fetchOrderDetails');
     fetchOrderDetails();
   }, [id]);
+
+  // Polling for payment confirmation - must be called unconditionally (Rules of Hooks)
+  useEffect(() => {
+    if (!pollingPayment || !order?._id || order.paymentStatus === 'paid') return;
+    const interval = setInterval(async () => {
+      try {
+        const result = await orderService.confirmCryptoPayment(order._id);
+        if (result.success) {
+          setPollingPayment(false);
+          addNotification('Payment confirmed!', 'success');
+          const updatedOrder = await orderService.getOrderById(id);
+          setOrder(updatedOrder);
+        }
+      } catch {
+        // Ignore, keep polling
+      }
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [pollingPayment, order?._id, id, addNotification]);
 
   const seoData = getPageSEO('orderDetail', { orderId: id });
 
@@ -127,6 +130,28 @@ function OrderDetailsPage() {
   };
 
   const progressSteps = getProgressSteps(order.status);
+
+  const handleIHaveCompletedPayment = async () => {
+    if (!order?._id) return;
+    setCompletingPayment(true);
+    try {
+      const result = await orderService.confirmCryptoPayment(order._id);
+      if (result.success) {
+        addNotification('Payment confirmed! Your order is being processed.', 'success');
+        const updatedOrder = await orderService.getOrderById(id);
+        setOrder(updatedOrder);
+      }
+    } catch (err) {
+      if (err.response?.status === 400) {
+        addNotification('Payment not yet detected. Checking every few seconds...', 'info');
+        setPollingPayment(true);
+      } else {
+        addNotification(err.response?.data?.msg || 'Error confirming payment', 'error');
+      }
+    } finally {
+      setCompletingPayment(false);
+    }
+  };
 
   const handleCancelOrder = async () => {
     if (!order) return;
@@ -344,12 +369,12 @@ function OrderDetailsPage() {
                       <p className="text-white font-medium">
                         <AmountCurrency 
                           amount={(item.unitPrice || item.price || 0) * (item.quantity || 1)} 
-                          fromCurrency={item.currency || order.currency || 'USDT'} 
+                          fromCurrency={item.currency || order.currency || 'USDC'} 
                         />
                       </p>
                       {item.unitPrice && item.quantity > 1 && (
                         <p className="text-xs text-neutral-400 mt-1">
-                          <AmountCurrency amount={item.unitPrice} fromCurrency={item.currency || order.currency || 'USDT'} /> each
+                          <AmountCurrency amount={item.unitPrice} fromCurrency={item.currency || order.currency || 'USDC'} /> each
                         </p>
                       )}
                     </div>
@@ -385,11 +410,11 @@ function OrderDetailsPage() {
               <div className="space-y-2 text-neutral-300">
                 <div className="flex justify-between">
                   <span>Subtotal</span>
-                  <span><AmountCurrency amount={order.pricing?.subtotal || order.subTotal || 0} fromCurrency={order.currency || 'USDT'} /></span>
+                  <span><AmountCurrency amount={order.pricing?.subtotal || order.subTotal || 0} fromCurrency={order.currency || 'USDC'} /></span>
                 </div>
                 <div className="flex justify-between">
                   <span>Shipping</span>
-                  <span><AmountCurrency amount={order.pricing?.delivery || order.deliveryFee || deliveryMethod?.price || 0} fromCurrency={order.pricing?.deliveryCurrency || deliveryMethod?.currency || order.currency || 'USDT'} /></span>
+                  <span><AmountCurrency amount={order.pricing?.delivery || order.deliveryFee || deliveryMethod?.price || 0} fromCurrency={order.pricing?.deliveryCurrency || deliveryMethod?.currency || order.currency || 'USDC'} /></span>
                 </div>
                 <div className="border-t border-neutral-700 my-2"></div>
                 <div className="flex justify-between text-white font-semibold text-lg">
@@ -400,7 +425,7 @@ function OrderDetailsPage() {
                         (order.pricing?.subtotal || order.subTotal || 0) + 
                         (order.pricing?.delivery || order.deliveryFee || deliveryMethod?.price || 0)
                       } 
-                      fromCurrency={order.currency || 'USDT'} 
+                      fromCurrency={order.currency || 'USDC'} 
                     />
                   </span>
                 </div>
@@ -430,7 +455,7 @@ function OrderDetailsPage() {
               <Card className="bg-[#1F1F21] border-none p-6 rounded-xl">
                 <h2 className="text-xl font-semibold text-white mb-4">Complete Payment</h2>
                 <p className="text-neutral-300 text-sm mb-3">
-                  Send exactly <strong className="text-white">{order.totalAmount ?? ((order.pricing?.subtotal || order.subTotal || 0) + (order.pricing?.delivery || order.deliveryFee || 0))}</strong> USDT to your payment address:
+                  Send exactly <strong className="text-white">{order.totalAmount ?? ((order.pricing?.subtotal || order.subTotal || 0) + (order.pricing?.delivery || order.deliveryFee || 0))}</strong> USDC to your payment address:
                 </p>
                 <div className="bg-[#2C2C2E] rounded-lg p-3 flex items-center justify-between gap-2">
                   <code className="text-xs text-white break-all font-mono flex-1">
@@ -451,6 +476,20 @@ function OrderDetailsPage() {
                 <p className="text-neutral-400 text-xs mt-2">
                   This is your tied payment address. Use it for all crypto orders.
                 </p>
+                <Button
+                  onClick={handleIHaveCompletedPayment}
+                  disabled={completingPayment}
+                  className="w-full mt-4 bg-primary-500 hover:bg-primary-600 text-white"
+                >
+                  {completingPayment ? (
+                    <>
+                      <span className="animate-spin mr-2">⏳</span>
+                      {pollingPayment ? 'Checking for payment...' : 'Confirming...'}
+                    </>
+                  ) : (
+                    'I have completed payment'
+                  )}
+                </Button>
               </Card>
             )}
 
@@ -528,7 +567,7 @@ function OrderDetailsPage() {
                     <div className="flex justify-between items-center">
                       <span className="text-neutral-300">Shipping:</span>
                       <span className="text-neutral-300">
-                        <AmountCurrency amount={order.pricing?.delivery || order.deliveryFee || deliveryMethod?.price || 0} fromCurrency={order.pricing?.deliveryCurrency || deliveryMethod?.currency || order.currency || 'USDT'} />
+                        <AmountCurrency amount={order.pricing?.delivery || order.deliveryFee || deliveryMethod?.price || 0} fromCurrency={order.pricing?.deliveryCurrency || deliveryMethod?.currency || order.currency || 'USDC'} />
                       </span>
                     </div>
                     <div className="border-t border-neutral-600 my-2"></div>
@@ -540,7 +579,7 @@ function OrderDetailsPage() {
                             (order.pricing?.subtotal || order.subTotal || 0) + 
                             (order.pricing?.delivery || order.deliveryFee || deliveryMethod?.price || 0)
                           } 
-                          fromCurrency={order.currency || 'USDT'} 
+                          fromCurrency={order.currency || 'USDC'} 
                         />
                       </span>
                     </div>

@@ -36,7 +36,7 @@ export default function AvatarBlock({ user }) {
   return (
     <div className="flex justify-start items-center gap-2">
       <div className="w-8 inline-flex flex-col justify-center items-center">
-        <div className="justify-start text-white text-sm font-semibold font-['Mona_Sans'] leading-tight">USDT</div>
+        <div className="justify-start text-white text-sm font-semibold font-['Mona_Sans'] leading-tight">USDC</div>
         <div className="self-stretch text-center justify-start text-zinc-400 text-sm font-medium font-['Mona_Sans'] leading-tight">
           {user?.platformBalance ?? 0}
         </div>

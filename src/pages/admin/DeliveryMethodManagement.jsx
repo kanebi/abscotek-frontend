@@ -148,7 +148,7 @@ function DeliveryMethodManagement() {
                 />
                 <input
                   type="number"
-                  placeholder="Price (USDT)"
+                  placeholder="Price (USDC)"
                   value={newDeliveryMethod.price}
                   onChange={(e) => setNewDeliveryMethod({ ...newDeliveryMethod, price: e.target.value })}
                   className="p-3 bg-neutralneutral-800 border border-neutralneutral-600 rounded-lg text-white placeholder-neutralneutral-400"
@@ -201,7 +201,7 @@ function DeliveryMethodManagement() {
                   />
                   <input
                     type="number"
-                    placeholder="Price (USDT)"
+                    placeholder="Price (USDC)"
                     value={editingDeliveryMethod.price}
                     onChange={(e) => setEditingDeliveryMethod({ ...editingDeliveryMethod, price: e.target.value })}
                     className="p-3 bg-neutralneutral-800 border border-neutralneutral-600 rounded-lg text-white placeholder-neutralneutral-400"
@@ -272,7 +272,7 @@ function DeliveryMethodManagement() {
                               {method.name}
                             </h3>
                             <p className="text-primaryp-400 font-body-base-base-bold">
-                              <AmountCurrency amount={method.price} fromCurrency="USDT" />
+                              <AmountCurrency amount={method.price} fromCurrency="USDC" />
                             </p>
                           </div>
                         </div>

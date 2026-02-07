@@ -24,7 +24,7 @@ function ProductEdit() {
     name: '',
     description: '',
     price: '',
-    currency: 'USDT',
+    currency: 'USDC',
     badge: '',
     category: '',
     brand: '',
@@ -48,7 +48,7 @@ function ProductEdit() {
   useEffect(() => {
     const amt = parseFloat(formData.price);
     const curr = formData.currency;
-    if (amt && !isNaN(amt) && (curr === 'USD' || curr === 'USDT')) {
+    if (amt && !isNaN(amt) && (curr === 'USD' || curr === 'USDC')) {
       currencyConversionService.convertCurrency(amt, 'USD', 'NGN')
         .then(ngn => currencyConversionService.convertCurrency(amt, 'USD', 'GHC').then(ghc => setConvertedAmounts({ ngn, ghc })))
         .catch(() => setConvertedAmounts({ ngn: null, ghc: null }));
@@ -66,7 +66,7 @@ function ProductEdit() {
         name: product.name || '',
         description: product.description || '',
         price: product.price || '',
-        currency: product.currency || 'USDT',
+        currency: product.currency || 'USDC',
         badge: product.badge || '',
         category: product.category || '',
         brand: product.brand || '',
@@ -93,7 +93,7 @@ function ProductEdit() {
       setConvertedAmounts({ ngn: null, ghc: null });
       return;
     }
-    const isUSD = curr === 'USD' || curr === 'USDT';
+    const isUSD = curr === 'USD' || curr === 'USDC';
     if (!isUSD) {
       setConvertedAmounts({ ngn: null, ghc: null });
       return;
@@ -140,7 +140,7 @@ function ProductEdit() {
         ? formData.variants.map(variant => ({
             name: variant.name || '',
             price: Number(variant.price) || 0,
-            currency: variant.currency || 'USDT',
+            currency: variant.currency || 'USDC',
             stock: Number(variant.stock) || 0,
             sku: variant.sku || null,
             attributes: Array.isArray(variant.attributes) ? variant.attributes : [],
@@ -320,7 +320,7 @@ function ProductEdit() {
                   />
                 </div>
                 <div>
-                  <label className="block text-neutralneutral-300 text-sm mb-2">Price (USD/USDT) *</label>
+                  <label className="block text-neutralneutral-300 text-sm mb-2">Price (USD/USDC) *</label>
                   <input
                     type="number"
                     step="0.01"

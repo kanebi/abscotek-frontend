@@ -107,7 +107,7 @@ export default function ReferModal({ open, onClose }) {
               <div className="w-52 inline-flex flex-col justify-start items-start gap-[3px]">
                 <div className="self-stretch flex flex-col justify-start items-start gap-2">
                   <div className="self-stretch justify-start text-white text-sm font-semibold font-['Mona_Sans'] leading-tight">REFER A FRIEND AND GET</div>
-                  <div className="self-stretch justify-start text-fuchsia-700 text-3xl font-bold font-['Mona_Sans'] leading-loose">{REFERRAL_REWARD_AMOUNT} USDT</div>
+                  <div className="self-stretch justify-start text-fuchsia-700 text-3xl font-bold font-['Mona_Sans'] leading-loose">{REFERRAL_REWARD_AMOUNT} USDC</div>
                 </div>
                 <div className="self-stretch justify-start text-white text-base font-medium font-['Mona_Sans'] leading-normal">Invite friends, earn money.</div>
               </div>
@@ -194,7 +194,7 @@ export default function ReferModal({ open, onClose }) {
           <div className="w-full flex flex-col items-center justify-center gap-8 py-8">
             <img src="/images/37d9c2dc9cdf22d7f774367c73f44cede984e6c0.png" className="w-32 h-28 object-contain" alt="cash" />
             <div className="text-center">
-              <div className="text-white text-xl font-bold font-['Mona_Sans'] mb-2">Refer friends and earn USDT!</div>
+              <div className="text-white text-xl font-bold font-['Mona_Sans'] mb-2">Refer friends and earn USDC!</div>
               <div className="text-neutral-300 text-base font-['Mona_Sans']">Connect your wallet to get your unique referral link and start earning rewards.</div>
             </div>
             <WalletConnectButton onConnect={authenticateAndLogin} />

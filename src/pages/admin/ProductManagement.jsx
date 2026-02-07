@@ -88,7 +88,7 @@ function ProductManagement() {
         name: newProduct.name,
         description: newProduct.description || '',
         price: Number(newProduct.price),
-        currency: 'USDT',
+        currency: 'USDC',
         images: [],
         published: false,
         badge: newProduct.badge?.trim() || null,
@@ -277,7 +277,7 @@ function ProductManagement() {
                     <input type="text" placeholder="Product Name" value={newProduct.name} onChange={(e) => setNewProduct({ ...newProduct, name: e.target.value })} className="w-full p-3 bg-neutralneutral-800 border border-neutralneutral-600 rounded-lg text-white placeholder-neutralneutral-400" required />
                   </div>
                   <div>
-                    <input type="number" placeholder="Price (USD/USDT)" value={newProduct.price} onChange={(e) => setNewProduct({ ...newProduct, price: e.target.value })} className="w-full p-3 bg-neutralneutral-800 border border-neutralneutral-600 rounded-lg text-white placeholder-neutralneutral-400" required />
+                    <input type="number" placeholder="Price (USD/USDC)" value={newProduct.price} onChange={(e) => setNewProduct({ ...newProduct, price: e.target.value })} className="w-full p-3 bg-neutralneutral-800 border border-neutralneutral-600 rounded-lg text-white placeholder-neutralneutral-400" required />
                     {(convertedAmounts.ngn != null || convertedAmounts.ghc != null) && (
                       <div className="mt-2 text-sm text-neutralneutral-400 space-y-1">
                         {convertedAmounts.ngn != null && (
@@ -472,7 +472,7 @@ function ProductManagement() {
                             <StatusBadge published={!!p.published} />
                           </div>
                         </div>
-                        <div className="text-neutralneutral-200"><AmountCurrency amount={p.price} fromCurrency="USDT" /></div>
+                        <div className="text-neutralneutral-200"><AmountCurrency amount={p.price} fromCurrency="USDC" /></div>
                       </div>
 
                       {/* Cover image preview (first image) */}

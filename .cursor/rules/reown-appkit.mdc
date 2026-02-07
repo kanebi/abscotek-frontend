@@ -262,14 +262,14 @@ export {};
 'use client'
 
 import { useReadContract } from 'wagmi'
-// import { USDTAbi } from '../abi/USDTAbi' // Replace with your ABI import
+// import { USDCAbi } from '../abi/USDCAbi' // Replace with your ABI import
 
-// const USDTAddress = '0x...' // Replace with your contract address
+// const USDCAddress = '0x...' // Replace with your contract address
 
 function ReadContractExample() {
   // const { data, error, isLoading } = useReadContract({
-  //   abi: USDTAbi,
-  //   address: USDTAddress,
+  //   abi: USDCAbi,
+  //   address: USDCAddress,
   //   functionName: 'totalSupply',
   // })
 

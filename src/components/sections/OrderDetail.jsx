@@ -8,11 +8,63 @@ import {
 } from "@/components/ui/Breadcrumb";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { Button } from "@/components/ui/button";
 import OrderSummary from "@/components/ui/OrderSummary";
 import AmountCurrency from "@/components/ui/AmountCurrency";
-import React from "react";
+import React, { useState, useEffect } from "react";
+import orderService from "@/services/orderService";
+import useNotificationStore from "@/store/notificationStore";
 
-export const OrderDetailsSection = ({ order, onBackToList }) => {
+export const OrderDetailsSection = ({ order, onBackToList, onOrderUpdated }) => {
+  const [localOrder, setLocalOrder] = useState(order);
+  const [completingPayment, setCompletingPayment] = useState(false);
+  const [pollingPayment, setPollingPayment] = useState(false);
+  const { addNotification } = useNotificationStore();
+  const displayOrder = localOrder || order;
+
+  useEffect(() => {
+    setLocalOrder(order);
+  }, [order]);
+
+  const handleIHaveCompletedPayment = async () => {
+    if (!displayOrder?.id) return;
+    setCompletingPayment(true);
+    try {
+      const result = await orderService.confirmCryptoPayment(displayOrder.id);
+      if (result.success) {
+        addNotification('Payment confirmed! Your order is being processed.', 'success');
+        setLocalOrder({ ...displayOrder, status: 'confirmed', paymentStatus: 'paid' });
+        onOrderUpdated?.();
+      }
+    } catch (err) {
+      if (err.response?.status === 400) {
+        addNotification('Payment not yet detected. Checking every few seconds...', 'info');
+        setPollingPayment(true);
+      } else {
+        addNotification(err.response?.data?.msg || 'Error confirming payment', 'error');
+      }
+    } finally {
+      setCompletingPayment(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!pollingPayment || !displayOrder?.id || displayOrder.paymentStatus === 'paid') return;
+    const interval = setInterval(async () => {
+      try {
+        const result = await orderService.confirmCryptoPayment(displayOrder.id);
+        if (result.success) {
+          setPollingPayment(false);
+          addNotification('Payment confirmed!', 'success');
+          setLocalOrder({ ...displayOrder, status: 'confirmed', paymentStatus: 'paid' });
+          onOrderUpdated?.();
+        }
+      } catch {
+        // Ignore, keep polling
+      }
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [pollingPayment, displayOrder?.id, displayOrder?.paymentStatus]);
   // Order progress steps based on status - now using backend stages data
   const getProgressSteps = (order) => {
     // Use stages from backend if available, otherwise fallback to old logic
@@ -57,7 +109,7 @@ export const OrderDetailsSection = ({ order, onBackToList }) => {
     return steps;
   };
 
-  const progressSteps = getProgressSteps(order.status);
+  const progressSteps = getProgressSteps(displayOrder || order);
   return (
     <div className="flex flex-col items-start justify-start gap-6 relative w-full">
       {/* Breadcrumb Navigation */}
@@ -276,7 +328,7 @@ export const OrderDetailsSection = ({ order, onBackToList }) => {
                     <div className="w-[74px] font-body-large-large-semibold text-defaultwhite text-center">
                       <AmountCurrency 
                         amount={order.product.unitPrice || order.product.price || 0} 
-                        fromCurrency={order.product.currency || order.currency || 'USDT'} 
+                        fromCurrency={order.product.currency || order.currency || 'USDC'} 
                       />
                     </div>
                   </div>
@@ -295,7 +347,7 @@ export const OrderDetailsSection = ({ order, onBackToList }) => {
                     <div className="font-body-large-large-medium text-defaultwhite text-right">
                       <AmountCurrency 
                         amount={order.pricing?.subtotal || order.subTotal || 0} 
-                        fromCurrency={order.currency || 'USDT'} 
+                        fromCurrency={order.currency || 'USDC'} 
                       />
                     </div>
                   </div>
@@ -306,7 +358,7 @@ export const OrderDetailsSection = ({ order, onBackToList }) => {
                     <div className="font-body-large-large-medium text-defaultwhite text-right">
                       <AmountCurrency 
                         amount={order.pricing?.delivery || order.deliveryFee || 0} 
-                        fromCurrency={order.currency || 'USDT'} 
+                        fromCurrency={order.currency || 'USDC'} 
                       />
                     </div>
                   </div>
@@ -325,7 +377,7 @@ export const OrderDetailsSection = ({ order, onBackToList }) => {
                           order.totalAmount || 
                           ((order.pricing?.subtotal || order.subTotal || 0) + (order.pricing?.delivery || order.deliveryFee || 0))
                         } 
-                        fromCurrency={order.currency || 'USDT'} 
+                        fromCurrency={order.currency || 'USDC'} 
                       />
                     </div>
                   </div>
@@ -376,6 +428,35 @@ export const OrderDetailsSection = ({ order, onBackToList }) => {
               </div>
             </div>
           </div>
+
+          {/* Complete Payment - For pending crypto orders */}
+          {displayOrder?.status?.toLowerCase() === 'pending' &&
+            displayOrder?.paymentMethod === 'crypto' &&
+            displayOrder?.paymentStatus !== 'paid' &&
+            displayOrder?.paymentAddress && (
+            <div className="flex flex-col w-full md:w-[414px] items-start gap-5">
+              <h2 className="font-heading-header-6-header-6-semibold text-white w-full">
+                Complete Payment
+              </h2>
+              <p className="text-neutral-300 text-sm">
+                Send exactly <strong className="text-white">{displayOrder.total ?? displayOrder.pricing?.total}</strong> USDC to your payment address. After sending, click below.
+              </p>
+              <div className="bg-[#2C2C2E] rounded-lg p-3 w-full">
+                <code className="text-xs text-white break-all font-mono">{displayOrder.paymentAddress}</code>
+              </div>
+              <Button
+                onClick={handleIHaveCompletedPayment}
+                disabled={completingPayment}
+                className="w-full bg-primaryp-300 hover:bg-primaryp-400 text-white"
+              >
+                {completingPayment ? (
+                  pollingPayment ? 'Checking for payment...' : 'Confirming...'
+                ) : (
+                  'I have completed payment'
+                )}
+              </Button>
+            </div>
+          )}
 
           <Separator className="w-full bg-[#3f3f3f]" />
 

@@ -44,7 +44,7 @@ export async function getCurrencyRates() {
   } catch (error) {
     console.error('Failed to fetch latest currency rates, using fallback:', error);
     const fallback = normalizeRates({
-      USDT: 1,
+      USDC: 1,
       USD: 1,
       EUR: 0.92,
       NGN: 1500,
@@ -57,10 +57,12 @@ export async function getCurrencyRates() {
 }
 
 function normalizeRates(rates) {
-  // Ensure we have both GHS and GHC aliases
   const r = { ...rates };
   if (r.GHS && !r.GHC) r.GHC = r.GHS;
   if (r.GHC && !r.GHS) r.GHS = r.GHC;
+  // API returns rates from USDC base; USDC key is often missing - add it
+  if (r.USD !== undefined && r.USDC === undefined) r.USDC = r.USD;
+  if (r.USDC === undefined) r.USDC = 1;
   return r;
 }
 
@@ -77,5 +79,6 @@ export function convertCurrency(amount, from, to, rates) {
 
 function alias(code) {
   if (code === 'GHC') return 'GHS';
+  if (code === 'USDT') return 'USDC';
   return code;
 }

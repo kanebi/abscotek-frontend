@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { X, Copy, Check, Loader2 } from 'lucide-react';
 import { Button } from '../ui/button';
 import currencyConversionService from '../../services/currencyConversionService';
@@ -21,36 +21,68 @@ function CryptoPaymentModal({
   const [paymentStatus, setPaymentStatus] = useState('waiting');
   const [confirmations, setConfirmations] = useState(0);
   const [requiredConfirmations, setRequiredConfirmations] = useState(3);
+  const [polling, setPolling] = useState(false);
+  const [confirming, setConfirming] = useState(false);
+  const pollIntervalRef = useRef(null);
   const { addNotification } = useNotificationStore();
 
-  // Poll for payment status
+  // Poll only when user has clicked "I have made payment"
   useEffect(() => {
-    if (!orderId) return;
+    if (!orderId || !polling) return;
 
-    const interval = setInterval(async () => {
+    const tryConfirm = async () => {
       try {
-        const status = await orderService.checkCryptoPaymentStatus(orderId);
-        setPaymentStatus(status.status);
-        setConfirmations(status.confirmations || 0);
-        setRequiredConfirmations(status.requiredConfirmations || 3);
-
-        if (status.status === 'paid') {
-          clearInterval(interval);
+        const result = await orderService.confirmCryptoPayment(orderId);
+        if (result.success) {
+          setPolling(false);
+          if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
+          setPaymentStatus('paid');
           addNotification('Payment confirmed!', 'success');
-          if (onPaymentConfirmed) {
-            onPaymentConfirmed();
-          }
-        } else if (status.status === 'expired') {
-          clearInterval(interval);
-          addNotification('Payment expired. Please create a new order.', 'error');
+          if (onPaymentConfirmed) onPaymentConfirmed();
         }
-      } catch (error) {
-        console.error('Error checking payment status:', error);
+      } catch (err) {
+        if (err.response?.status === 400) {
+          const status = await orderService.checkCryptoPaymentStatus(orderId).catch(() => ({}));
+          setPaymentStatus(status.status || 'waiting');
+          setConfirmations(status.confirmations || 0);
+          setRequiredConfirmations(status.requiredConfirmations || 3);
+          if (status.status === 'expired') {
+            setPolling(false);
+            if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
+            addNotification('Payment expired. Please create a new order.', 'error');
+          }
+        }
       }
-    }, 5000); // Check every 5 seconds
+    };
 
-    return () => clearInterval(interval);
-  }, [orderId, onPaymentConfirmed, addNotification]);
+    tryConfirm();
+    pollIntervalRef.current = setInterval(tryConfirm, 5000);
+    return () => {
+      if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
+    };
+  }, [orderId, polling, onPaymentConfirmed, addNotification]);
+
+  const handleIMadePayment = async () => {
+    if (!orderId) return;
+    setConfirming(true);
+    try {
+      const result = await orderService.confirmCryptoPayment(orderId);
+      if (result.success) {
+        setPaymentStatus('paid');
+        addNotification('Payment confirmed!', 'success');
+        if (onPaymentConfirmed) onPaymentConfirmed();
+      }
+    } catch (err) {
+      if (err.response?.status === 400) {
+        addNotification('Payment not yet detected. Starting to check...', 'info');
+        setPolling(true);
+      } else {
+        addNotification(err.response?.data?.msg || 'Error confirming payment', 'error');
+      }
+    } finally {
+      setConfirming(false);
+    }
+  };
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(paymentAddress);
@@ -87,8 +119,8 @@ function CryptoPaymentModal({
   };
 
   const getNetworkDetails = () => {
-    // Crypto (USDT) payments use Base network
-    const effectiveNetwork = (currency === 'USDT' || currency === 'USD') ? 'base' : (network || 'base');
+    // Crypto (USDC) payments use Base network
+    const effectiveNetwork = (currency === 'USDC' || currency === 'USD') ? 'base' : (network || 'base');
     const networks = {
       base: {
         name: 'Base',
@@ -138,11 +170,11 @@ function CryptoPaymentModal({
         </div>
 
         <div className="space-y-4">
-          {/* Amount - always display in USDT (native crypto currency) */}
+          {/* Amount - always display in USDC (native crypto currency) */}
           <div className="text-center">
             <p className="text-neutral-400 text-sm mb-1">Amount to Pay</p>
             <p className="text-2xl font-bold text-white">
-              {currencyConversionService.formatCurrency(Number(amount), 'USDT')}
+              {currencyConversionService.formatCurrency(Number(amount), 'USDC')}
             </p>
             <div className="mt-2 p-3 bg-[#2C2C2E] rounded-lg">
               <p className="text-neutral-300 text-sm font-medium">{networkDetails.name} Network</p>
@@ -224,7 +256,7 @@ function CryptoPaymentModal({
           <div className="bg-[#2C2C2E] rounded-lg p-4">
             <p className="text-sm text-neutral-400 mb-2">Instructions:</p>
             <ol className="text-xs text-neutral-500 space-y-1 list-decimal list-inside">
-              <li>Send exactly <strong className="text-white">{currencyConversionService.formatCurrency(Number(amount), 'USDT')}</strong> to the address above</li>
+              <li>Send exactly <strong className="text-white">{currencyConversionService.formatCurrency(Number(amount), 'USDC')}</strong> to the address above</li>
               <li>Wait for blockchain confirmations (usually 1-3 minutes)</li>
               <li>Your order will be confirmed automatically</li>
             </ol>
@@ -233,8 +265,30 @@ function CryptoPaymentModal({
           {/* Action Buttons - List View */}
           <div className="flex flex-col space-y-3">
             <Button
-              onClick={onClose}
+              onClick={handleIMadePayment}
+              disabled={confirming || paymentStatus === 'paid' || polling}
               className="w-full bg-primaryp-300 hover:bg-primaryp-400 text-white"
+            >
+              {confirming ? (
+                <>
+                  <Loader2 size={16} className="animate-spin mr-2 inline" />
+                  Confirming...
+                </>
+              ) : polling ? (
+                <>
+                  <Loader2 size={16} className="animate-spin mr-2 inline" />
+                  Checking for payment...
+                </>
+              ) : paymentStatus === 'paid' ? (
+                'Payment confirmed!'
+              ) : (
+                'I have made payment'
+              )}
+            </Button>
+            <Button
+              onClick={onClose}
+              variant="outline"
+              className="w-full border-neutral-600 text-neutral-300"
             >
               Continue Later
             </Button>

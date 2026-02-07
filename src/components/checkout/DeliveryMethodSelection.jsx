@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Separator } from '../ui/separator';
-import AmountCurrency from '../ui/AmountCurrency';
+import DeliveryPriceDisplay from './DeliveryPriceDisplay';
 
 // Default frontend delivery methods
 const defaultDeliveryMethods = [
@@ -66,7 +66,7 @@ function DeliveryMethodSelection({
                 <span className="text-white font-medium">{method.name}</span>
               </div>
               <span className="text-white font-medium">
-                <AmountCurrency amount={method.price} fromCurrency={method.currency} />
+                <DeliveryPriceDisplay price={method.price} currency={method.currency || 'NGN'} />
               </span>
             </div>
           </div>

@@ -144,7 +144,7 @@ function OrderSuccessPage() {
                           order.pricing?.total || 
                           ((order.pricing?.subtotal || order.subTotal || 0) + (order.pricing?.delivery || order.deliveryFee || 0))
                         } 
-                        fromCurrency={order.currency || 'USDT'} 
+                        fromCurrency={order.currency || 'USDC'} 
                       />
                     </div>
                   </div>

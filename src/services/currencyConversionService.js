@@ -51,6 +51,8 @@ class CurrencyConversionService {
     const r = { ...rates };
     if (r.GHS && !r.GHC) r.GHC = r.GHS;
     if (r.GHC && !r.GHS) r.GHS = r.GHC;
+    if (r.USD !== undefined && r.USDC === undefined) r.USDC = r.USD;
+    if (r.USDC === undefined) r.USDC = 1;
     return r;
   }
 
@@ -61,10 +63,16 @@ class CurrencyConversionService {
     const from = this.alias(fromCurrency);
     const to = this.alias(toCurrency);
 
-    // If both are fiat-like (including USDT treated as fiat-peg)
+    // If both are fiat-like (including USDC treated as fiat-peg)
     if (rates[from] && rates[to] && this.isFiatLike(from) && this.isFiatLike(to)) {
-      // rates are relative to a base (USDT or USD); use ratio
+      // rates are "X target per 1 base" (base=USD/USDC). E.g. NGN:1500 = 1 USD = 1500 NGN
+      // To convert from NGN to USD: amount_ngn / rates.NGN
       return a * (rates[to] / rates[from]);
+    }
+    // Fallback: NGN to USD/USDC when rates missing (e.g. API didn't return USDC)
+    const ngnPerUsd = rates.NGN || 1500;
+    if (from === 'NGN' && (to === 'USD' || to === 'USDC')) {
+      return a / ngnPerUsd;
     }
 
     // Convert fiat -> crypto based on USD price
@@ -91,8 +99,9 @@ class CurrencyConversionService {
   }
 
   formatCurrency(amount, currency) {
+    const curr = currency === 'USDT' ? 'USDC' : (currency || 'USDC');
     const formatters = {
-      USDT: (val) => `${Number(val).toLocaleString('en-US', { minimumFractionDigits: 4, maximumFractionDigits: 4 })} USDT`,
+      USDC: (val) => `${Number(val).toLocaleString('en-US', { minimumFractionDigits: 4, maximumFractionDigits: 4 })} USDC`,
       USD: (val) => `$${Number(val).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
       NGN: (val) => `₦${Number(val).toLocaleString('en-NG', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`,
       GHC: (val) => `₵${Number(val).toLocaleString('en-GH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
@@ -102,26 +111,27 @@ class CurrencyConversionService {
       BNB: (val) => `${Number(val).toLocaleString('en-US', { minimumFractionDigits: 6, maximumFractionDigits: 6 })} BNB`,
       MATIC: (val) => `${Number(val).toLocaleString('en-US', { minimumFractionDigits: 6, maximumFractionDigits: 6 })} MATIC`,
     };
-    return formatters[currency] ? formatters[currency](amount) : `${amount} ${currency}`;
+    return formatters[curr] ? formatters[curr](amount) : `${amount} ${curr}`;
   }
 
   getPaystackCurrency(currency) {
     const paystackCurrencies = {
       USD: 'USD',
       NGN: 'NGN',
-      USDT: 'NGN',
+      USDC: 'NGN',
     };
     return paystackCurrencies[currency] || 'NGN';
   }
 
   isFiatLike(code) {
-    return ['USD', 'USDT', 'NGN', 'GHS', 'GHC', 'EUR'].includes(code);
+    return ['USD', 'USDC', 'NGN', 'GHS', 'GHC', 'EUR'].includes(code);
   }
   isCrypto(code) {
     return ['ETH', 'BTC', 'BNB', 'MATIC'].includes(code);
   }
   alias(code) {
     if (code === 'GHC') return 'GHS';
+    if (code === 'USDT') return 'USDC';
     return code;
   }
 }

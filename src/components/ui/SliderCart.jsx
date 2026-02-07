@@ -205,7 +205,7 @@ try {
                      <div className="text-white font-bold text-lg mb-4">
                        <AmountCurrency 
                          amount={item.unitPrice || item.product?.price || item.price} 
-                         fromCurrency={item.currency || item.product?.currency || cart.currency || 'USDT'} 
+                         fromCurrency="USD"
                        />
                      </div>
                      
@@ -260,7 +260,7 @@ try {
                <div className="flex flex-col items-end text-right">
                  <span className="text-white text-sm">Subtotal</span>
                  <div className="text-white text-2xl font-bold">
-                   <AmountCurrency amount={cart.subtotal || getCartTotal()} fromCurrency={cart.currency || 'USDT'} />
+                   <AmountCurrency amount={cart.subtotal || getCartTotal()} fromCurrency="USD" />
                  </div>
                </div>
                

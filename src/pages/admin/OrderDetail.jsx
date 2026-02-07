@@ -212,14 +212,14 @@ function OrderDetail() {
                             <p className="text-white font-body-large-large-bold">
                               <AmountCurrency 
                                 amount={(item.unitPrice || item.price || 0) * (item.quantity || 1)} 
-                                fromCurrency={item.currency || order.currency || 'USDT'} 
+                                fromCurrency={item.currency || order.currency || 'USDC'} 
                               />
                             </p>
                             {item.unitPrice && item.quantity > 1 && (
                             <p className="text-neutralneutral-400 text-sm">
                               <AmountCurrency 
                                 amount={item.unitPrice} 
-                                fromCurrency={item.currency || order.currency || 'USDT'} 
+                                fromCurrency={item.currency || order.currency || 'USDC'} 
                               /> each
                             </p>
                             )}
@@ -234,15 +234,15 @@ function OrderDetail() {
                 <div className="mt-6 pt-6 border-t border-neutralneutral-700 space-y-2">
                   <div className="flex justify-between text-neutralneutral-300">
                     <span>Subtotal:</span>
-                    <span><AmountCurrency amount={order.subTotal || 0} fromCurrency={order.currency || 'USDT'} /></span>
+                    <span><AmountCurrency amount={order.subTotal || 0} fromCurrency={order.currency || 'USDC'} /></span>
                   </div>
                   <div className="flex justify-between text-neutralneutral-300">
                     <span>Delivery Fee:</span>
-                    <span><AmountCurrency amount={order.deliveryFee || 0} fromCurrency={order.currency || 'USDT'} /></span>
+                    <span><AmountCurrency amount={order.deliveryFee || 0} fromCurrency={order.currency || 'USDC'} /></span>
                   </div>
                   <div className="flex justify-between text-xl font-heading-header-3-header-3-bold text-white pt-2 border-t border-neutralneutral-700">
                     <span>Total:</span>
-                    <span><AmountCurrency amount={order.totalAmount || 0} fromCurrency={order.currency || 'USDT'} /></span>
+                    <span><AmountCurrency amount={order.totalAmount || 0} fromCurrency={order.currency || 'USDC'} /></span>
                   </div>
                 </div>
               </Card>
@@ -361,7 +361,7 @@ function OrderDetail() {
                   )}
                   <div className="flex justify-between">
                     <span>Payment Currency:</span>
-                    <span className="text-white">{order.currency || 'USDT'}</span>
+                    <span className="text-white">{order.currency || 'USDC'}</span>
                   </div>
                   {order.paymentStatus && (
                     <div className="flex justify-between">

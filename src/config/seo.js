@@ -4,7 +4,7 @@ export const seoConfig = {
   siteUrl: 'https://abscotek.io',
   defaultTitle: 'Abscotek - Premium Tech & Electronics Store',
   defaultDescription: 'Discover premium tech gadgets, smartphones, laptops, and electronics at Abscotek. Stay ahead with the latest technology designed for your lifestyle.',
-  defaultKeywords: 'electronics, smartphones, laptops, tech gadgets, iPhone, Samsung, Apple, technology store, USDT payments',
+  defaultKeywords: 'electronics, smartphones, laptops, tech gadgets, iPhone, Samsung, Apple, technology store, USDC payments',
   defaultImage: '/android-chrome-512x512.png',
   twitterHandle: '@abscotek',
   socialMedia: {
@@ -18,8 +18,8 @@ export const seoConfig = {
 export const pageSEO = {
   home: {
     title: 'Abscotek - Premium Tech & Electronics Store',
-    description: 'Discover premium tech gadgets, smartphones, laptops, and electronics. Stay ahead with the latest technology designed for your lifestyle. Shop with USDT.',
-    keywords: 'electronics store, tech gadgets, smartphones, laptops, iPhone, Samsung, Apple, USDT payments, premium technology',
+    description: 'Discover premium tech gadgets, smartphones, laptops, and electronics. Stay ahead with the latest technology designed for your lifestyle. Shop with USDC.',
+    keywords: 'electronics store, tech gadgets, smartphones, laptops, iPhone, Samsung, Apple, USDC payments, premium technology',
   },
   products: {
     title: 'Tech Products & Electronics - Abscotek',
@@ -28,14 +28,14 @@ export const pageSEO = {
   },
   cart: {
     title: 'Shopping Cart - Abscotek',
-    description: 'Review your selected tech products and proceed to secure checkout with USDT payment options.',
-    keywords: 'shopping cart, checkout, USDT payment, secure purchase',
+    description: 'Review your selected tech products and proceed to secure checkout with USDC payment options.',
+    keywords: 'shopping cart, checkout, USDC payment, secure purchase',
     noindex: true,
   },
   checkout: {
     title: 'Secure Checkout - Abscotek',
-    description: 'Complete your purchase securely with our encrypted checkout process. USDT payment accepted.',
-    keywords: 'secure checkout, USDT payment, encrypted purchase',
+    description: 'Complete your purchase securely with our encrypted checkout process. USDC payment accepted.',
+    keywords: 'secure checkout, USDC payment, encrypted purchase',
     noindex: true,
   },
   profile: {
@@ -52,8 +52,8 @@ export const pageSEO = {
   },
   referral: {
     title: 'Referral Program - Abscotek',
-    description: 'Earn rewards by referring friends to Abscotek. Get bonus USDT for successful referrals.',
-    keywords: 'referral program, earn rewards, bonus USDT, refer friends',
+    description: 'Earn rewards by referring friends to Abscotek. Get bonus USDC for successful referrals.',
+    keywords: 'referral program, earn rewards, bonus USDC, refer friends',
   },
   search: {
     title: 'Search Results - Abscotek',
@@ -83,7 +83,7 @@ export const structuredDataTemplates = {
     "name": "Abscotek",
     "url": "https://abscotek.io",
     "logo": "https://abscotek.io/android-chrome-512x512.png",
-    "description": "Premium tech and electronics store offering smartphones, laptops, and gadgets with USDT payment options.",
+    "description": "Premium tech and electronics store offering smartphones, laptops, and gadgets with USDC payment options.",
     "address": {
       "@type": "PostalAddress",
       "addressCountry": "Global"
@@ -114,8 +114,8 @@ export const structuredDataTemplates = {
     "name": "Abscotek",
     "url": "https://abscotek.io",
     "description": "Premium tech and electronics online store",
-    "currenciesAccepted": "USDT",
-    "paymentAccepted": "USDT, Cryptocurrency",
+    "currenciesAccepted": "USDC",
+    "paymentAccepted": "USDC, Cryptocurrency",
     "priceRange": "$50-$5000"
   }
 };
@@ -134,8 +134,8 @@ export const generateProductStructuredData = (product) => ({
   },
   "offers": {
     "@type": "Offer",
-    "price": product.price?.toString().replace(' USDT', ''),
-    "priceCurrency": "USDT",
+    "price": product.price?.toString().replace(' USDC', ''),
+    "priceCurrency": "USDC",
     "availability": product.outOfStock ? "https://schema.org/OutOfStock" : "https://schema.org/InStock",
     "seller": {
       "@type": "Organization",

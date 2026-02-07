@@ -32,7 +32,7 @@ export default function WithdrawBonusDialog({ open, onOpenChange, onSuccess, ava
     const withdrawAmount = parseFloat(amount);
     
     if (withdrawAmount > availableBalance) {
-      setError(`Insufficient balance. Available: ${availableBalance.toFixed(2)} USDT`);
+      setError(`Insufficient balance. Available: ${availableBalance.toFixed(2)} USDC`);
       return;
     }
 
@@ -54,7 +54,7 @@ export default function WithdrawBonusDialog({ open, onOpenChange, onSuccess, ava
       setAmount("");
       onSuccess(response);
       
-      addNotification(`Withdrawal of ${withdrawAmount} USDT submitted successfully!`, 'success');
+      addNotification(`Withdrawal of ${withdrawAmount} USDC submitted successfully!`, 'success');
     } catch (err) {
       console.error('Withdrawal error:', err);
       const errorMsg = err?.errors?.[0]?.msg || err?.message || 'Withdrawal failed. Please try again.';
@@ -83,13 +83,13 @@ export default function WithdrawBonusDialog({ open, onOpenChange, onSuccess, ava
           {/* Available Balance Display */}
           <div className="bg-[#2A2A2C] border border-white/10 rounded-lg p-4">
             <div className="text-sm text-neutralneutral-400 mb-1">Available Balance</div>
-            <div className="text-2xl font-bold text-white">{availableBalance.toFixed(2)} USDT</div>
+            <div className="text-2xl font-bold text-white">{availableBalance.toFixed(2)} USDC</div>
           </div>
 
           {/* Amount Input */}
           <div className="flex flex-col gap-2">
             <label className="text-sm font-medium text-defaultwhite">
-              Amount (USDT)
+              Amount (USDC)
             </label>
             <div className="relative">
               <Input

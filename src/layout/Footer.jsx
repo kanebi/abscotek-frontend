@@ -32,7 +32,7 @@ const contactInfo = [
 
 export default function Footer() {
     return (
-        <footer className="bg-neutral-900 w-full overflow-hidden">
+        <footer className="mt-auto bg-neutral-900 w-full overflow-hidden">
             {/* Desktop Footer */}
             <div className="hidden md:flex flex-col items-start gap-2.5 px-[81px] py-[52px]">
                 <div className="flex flex-col w-full items-end gap-[60px] flex-[0_0_auto]">
@@ -112,7 +112,7 @@ export default function Footer() {
                         <Separator className="self-stretch w-full h-px mt-[-1.00px] bg-gray-600" />
 
                         <div className="font-body-base-base-medium font-[number:var(--body-base-base-medium-font-weight)] text-defaultwhite text-[length:var(--body-base-base-medium-font-size)] text-center tracking-[var(--body-base-base-medium-letter-spacing)] leading-[var(--body-base-base-medium-line-height)] [font-style:var(--body-base-base-medium-font-style)]">
-                            Copyright ©2025 Absoc Tech Limited ALL RIGHTS RESERVED.
+                            Copyright ©2025 Abscotek Limited ALL RIGHTS RESERVED.
                         </div>
                     </div>
                 </div>
@@ -179,7 +179,7 @@ export default function Footer() {
                     <div className="flex flex-col items-center gap-9 self-stretch w-full">
                         <Separator className="self-stretch w-full h-px mt-[-1.00px] bg-gray-600" />
                         <div className="self-stretch font-body-base-base-medium font-[number:var(--body-base-base-medium-font-weight)] text-defaultwhite text-[length:var(--body-base-base-medium-font-size)] text-center tracking-[var(--body-base-base-medium-letter-spacing)] leading-[var(--body-base-base-medium-line-height)] [font-style:var(--body-base-base-medium-font-style)]">
-                            Copyright ©2024 Absoc Tech Limited ALL RIGHTS RESERVED.
+                            Copyright ©2025 Abscotek Limited ALL RIGHTS RESERVED.
                         </div>
                     </div>
                 </div>

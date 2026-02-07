@@ -205,7 +205,7 @@ function WishlistPage() {
 
                         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3 mt-4">
                           <div className="text-xl md:text-2xl font-heading-header-3-header-3-bold text-white">
-                            <AmountCurrency amount={productPrice} fromCurrency={product.currency || 'USDT'} />
+                            <AmountCurrency amount={productPrice} fromCurrency="USD" />
                           </div>
 
                           <div className="flex gap-2 md:gap-3 w-full md:w-auto">

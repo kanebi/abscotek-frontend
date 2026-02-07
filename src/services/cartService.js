@@ -50,7 +50,7 @@ const addToCart = async (productId, quantity, currency, variantName, specs, isAu
         items: newItems,
         subtotal: subtotal,
         total: subtotal,
-        currency: cart.currency || finalCurrency || 'USDT'
+        currency: cart.currency || finalCurrency || 'USDC'
       };
       localStorage.setItem('guestCart', JSON.stringify(newCart));
       return newCart;
@@ -94,7 +94,7 @@ const addToCart = async (productId, quantity, currency, variantName, specs, isAu
         items: newItems,
         subtotal: subtotal,
         total: subtotal,
-        currency: cart.currency || finalCurrency || 'USDT'
+        currency: cart.currency || finalCurrency || 'USDC'
       };
       localStorage.setItem('guestCart', JSON.stringify(newCart));
       return newCart;
@@ -133,7 +133,7 @@ const updateItemQuantity = async (productId, quantity, variantName = null, specs
         items: newItems,
         subtotal: subtotal,
         total: subtotal,
-        currency: cart.currency || 'USDT'
+        currency: cart.currency || 'USDC'
       };
       localStorage.setItem('guestCart', JSON.stringify(newCart));
       return newCart;
@@ -170,7 +170,7 @@ const removeFromCart = async (userId, productId) => {
             items: newItems,
             subtotal: subtotal,
             total: subtotal,
-            currency: cart.currency || 'USDT'
+            currency: cart.currency || 'USDC'
         };
         localStorage.setItem('guestCart', JSON.stringify(newCart));
         return newCart;
@@ -190,7 +190,7 @@ const mergeGuestCart = async () => {
   const guestCart = getGuestCart();
   if (guestCart.items.length > 0) {
     const { isAuthenticated, walletAddress } = useStore.getState();
-    const userCurrency = useStore.getState().userCurrency || 'USDT';
+    const userCurrency = useStore.getState().userCurrency || 'USDC';
 
     console.log('Merging guest cart with', guestCart.items.length, 'items');
 

@@ -31,12 +31,14 @@ const useStore = create((set, get) => {
   const storedWalletAddress = localStorage.getItem('walletAddress');
   
   let initialUser = null;
-  let initialCurrency = localStorage.getItem('userCurrency') || 'USD';
+  let rawCurrency = localStorage.getItem('userCurrency') || 'USD';
+  let initialCurrency = rawCurrency === 'USDT' ? 'USDC' : rawCurrency;
   
   if (storedUserInfo) {
     try {
       initialUser = JSON.parse(storedUserInfo);
       initialCurrency = initialUser?.preferences?.currency || initialCurrency;
+      if (initialCurrency === 'USDT') initialCurrency = 'USDC';
     } catch (error) {
       console.error('Error parsing stored user info:', error);
       localStorage.removeItem('userInfo');
@@ -122,7 +124,7 @@ const useStore = create((set, get) => {
         currentUser: null,
         isAuthenticated: false,
         walletAddress: null,
-        userCurrency: 'USDT'
+        userCurrency: 'USDC'
       });
       return false;
     } finally {
@@ -139,7 +141,7 @@ const useStore = create((set, get) => {
         currentUser: null,
         token: null,
         walletAddress: null,
-        userCurrency: 'USDT'
+        userCurrency: 'USDC'
       });
       localStorage.removeItem('token');
       localStorage.removeItem('userInfo');
@@ -155,7 +157,8 @@ const useStore = create((set, get) => {
     }
   },
   setCurrentUser: (user) => {
-    const currency = user?.preferences?.currency || get().userCurrency || 'USD';
+    let currency = user?.preferences?.currency || get().userCurrency || 'USD';
+    if (currency === 'USDT') currency = 'USDC';
     const updates = { currentUser: user, userCurrency: currency };
     // Sync walletAddress from user (set during crypto checkout) when store doesn't have one
     if (user?.walletAddress && !get().walletAddress) {
@@ -171,8 +174,9 @@ const useStore = create((set, get) => {
   },
   setIsLoading: (isLoading) => set({ isLoading }),
   setUserCurrency: (currency) => {
-    set({ userCurrency: currency });
-    try { localStorage.setItem('userCurrency', currency); } catch (e) { void e; }
+    const c = currency === 'USDT' ? 'USDC' : currency;
+    set({ userCurrency: c });
+    try { localStorage.setItem('userCurrency', c); } catch (e) { void e; }
   },
   initDefaultCurrency: async () => {
     const stored = localStorage.getItem('userCurrency');
@@ -180,7 +184,7 @@ const useStore = create((set, get) => {
     try {
       const currencyService = (await import('../services/currencyService')).default;
       const detected = await currencyService.getUserCurrencyByLocation();
-      const chosen = detected === 'USDT' ? 'USD' : detected;
+      const chosen = detected === 'USDC' ? 'USD' : detected;
       set({ userCurrency: chosen });
       try { localStorage.setItem('userCurrency', chosen); } catch (e) { void e; }
     } catch (e) {
