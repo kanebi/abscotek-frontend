@@ -1,100 +1,84 @@
-import axios from 'axios';
-import currencyService from '../services/currencyService';
+import apiClient from '@/lib/apiClient';
 
-const LS_KEY = 'global_rates_v1';
-const DAY_MS = 24 * 60 * 60 * 1000;
+const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24h, match backend
+let cachedRates = null;
+let cacheTime = 0;
+let fetchPromise = null; // coalesce concurrent calls to a single request
+
+/**
+ * Get platform exchange rates from backend (no frontend exchange-rate API).
+ * Backend stores rates in DB and refreshes every 24h. One in-flight request shared by all callers.
+ */
+async function fetchRatesFromBackend() {
+  const { data } = await apiClient.get('/currency/rates');
+  return data?.rates || {};
+}
+
+function normalizeRates(rates) {
+  const r = { ...rates };
+  if (r.GHS && r.GHC === undefined) r.GHC = r.GHS;
+  if (r.GHC && r.GHS === undefined) r.GHS = r.GHC;
+  if (r.USD !== undefined && r.USDC === undefined) r.USDC = r.USD;
+  if (r.USDC === undefined) r.USDC = 1;
+  return r;
+}
+
+const DEFAULT_RATES = normalizeRates({
+  USDC: 1,
+  USD: 1,
+  NGN: 1500,
+  EUR: 0.92,
+  GHS: 15,
+  GHC: 15
+});
 
 class CurrencyConversionService {
   async getGlobalRates() {
     const now = Date.now();
-    try {
-      const ls = localStorage.getItem(LS_KEY);
-      if (ls) {
-        const parsed = JSON.parse(ls);
-        if (parsed && parsed.timestamp && now - parsed.timestamp < DAY_MS) {
-          return parsed.rates;
-        }
-      }
-    } catch (err) { void err; }
-
-    const fiat = await currencyService.getExchangeRates();
-    const crypto = await this.getCryptoUsdPrices();
-    const merged = this.normalizeRates({ ...fiat, ...crypto });
-    try {
-      localStorage.setItem(LS_KEY, JSON.stringify({ timestamp: now, rates: merged }));
-    } catch (err) { void err; }
-    return merged;
-  }
-
-  async getCryptoUsdPrices() {
-    try {
-      const url = 'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,binancecoin,polygon&vs_currencies=usd';
-      const { data } = await axios.get(url);
-      return {
-        BTC: data.bitcoin?.usd || 43250,
-        ETH: data.ethereum?.usd || 2580,
-        BNB: data.binancecoin?.usd || 320,
-        MATIC: data.polygon?.usd || 0.75,
-      };
-    } catch (e) {
-      void e;
-      return {
-        BTC: 43250,
-        ETH: 2580,
-        BNB: 320,
-        MATIC: 0.75,
-      };
+    if (cachedRates && (now - cacheTime) < CACHE_DURATION) {
+      return cachedRates;
     }
+    if (fetchPromise) {
+      try {
+        return await fetchPromise;
+      } catch {
+        fetchPromise = null;
+        if (cachedRates) return cachedRates;
+      }
+    }
+    fetchPromise = (async () => {
+      try {
+        const rates = await fetchRatesFromBackend();
+        cachedRates = normalizeRates(rates);
+        cacheTime = Date.now();
+        return cachedRates;
+      } catch (err) {
+        if (cachedRates) return cachedRates;
+        cachedRates = DEFAULT_RATES;
+        cacheTime = Date.now();
+        return cachedRates;
+      } finally {
+        fetchPromise = null;
+      }
+    })();
+    return fetchPromise;
   }
 
   normalizeRates(rates) {
-    const r = { ...rates };
-    if (r.GHS && !r.GHC) r.GHC = r.GHS;
-    if (r.GHC && !r.GHS) r.GHS = r.GHC;
-    if (r.USD !== undefined && r.USDC === undefined) r.USDC = r.USD;
-    if (r.USDC === undefined) r.USDC = 1;
-    return r;
+    return normalizeRates(rates);
   }
 
   async convertCurrency(amount, fromCurrency, toCurrency) {
     const a = parseFloat(amount);
     const rates = await this.getGlobalRates();
-
     const from = this.alias(fromCurrency);
     const to = this.alias(toCurrency);
-
-    // If both are fiat-like (including USDC treated as fiat-peg)
-    if (rates[from] && rates[to] && this.isFiatLike(from) && this.isFiatLike(to)) {
-      // rates are "X target per 1 base" (base=USD/USDC). E.g. NGN:1500 = 1 USD = 1500 NGN
-      // To convert from NGN to USD: amount_ngn / rates.NGN
+    if (rates[from] != null && rates[to] != null && this.isFiatLike(from) && this.isFiatLike(to)) {
       return a * (rates[to] / rates[from]);
     }
-    // Fallback: NGN to USD/USDC when rates missing (e.g. API didn't return USDC)
     const ngnPerUsd = rates.NGN || 1500;
-    if (from === 'NGN' && (to === 'USD' || to === 'USDC')) {
-      return a / ngnPerUsd;
-    }
-
-    // Convert fiat -> crypto based on USD price
-    if (this.isFiatLike(from) && this.isCrypto(to)) {
-      const usdAmount = a * (rates.USD / rates[from]);
-      const tokenUsd = rates[to];
-      return usdAmount / tokenUsd;
-    }
-
-    // Convert crypto -> fiat based on USD price
-    if (this.isCrypto(from) && this.isFiatLike(to)) {
-      const usdAmount = a * rates[from];
-      return usdAmount * (rates[to] / rates.USD);
-    }
-
-    // Crypto -> Crypto via USD
-    if (this.isCrypto(from) && this.isCrypto(to)) {
-      const usdAmount = a * rates[from];
-      return usdAmount / rates[to];
-    }
-
-    // Fallback: no conversion
+    if (from === 'NGN' && (to === 'USD' || to === 'USDC')) return a / ngnPerUsd;
+    if ((from === 'USD' || from === 'USDC') && to === 'NGN') return a * ngnPerUsd;
     return a;
   }
 
@@ -106,6 +90,7 @@ class CurrencyConversionService {
       NGN: (val) => `₦${Number(val).toLocaleString('en-NG', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`,
       GHC: (val) => `₵${Number(val).toLocaleString('en-GH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
       GHS: (val) => `₵${Number(val).toLocaleString('en-GH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+      EUR: (val) => `€${Number(val).toLocaleString('en-EU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
       ETH: (val) => `${Number(val).toLocaleString('en-US', { minimumFractionDigits: 6, maximumFractionDigits: 6 })} ETH`,
       BTC: (val) => `${Number(val).toLocaleString('en-US', { minimumFractionDigits: 6, maximumFractionDigits: 6 })} BTC`,
       BNB: (val) => `${Number(val).toLocaleString('en-US', { minimumFractionDigits: 6, maximumFractionDigits: 6 })} BNB`,
@@ -115,11 +100,7 @@ class CurrencyConversionService {
   }
 
   getPaystackCurrency(currency) {
-    const paystackCurrencies = {
-      USD: 'USD',
-      NGN: 'NGN',
-      USDC: 'NGN',
-    };
+    const paystackCurrencies = { USD: 'USD', NGN: 'NGN', USDC: 'NGN' };
     return paystackCurrencies[currency] || 'NGN';
   }
 

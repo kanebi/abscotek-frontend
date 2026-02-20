@@ -6,6 +6,7 @@ import useStore from '../../store/useStore';
 import { ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { AppRoutes } from '../../config/routes';
+// Paystack for card/bank – modal first, then verify-payment (old implementation)
 import { PaystackButton } from 'react-paystack';
 import { env } from '../../config/env';
 import currencyConversionService from '../../services/currencyConversionService';
@@ -38,52 +39,6 @@ function OrderSummary({
   const subtotalToShow = subtotalDisplay > 0 ? subtotalDisplay : subtotalInUSD;
   const deliveryToShow = deliveryDisplay > 0 ? deliveryDisplay : deliveryCostInUSD;
   const orderTotal = convertedAmount > 0 ? convertedAmount : (subtotalToShow + deliveryToShow);
-
-  // Validate Paystack parameters
-  const validatePaystackParams = () => {
-    const issues = [];
-    
-    // Check email
-    const userEmail = currentUser?.email;
-    if (!userEmail || typeof userEmail !== 'string' || userEmail.trim() === '') {
-      issues.push('User email is required and must be a valid string');
-    }
-    
-    // Check amount
-    const amount = Math.round(orderTotal * 100);
-    if (orderTotal <= 0 || amount <= 0) {
-      issues.push('Order total must be greater than 0');
-    }
-    
-    if (amount < 100) {
-      issues.push('Amount too small. Minimum is 1.00');
-    }
-    
-    // Check currency
-    if (!currency || !['USD', 'NGN'].includes(currency)) {
-      issues.push('Invalid currency. Must be USD or NGN');
-    }
-    
-    // Check public key
-    const publicKey = env.PAYSTACK_PUBLIC_KEY;
-    if (!publicKey || typeof publicKey !== 'string' || publicKey.includes('your_public_key') || publicKey.trim() === '') {
-      issues.push('Invalid Paystack public key');
-    }
-    
-    return issues;
-  };
-
-  const paystackIssues = validatePaystackParams();
-
-  // Debug Paystack parameters
-  console.log('Paystack Debug:', {
-    email: currentUser?.email,
-    amount: Math.round(orderTotal * 100),
-    publicKey: env.PAYSTACK_PUBLIC_KEY,
-    currency: currency === 'USD' ? 'USD' : 'NGN',
-    orderTotal,
-    issues: paystackIssues
-  });
 
   if (!cart || !cart.items || cart.items.length === 0) {
     return (
@@ -228,26 +183,36 @@ function OrderSummary({
             )}
           </Button>
         ) : (
-          // Paystack payment button (USD/NGN)
-          <PaystackButton
-            publicKey={env.PAYSTACK_PUBLIC_KEY}
-            email={currentUser?.email || ''}
-            amount={Math.round(orderTotal * 100)} // Convert to kobo/cent
-            currency={currency === 'USD' ? 'USD' : 'NGN'}
-            onSuccess={onPaystackSuccess}
-            onClose={onPaystackClose}
-            disabled={isPlacingOrder || !hasSelectedAddress || (requireDeliveryMethod && !deliveryMethod) || paystackIssues.length > 0}
-            className="w-full bg-red-500 hover:bg-red-600 text-white px-12 py-6 rounded-lg font-medium disabled:opacity-50 text-base"
-          >
-            {isPlacingOrder ? 'Processing...' : (
-              <>
-                Pay{' '}
-                <span className="ml-1 text-white">
-                  {currencyConversionService.formatCurrency(convertedAmount > 0 ? convertedAmount : orderTotal, displayCurrency)}
-                </span>
-              </>
-            )}
-          </PaystackButton>
+          // Paystack payment (card/bank) – modal first; on success frontend calls verify-payment
+          (() => {
+            const amountNGN = convertedAmount > 0 ? convertedAmount : orderTotal;
+            const amountKobo = Math.round(Number(amountNGN) * 100);
+            const paystackDisabled = !hasSelectedAddress || (requireDeliveryMethod && !deliveryMethod);
+            const paystackProps = {
+              publicKey: env.PAYSTACK_PUBLIC_KEY || '',
+              email: currentUser?.email || '',
+              amount: amountKobo,
+              currency: 'NGN',
+              text: `Pay ${currencyConversionService.formatCurrency(amountNGN, displayCurrency)}`,
+              onSuccess: onPaystackSuccess,
+              onClose: onPaystackClose,
+            };
+            if (!paystackProps.publicKey || amountKobo < 100) {
+              return (
+                <Button disabled className="w-full bg-red-500/50 text-white px-12 py-6 rounded-lg font-medium text-base">
+                  Configure Paystack or add items
+                </Button>
+              );
+            }
+            return (
+              <div className={paystackDisabled ? 'pointer-events-none opacity-60' : ''}>
+                <PaystackButton
+                  {...paystackProps}
+                  className="w-full bg-red-500 hover:bg-red-600 text-white px-12 py-6 rounded-lg font-medium disabled:opacity-50 text-base border-0 cursor-pointer"
+                />
+              </div>
+            );
+          })()
         )}
         
         {/* Continue Shopping Link */}

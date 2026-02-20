@@ -74,6 +74,10 @@ export const AppRoutes = {
     path: '/checkout',
     name: 'Checkout',
   },
+  checkoutSuccess: {
+    path: '/checkout/success',
+    name: 'Payment successful',
+  },
   userOrders: {
     path: '/orders',
     name: 'My Orders',

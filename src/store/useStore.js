@@ -31,14 +31,17 @@ const useStore = create((set, get) => {
   const storedWalletAddress = localStorage.getItem('walletAddress');
   
   let initialUser = null;
-  let rawCurrency = localStorage.getItem('userCurrency') || 'USD';
-  let initialCurrency = rawCurrency === 'USDT' ? 'USDC' : rawCurrency;
-  
+  // Prefer localStorage userCurrency so header/default match what user last had (e.g. NGN); only then user prefs, then USD
+  const storedCurrency = localStorage.getItem('userCurrency');
+  let initialCurrency = storedCurrency
+    ? (storedCurrency === 'USDT' ? 'USDC' : storedCurrency)
+    : 'USD';
   if (storedUserInfo) {
     try {
       initialUser = JSON.parse(storedUserInfo);
-      initialCurrency = initialUser?.preferences?.currency || initialCurrency;
-      if (initialCurrency === 'USDT') initialCurrency = 'USDC';
+      if (!storedCurrency && initialUser?.preferences?.currency) {
+        initialCurrency = initialUser.preferences.currency === 'USDT' ? 'USDC' : initialUser.preferences.currency;
+      }
     } catch (error) {
       console.error('Error parsing stored user info:', error);
       localStorage.removeItem('userInfo');
@@ -96,35 +99,38 @@ const useStore = create((set, get) => {
       const sessionData = await validateSession();
       if (sessionData) {
         const { token, user } = sessionData;
+        // Prefer localStorage (so header matches NGN when user has it), then user prefs, then current store
+        const fromStorage = localStorage.getItem('userCurrency');
+        const currency = (fromStorage && fromStorage !== 'USDT' ? fromStorage : null) || user?.preferences?.currency || get().userCurrency || initialCurrency;
+        const normalizedCurrency = currency === 'USDT' ? 'USDC' : currency;
         set({
           token,
           currentUser: user,
           isAuthenticated: true,
-          userCurrency: user?.preferences?.currency || initialCurrency,
+          userCurrency: normalizedCurrency,
           walletAddress: user?.walletAddress || localStorage.getItem('walletAddress') || null
         });
         console.log('Session validated successfully:', { user: user.name, email: user.email });
         return true;
       } else {
-        // Clear any stale data
+        // Clear any stale data; keep current currency (e.g. NGN from geo) so UI doesn't flip to USDC
         set({
           token: null,
           currentUser: null,
           isAuthenticated: false,
           walletAddress: null,
-          userCurrency: 'USD'
+          userCurrency: get().userCurrency || 'USD'
         });
         return false;
       }
     } catch (error) {
       console.error('Session validation error:', error);
-      // Clear any stale data on error
       set({
         token: null,
         currentUser: null,
         isAuthenticated: false,
         walletAddress: null,
-        userCurrency: 'USDC'
+        userCurrency: get().userCurrency || 'USD'
       });
       return false;
     } finally {
@@ -136,12 +142,12 @@ const useStore = create((set, get) => {
   setIsAuthenticated: (isAuthenticated) => {
     set({ isAuthenticated });
     if (!isAuthenticated) {
-      // Clear all user data on logout
+      // Clear all user data on logout; keep display currency (e.g. NGN) so UI doesn't flip to USDC
       set({
         currentUser: null,
         token: null,
         walletAddress: null,
-        userCurrency: 'USDC'
+        userCurrency: get().userCurrency || 'USD'
       });
       localStorage.removeItem('token');
       localStorage.removeItem('userInfo');
@@ -177,16 +183,37 @@ const useStore = create((set, get) => {
     const c = currency === 'USDT' ? 'USDC' : currency;
     set({ userCurrency: c });
     try { localStorage.setItem('userCurrency', c); } catch (e) { void e; }
+    // Sync to backend session (24h) so X-User-Currency is consistent
+    import('../services/currencyService').then((m) => m.default.setUserCurrency(c)).catch(() => {});
   },
   initDefaultCurrency: async () => {
     const stored = localStorage.getItem('userCurrency');
-    if (stored) return;
+    const noStored = !stored;
+    // Treat USD/USDC as "no preference" so we use geo for country-based default (e.g. NGN for Nigeria)
+    const useGeo = noStored || stored === 'USD' || stored === 'USDC';
+    if (!useGeo) return;
     try {
       const currencyService = (await import('../services/currencyService')).default;
-      const detected = await currencyService.getUserCurrencyByLocation();
-      const chosen = detected === 'USDC' ? 'USD' : detected;
+      const isAuth = get().isAuthenticated;
+      let currency;
+      if (isAuth && noStored) {
+        // Authenticated, first visit: use backend (user prefs); only fallback to geo if backend returns USD
+        currency = await currencyService.getUserCurrency();
+        if (!currency || currency === 'USD') {
+          const byLocation = await currencyService.getUserCurrencyByLocation();
+          currency = byLocation === 'USDC' ? 'USD' : (byLocation || 'USD');
+        }
+      } else if (!isAuth || stored === 'USD' || stored === 'USDC') {
+        // Guest or stored generic default: set currency from country (NGN, GHC, etc.)
+        currency = await currencyService.getUserCurrencyByLocation();
+        currency = currency === 'USDC' ? 'USD' : (currency || 'USD');
+      } else {
+        return;
+      }
+      const chosen = currency === 'USDT' ? 'USDC' : currency;
       set({ userCurrency: chosen });
       try { localStorage.setItem('userCurrency', chosen); } catch (e) { void e; }
+      await currencyService.setUserCurrency(chosen);
     } catch (e) {
       set({ userCurrency: 'USD' });
     }

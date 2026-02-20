@@ -11,10 +11,11 @@ export const markAsUserAction = (config) => {
   return config;
 };
 
-// Create axios instance
+// Create axios instance (withCredentials so session cookie is sent for currency/session)
 const apiClient = axios.create({
   baseURL: API_URL,
   timeout: 10000,
+  withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -64,9 +65,19 @@ apiClient.interceptors.request.use(
   }
 );
 
-// Response interceptor - handles auth errors and token refresh
+// Response interceptor - sync X-User-Currency from backend (24h session cache)
 apiClient.interceptors.response.use(
   (response) => {
+    const currency = response.headers?.['x-user-currency'];
+    if (currency && typeof currency === 'string') {
+      try {
+        const store = useStore.getState();
+        const normalized = currency === 'USDT' ? 'USDC' : currency;
+        if (store.userCurrency !== normalized) {
+          store.setUserCurrency(normalized);
+        }
+      } catch (e) { void e; }
+    }
     return response;
   },
   async (error) => {

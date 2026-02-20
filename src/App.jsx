@@ -27,6 +27,7 @@ import CheckoutPage from './pages/public/CheckoutPage';
 import UserOrdersPage from './pages/public/UserOrdersPage';
 import OrderDetailsPage from './pages/public/OrderDetailsPage';
 import OrderSuccessPage from './pages/public/OrderSuccessPage';
+import CheckoutSuccessPage from './pages/public/CheckoutSuccessPage';
 import UserProfilePage from './pages/public/UserProfilePage';
 import ReferralPage from './pages/public/ReferralPage';
 import WithdrawalPage from './pages/public/WithdrawalPage';
@@ -80,6 +81,7 @@ function App() {
               />
               <Route path={AppRoutes.cart.path} element={<CartPage />} />
               <Route path={AppRoutes.checkout.path} element={<CheckoutPage />} />
+              <Route path={AppRoutes.checkoutSuccess.path} element={<CheckoutSuccessPage />} />
               <Route
                 path={AppRoutes.userOrders.path}
                 element={<UserOrdersPage />}

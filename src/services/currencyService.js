@@ -1,41 +1,45 @@
-import axios from 'axios';
-import ENV from '@/config/env';
+import apiClient from '@/lib/apiClient';
 
-const API_KEY = ENV.EXCHANGE_RATE_API_KEY; // Get your API key from https://www.exchangerate-api.com/
-const BASE_URL = `https://v6.exchangerate-api.com/v6/${API_KEY}/latest/USDC`;
+/**
+ * Currency is now provided by the backend: session (24h cache) and X-User-Currency header.
+ * Exchange rates are from GET /api/currency/rates (backend DB, refreshed every 24h).
+ */
 
-const getExchangeRates = async () => {
+/** Get user currency from backend (session or auth prefs) */
+async function getUserCurrency() {
   try {
-    const response = await axios.get(BASE_URL);
-    if (response.data && response.data.conversion_rates) {
-      const rates = { ...response.data.conversion_rates };
-      if (rates.GHS && !rates.GHC) rates.GHC = rates.GHS;
-      if (rates.GHC && !rates.GHS) rates.GHS = rates.GHC;
-      if (rates.USD !== undefined && rates.USDC === undefined) rates.USDC = rates.USD;
-      if (rates.USDC === undefined) rates.USDC = 1;
-      return rates;
-    } else {
-      throw new Error('Invalid response from exchange rate API');
-    }
-  } catch (error) {
-    console.error('Error fetching exchange rates:', error);
-    // Fallback to default rates if API call fails
-    return {
-      USDC: 1,
-      USD: 1,
-      EUR: 0.92,
-      NGN: 1500,
-      GHS: 15,
-      GHC: 15,
-    };
+    const { data } = await apiClient.get('/currency/me');
+    return data?.currency || 'USD';
+  } catch (e) {
+    return 'USD';
   }
-};
+}
+
+/** Set session currency on backend (24h). Body: { currency: 'NGN' | 'USD' | 'USDC' | 'EUR' } */
+async function setUserCurrency(currency) {
+  try {
+    const { data } = await apiClient.put('/currency/me', { currency });
+    return data?.currency || 'USD';
+  } catch (e) {
+    return 'USD';
+  }
+}
 
 export default {
-  getExchangeRates,
+  getUserCurrency,
+  setUserCurrency,
+  /** @deprecated Use backend GET /currency/rates via currencyConversionService.getGlobalRates() */
+  getExchangeRates() {
+    return apiClient.get('/currency/rates').then((r) => r.data?.rates || {});
+  },
+  /**
+   * Get user currency by country (geo). Used when backend has no session/prefs (e.g. first visit or returns USD).
+   * Calls ipapi.co to detect country and returns NGN for Nigeria, GHC for Ghana, else USD.
+   */
   async getUserCurrencyByLocation() {
     try {
-      const { data } = await axios.get('https://ipapi.co/json/');
+      const { default: axios } = await import('axios');
+      const { data } = await axios.get('https://ipapi.co/json/', { timeout: 5000 });
       const cc = (data && data.country_code) || '';
       if (cc === 'NG') return 'NGN';
       if (cc === 'GH') return 'GHC';

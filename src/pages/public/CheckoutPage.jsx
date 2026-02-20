@@ -17,7 +17,8 @@ import orderService from '../../services/orderService';
 import { useWeb3Auth } from '../../hooks/useWeb3Auth';
 import { Button } from '@/components/ui/button';
 import { usePrivy } from '@privy-io/react-auth';
-import { PaystackButton } from 'react-paystack';
+// Paystack for card/bank (SeerBit muted on UI)
+// import { PaystackButton } from 'react-paystack'; // optional if using redirect flow
 import { Loader2 } from 'lucide-react';
 import CurrencySelection from '../../components/checkout/CurrencySelection';
 import currencyConversionService from '../../services/currencyConversionService';
@@ -89,8 +90,8 @@ function CheckoutPage() {
   const [pendingOrderId, setPendingOrderId] = useState(null);
   const [paymentMethod, setPaymentMethod] = useState('crypto'); // 'crypto' - Direct blockchain payment
   const [cryptoPaymentData, setCryptoPaymentData] = useState(null); // { orderId, paymentAddress, amount, currency, network, qrCode, expiry }
-  // Initialize with default currency, will be synced with cart.currency when cart loads
-  const [selectedCurrency, setSelectedCurrency] = useState('USDC');
+  // Default from store (geo-based userCurrency); synced with cart.currency when cart loads
+  const [selectedCurrency, setSelectedCurrency] = useState(() => useStore.getState().userCurrency || 'USDC');
   const [convertedAmount, setConvertedAmount] = useState(0);
   const [paymentAmount, setPaymentAmount] = useState(0); // Separate state for payment button amount
   const [isLoading, setIsLoading] = useState(true); // Single loading state
@@ -199,18 +200,19 @@ function CheckoutPage() {
   // Removed redirect logic to prevent blank screen
   // The page will show appropriate content based on cart and auth state
 
-  // Sync selectedCurrency with cart's base currency when cart loads
+  // Sync selectedCurrency: prefer cart.currency when present; otherwise follow store userCurrency (geo-based)
   useEffect(() => {
     if (cart?.currency) {
-      // Use cart's base currency (not converted currency)
-      // This ensures we start with the original currency
       setSelectedCurrency(cart.currency);
+    } else {
+      const storeCurrency = useStore.getState().userCurrency;
+      if (storeCurrency) setSelectedCurrency(storeCurrency);
     }
-  }, [cart?.currency]);
+  }, [cart?.currency, userCurrency]);
 
   // Handle currency conversion: native items are always USD; convert only when needed
   useEffect(() => {
-    // Set payment method based on selected currency
+    // Set payment method based on selected currency (Paystack for card/bank; SeerBit muted on UI)
     if (selectedCurrency === 'USDC') {
       setPaymentMethod('crypto');
     } else {
@@ -482,7 +484,11 @@ function CheckoutPage() {
         convertedAmount: convertedAmount, // Include converted amount
       };
 
-      // Route to appropriate payment method based on selected currency
+      // Paystack: no checkout call – PaystackButton opens modal; on success we call verify-payment
+      if (paymentMethod === 'paystack') {
+        setIsPlacingOrder(false);
+        return;
+      }
       if (paymentMethod === 'crypto' && selectedCurrency === 'USDC') {
         // Crypto payment for USDC
         console.log('Creating crypto payment order...');
@@ -531,12 +537,6 @@ function CheckoutPage() {
         });
 
         setIsPlacingOrder(false);
-      } else {
-        // Paystack payment for USD/NGN
-        // The PaystackButton component will handle the payment
-        // Just set processing state
-        setIsPlacingOrder(false);
-        // PaystackButton will trigger handlePaystackSuccess when payment is complete
       }
     } catch (error) {
       console.error('Error placing order:', error);
