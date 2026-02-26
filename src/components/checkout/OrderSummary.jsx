@@ -6,9 +6,7 @@ import useStore from '../../store/useStore';
 import { ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { AppRoutes } from '../../config/routes';
-// Paystack for card/bank – modal first, then verify-payment (old implementation)
-import { PaystackButton } from 'react-paystack';
-import { env } from '../../config/env';
+// Seerbit for NGN card/bank (Paystack muted)
 import currencyConversionService from '../../services/currencyConversionService';
 
 function OrderSummary({ 
@@ -23,8 +21,6 @@ function OrderSummary({
   paymentAmount = 0,
   paymentMethod = 'wallet',
   userWalletAddress = null,
-  onPaystackSuccess,
-  onPaystackClose,
   subtotalInUSD = 0,
   deliveryCostInUSD = 0,
   subtotalDisplay = 0,
@@ -183,36 +179,22 @@ function OrderSummary({
             )}
           </Button>
         ) : (
-          // Paystack payment (card/bank) – modal first; on success frontend calls verify-payment
-          (() => {
-            const amountNGN = convertedAmount > 0 ? convertedAmount : orderTotal;
-            const amountKobo = Math.round(Number(amountNGN) * 100);
-            const paystackDisabled = !hasSelectedAddress || (requireDeliveryMethod && !deliveryMethod);
-            const paystackProps = {
-              publicKey: env.PAYSTACK_PUBLIC_KEY || '',
-              email: currentUser?.email || '',
-              amount: amountKobo,
-              currency: 'NGN',
-              text: `Pay ${currencyConversionService.formatCurrency(amountNGN, displayCurrency)}`,
-              onSuccess: onPaystackSuccess,
-              onClose: onPaystackClose,
-            };
-            if (!paystackProps.publicKey || amountKobo < 100) {
-              return (
-                <Button disabled className="w-full bg-red-500/50 text-white px-12 py-6 rounded-lg font-medium text-base">
-                  Configure Paystack or add items
-                </Button>
-              );
-            }
-            return (
-              <div className={paystackDisabled ? 'pointer-events-none opacity-60' : ''}>
-                <PaystackButton
-                  {...paystackProps}
-                  className="w-full bg-red-500 hover:bg-red-600 text-white px-12 py-6 rounded-lg font-medium disabled:opacity-50 text-base border-0 cursor-pointer"
-                />
-              </div>
-            );
-          })()
+          // Seerbit payment (NGN card/bank) – Place order triggers checkout then redirect to Seerbit
+          <Button
+            onClick={onPlaceOrder}
+            disabled={isPlacingOrder || !hasSelectedAddress || (requireDeliveryMethod && !deliveryMethod)}
+            className="w-full bg-red-500 hover:bg-red-600 text-white px-12 py-6 rounded-lg font-medium disabled:opacity-50 text-base"
+          >
+            {isPlacingOrder ? 'Redirecting to payment...' : (
+              <>
+                Pay{' '}
+                <span className="ml-1 text-white">
+                  {currencyConversionService.formatCurrency(convertedAmount > 0 ? convertedAmount : orderTotal, displayCurrency)}
+                </span>
+                {' via Seerbit'}
+              </>
+            )}
+          </Button>
         )}
         
         {/* Continue Shopping Link */}

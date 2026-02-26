@@ -212,11 +212,11 @@ function CheckoutPage() {
 
   // Handle currency conversion: native items are always USD; convert only when needed
   useEffect(() => {
-    // Set payment method based on selected currency (Paystack for card/bank; SeerBit muted on UI)
+    // Set payment method based on selected currency (Seerbit for NGN card/bank; Paystack muted)
     if (selectedCurrency === 'USDC') {
       setPaymentMethod('crypto');
     } else {
-      setPaymentMethod('paystack');
+      setPaymentMethod('seerbit');
     }
 
     const updateAmounts = async () => {
@@ -484,8 +484,22 @@ function CheckoutPage() {
         convertedAmount: convertedAmount, // Include converted amount
       };
 
-      // Paystack: no checkout call – PaystackButton opens modal; on success we call verify-payment
-      if (paymentMethod === 'paystack') {
+      // Seerbit: call checkout to create order and get redirect URL, then redirect to Seerbit
+      if (paymentMethod === 'seerbit') {
+        const checkoutPayload = {
+          deliveryMethodId: selectedDeliveryMethod._id,
+          shippingAddressId: selectedAddressId,
+          paymentMethod: 'seerbit',
+          currency: selectedCurrency,
+          notes: orderData.notes || '',
+        };
+        const checkoutResponse = await orderService.checkout(checkoutPayload);
+        const redirectLink = checkoutResponse?.seerbitData?.redirectLink;
+        if (redirectLink) {
+          window.location.href = redirectLink;
+          return;
+        }
+        addNotification('Unable to start payment. Please try again.', 'error');
         setIsPlacingOrder(false);
         return;
       }
@@ -825,8 +839,6 @@ function CheckoutPage() {
             paymentAmount={paymentAmount}
             paymentMethod={paymentMethod}
             userWalletAddress={userWalletAddress}
-            onPaystackSuccess={handlePaystackSuccess}
-            onPaystackClose={handlePaystackClose}
             subtotalInUSD={subtotalInUSD}
             deliveryCostInUSD={deliveryCostInUSD}
             subtotalDisplay={subtotalDisplay}
@@ -896,8 +908,6 @@ function CheckoutPage() {
               paymentAmount={paymentAmount}
               paymentMethod={paymentMethod}
               userWalletAddress={userWalletAddress}
-              onPaystackSuccess={handlePaystackSuccess}
-              onPaystackClose={handlePaystackClose}
               subtotalInUSD={subtotalInUSD}
               deliveryCostInUSD={deliveryCostInUSD}
               subtotalDisplay={subtotalDisplay}

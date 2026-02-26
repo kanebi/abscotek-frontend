@@ -12,24 +12,17 @@ export default function UserPopover({ children }) {
   const { currentUser, walletAddress } = useStore();
   const { disconnect } = useWeb3Auth();
   
-  // Prefer crypto payment address (tied to user), then wallet, then name
-  const paymentAddress = currentUser?.cryptoPaymentAddress;
-  const walletToShow = walletAddress || currentUser?.walletAddress;
-  const addressToShow = paymentAddress || walletToShow;
+  // Header popup: show display name/email only (wallet only on profile page)
   const displayName = currentUser?.name || currentUser?.email || 'User';
-  const displayAddress = addressToShow
-    ? `${addressToShow.slice(0, 6)}...${addressToShow.slice(-4)}`
-    : displayName;
   
-  // Create safe user object - prefer wallet when available
   const safeUser = {
-    address: typeof displayAddress === 'string' ? displayAddress : 'User',
+    displayText: displayName,
     avatar: '/images/0e48610f4fecc933e17441d93f63ddcc9c4d1943 (1).png',
     profileUrl: '/profile',
   };
 
-  const handleCopyAddress = async () => {
-    const toCopy = addressToShow || currentUser?.email || displayName;
+  const handleCopy = async () => {
+    const toCopy = currentUser?.email || currentUser?.name || displayName;
     if (toCopy) {
       try {
         await navigator.clipboard.writeText(toCopy);
@@ -58,10 +51,10 @@ export default function UserPopover({ children }) {
                 </div>
                 <div className="flex-1 inline-flex flex-col justify-center items-start gap-1">
                   <div className="self-stretch inline-flex justify-between items-start">
-                    <div className=" justify-start text-white text-xl font-semibold font-['Mona_Sans'] leading-normal">{safeUser.address}</div>
+                    <div className="justify-start text-white text-xl font-semibold font-['Mona_Sans'] leading-normal break-all pr-1">{safeUser.displayText}</div>
                     <button 
-                      onClick={handleCopyAddress}
-                      className="w-6 h-6 relative overflow-hidden flex items-center justify-center hover:bg-gray-700 rounded"
+                      onClick={handleCopy}
+                      className="w-6 h-6 flex-shrink-0 relative overflow-hidden flex items-center justify-center hover:bg-gray-700 rounded"
                     >
                       <img src={copy} alt="Copy" className="w-5 h-5" />
                     </button>

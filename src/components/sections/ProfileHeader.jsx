@@ -85,41 +85,41 @@ const ProfileHeader = () => {
     }
   };
 
-  // When address is available, use it as primary display
-  const primaryDisplay = addressToShow ? displayAddress : (currentUser?.name || currentUser?.email || "Not connected");
+  // Heading: display name or email only; wallet/address shown once below (not in heading)
+  const primaryDisplay = currentUser?.name || currentUser?.email || "Not connected";
 
   return (
     <div className="flex flex-col md:flex-row md:items-center md:justify-between top-0 w-full gap-6 md:gap-0">
       <div className="flex flex-col items-start gap-2 md:gap-3.5">
-        <h2 className="text-lg md:text-2xl font-heading-header-1-header-1-semibold font-[number:var(--heading-header-1-header-1-semibold-font-weight)] text-defaultwhite text-[length:var(--heading-header-1-header-1-semibold-font-size)] tracking-[var(--heading-header-1-header-1-semibold-letter-spacing)] leading-[var(--heading-header-1-header-1-semibold-line-height)] whitespace-nowrap [font-style:var(--heading-header-1-header-1-semibold-font-style)]">
+        <h2 className="text-lg md:text-2xl font-heading-header-1-header-1-semibold font-[number:var(--heading-header-1-header-1-semibold-font-weight)] text-defaultwhite text-[length:var(--heading-header-1-header-1-semibold-font-size)] tracking-[var(--heading-header-1-header-1-semibold-letter-spacing)] leading-[var(--heading-header-1-header-1-semibold-line-height)] [font-style:var(--heading-header-1-header-1-semibold-font-style)]">
           {primaryDisplay}
         </h2>
 
-      <div className="flex items-center gap-1 md:gap-2 w-full">
-        <div className="flex items-start gap-1">
-          <span className="text-xs md:text-base font-body-large-large-regular font-[number:var(--body-large-large-regular-font-weight)] text-defaultgrey-2 text-[length:var(--body-large-large-regular-font-size)] text-center tracking-[var(--body-large-large-regular-letter-spacing)] leading-[var(--body-large-large-regular-line-height)] whitespace-nowrap [font-style:var(--body-large-large-regular-font-style)]">
-            {paymentAddress ? "payment address:" : walletToShow ? "wallet:" : "address:"}
-          </span>
-
-          <span className="text-xs md:text-base font-body-large-large-regular font-[number:var(--body-large-large-regular-font-weight)] text-defaultwhite text-[length:var(--body-large-large-regular-font-size)] text-center tracking-[var(--body-large-large-regular-letter-spacing)] leading-[var(--body-large-large-regular-line-height)] whitespace-nowrap [font-style:var(--body-large-large-regular-font-style)]">
-            {displayAddress}
-          </span>
-        </div>
-
-          <Button
-            variant="ghost"
-            size="icon"
-            className="w-5 h-5 md:w-6 md:h-6 p-0 hover:bg-defaulttop-background ml-1"
-            onClick={handleCopyAddress}
-            aria-label="Copy address"
-          >
-            <img
-              className="w-4 h-4 md:w-5 md:h-[22px] mx-auto"
-              alt="Copy address"
-              src={group}
-            />
-          </Button>
-        </div>
+        {addressToShow && (
+          <div className="flex items-center gap-1 md:gap-2 w-full">
+            <div className="flex items-start gap-1">
+              <span className="text-xs md:text-base font-body-large-large-regular font-[number:var(--body-large-large-regular-font-weight)] text-defaultgrey-2 text-[length:var(--body-large-large-regular-font-size)] text-center tracking-[var(--body-large-large-regular-letter-spacing)] leading-[var(--body-large-large-regular-line-height)] whitespace-nowrap [font-style:var(--body-large-large-regular-font-style)]">
+                {paymentAddress ? "payment address:" : walletToShow ? "wallet:" : "address:"}
+              </span>
+              <span className="text-xs md:text-base font-body-large-large-regular font-[number:var(--body-large-large-regular-font-weight)] text-defaultwhite text-[length:var(--body-large-large-regular-font-size)] text-center tracking-[var(--body-large-large-regular-letter-spacing)] leading-[var(--body-large-large-regular-line-height)] whitespace-nowrap [font-style:var(--body-large-large-regular-font-style)]">
+                {displayAddress}
+              </span>
+            </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="w-5 h-5 md:w-6 md:h-6 p-0 hover:bg-defaulttop-background ml-1"
+              onClick={handleCopyAddress}
+              aria-label="Copy address"
+            >
+              <img
+                className="w-4 h-4 md:w-5 md:h-[22px] mx-auto"
+                alt="Copy address"
+                src={group}
+              />
+            </Button>
+          </div>
+        )}
       </div>
 
       <div className="flex items-center gap-3 md:gap-[18px] w-full md:w-auto">
