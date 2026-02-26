@@ -25,25 +25,24 @@ import productService from "@/services/productService";
 import EmptyProducts from "@/components/widgets/EmptyProducts";
 import { PRODUCT_CATEGORIES } from "@/config/categories";
 import { Button } from "@/components/ui/button";
+import { Loader2 } from "lucide-react";
 
 export default function Desktop() {
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
   
-  // Normalize category: map "phones" to "smartphones" for compatibility
-  const normalizeCategory = (cat) => {
-    if (!cat) return undefined;
+  // Normalize category segment for API (e.g. phones -> Smartphones)
+  const normalizeCategorySegment = (cat) => {
+    if (!cat || !cat.trim()) return null;
     const categoryMap = {
-      'phones': 'Smartphones',
-      'phone': 'Smartphones',
-      'Phones': 'Smartphones',
-      'Phone': 'Smartphones'
+      'phones': 'Smartphones', 'phone': 'Smartphones', 'Phones': 'Smartphones', 'Phone': 'Smartphones'
     };
-    return categoryMap[cat] || cat;
+    return categoryMap[cat.trim()] || cat.trim();
   };
-  
   const rawCategory = searchParams.get('category') || undefined;
-  const category = normalizeCategory(rawCategory);
+  const category = rawCategory
+    ? rawCategory.split(',').map(normalizeCategorySegment).filter(Boolean).join(',') || undefined
+    : undefined;
   const page = Number(searchParams.get('page') || 1);
   const sortParam = searchParams.get('sort') || undefined; // price:asc | price:desc | newest | popularity
 
@@ -185,10 +184,9 @@ export default function Desktop() {
     breadcrumbItems.map(item => ({ name: item.label, path: item.href }))
   );
 
-  if (loading) return <Layout><div>Loading products...</div></Layout>;
   if (error) return <Layout><div>Error: {error.message}</div></Layout>;
 
-  const showEmpty = !products || products.length === 0;
+  const showEmpty = !loading && (!products || products.length === 0);
 
   return (
     <Layout>
@@ -254,7 +252,11 @@ export default function Desktop() {
           {/* <ProductFilter /> */}
       </div>
 
-      {showEmpty ? (
+      {loading ? (
+        <div className="absolute top-[156px] w-full md:w-[73%] md:right-0 md:ml-1 p-4 flex items-center justify-center min-h-[400px]">
+          <Loader2 className="h-10 w-10 animate-spin text-red-500" aria-hidden="true" />
+        </div>
+      ) : showEmpty ? (
         <div className="absolute top-[156px] w-full md:w-[73%] md:right-0 md:ml-1 p-4">
           <EmptyProducts
             onPrimaryAction={() => {

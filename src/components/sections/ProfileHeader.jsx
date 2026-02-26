@@ -73,15 +73,26 @@ const ProfileHeader = () => {
     { title: "Order", value: loading ? "..." : orderCount.toString() },
   ];
 
-  const handleCopyAddress = () => {
+  const handleCopyAddress = async () => {
     const fullAddress = addressToShow || currentUser?.email || "";
-    if (fullAddress) {
-      navigator.clipboard.writeText(fullAddress);
-      addNotification({
-        id: Date.now(),
-        message: 'Address copied to clipboard!',
-        type: 'success'
-      });
+    if (!fullAddress) return;
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(fullAddress);
+      } else {
+        const input = document.createElement('input');
+        input.value = fullAddress;
+        input.setAttribute('readonly', '');
+        input.style.position = 'absolute';
+        input.style.left = '-9999px';
+        document.body.appendChild(input);
+        input.select();
+        document.execCommand('copy');
+        document.body.removeChild(input);
+      }
+      addNotification('Address copied to clipboard!', 'success');
+    } catch {
+      addNotification('Failed to copy', 'error');
     }
   };
 

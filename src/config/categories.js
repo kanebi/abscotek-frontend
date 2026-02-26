@@ -1,4 +1,4 @@
-// Popular tech categories for Nigerian market
+// Product categories (product type) – align with Product model
 export const PRODUCT_CATEGORIES = [
   'Smartphones',
   'Laptops',
@@ -27,10 +27,12 @@ export const PRODUCT_CATEGORIES = [
   'Other'
 ];
 
-// Popular tech brands in Nigeria
+// Product brands – align with Product model; include popular and new brands
 export const PRODUCT_BRANDS = [
   'Apple',
   'Samsung',
+  'Google',
+  'Google Pixel',
   'Tecno',
   'Infinix',
   'Huawei',
@@ -53,7 +55,6 @@ export const PRODUCT_BRANDS = [
   'Nikon',
   'JBL',
   'Bose',
-  'Sony',
   'Beats',
   'Custom' // Allow custom brand entry
 ];

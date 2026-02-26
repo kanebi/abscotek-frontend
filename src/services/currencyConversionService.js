@@ -85,7 +85,7 @@ class CurrencyConversionService {
   formatCurrency(amount, currency) {
     const curr = currency === 'USDT' ? 'USDC' : (currency || 'USDC');
     const formatters = {
-      USDC: (val) => `${Number(val).toLocaleString('en-US', { minimumFractionDigits: 4, maximumFractionDigits: 4 })} USDC`,
+      USDC: (val) => `${Number(val).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USDC`,
       USD: (val) => `$${Number(val).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
       NGN: (val) => `₦${Number(val).toLocaleString('en-NG', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`,
       GHC: (val) => `₵${Number(val).toLocaleString('en-GH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,

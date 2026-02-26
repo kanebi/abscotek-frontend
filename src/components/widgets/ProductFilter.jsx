@@ -23,15 +23,18 @@ import { Filter } from "lucide-react";
 import { DRAWER_CONTENT_STYLE } from "@/components/constants";
 import useStore from "@/store/useStore";
 import { useSearchParams } from "react-router-dom";
+import { PRODUCT_CATEGORIES, PRODUCT_BRANDS } from "@/config/categories";
 
 const ProductFilter = ({
   className = "",
   onFiltersChange,
   selectedCategories: propSelectedCategories,
+  selectedBrands: propSelectedBrands,
   selectedColors: propSelectedColors,
   selectedSizes: propSelectedSizes,
   priceRange: propPriceRange,
   onCategoryChange,
+  onBrandChange,
   onColorChange,
   onSizeChange,
   onPriceRangeChange
@@ -39,9 +42,12 @@ const ProductFilter = ({
   const [searchParams, setSearchParams] = useSearchParams();
   const {userCurrency} = useStore();
 
-  // Use props if provided (for mobile), otherwise use local state
+  // Use props if provided (for mobile), otherwise use local state from URL
   const [selectedCategories, setSelectedCategories] = useState(
     propSelectedCategories || (searchParams.get('category') ? searchParams.get('category').split(',') : [])
+  );
+  const [selectedBrands, setSelectedBrands] = useState(
+    propSelectedBrands || (searchParams.get('brand') ? searchParams.get('brand').split(',') : [])
   );
   const [selectedColors, setSelectedColors] = useState(
     propSelectedColors || (searchParams.get('color') ? searchParams.get('color').split(',') : [])
@@ -54,6 +60,7 @@ const ProductFilter = ({
   // State for pending filters (before apply)
   const [pendingFilters, setPendingFilters] = useState({
     categories: selectedCategories,
+    brands: selectedBrands,
     colors: selectedColors,
     sizes: selectedSizes,
     priceRange: priceRange
@@ -63,21 +70,29 @@ const ProductFilter = ({
   useEffect(() => {
     setPendingFilters({
       categories: selectedCategories,
+      brands: selectedBrands,
       colors: selectedColors,
       sizes: selectedSizes,
       priceRange: priceRange
     });
-  }, [selectedCategories, selectedColors, selectedSizes, priceRange]);
+  }, [selectedCategories, selectedBrands, selectedColors, selectedSizes, priceRange]);
 
   // Apply filters function
   const applyFilters = () => {
     const params = new URLSearchParams(searchParams);
 
-    // Update category
+    // Update category (product type)
     if (pendingFilters.categories.length > 0) {
       params.set('category', pendingFilters.categories.join(','));
     } else {
       params.delete('category');
+    }
+
+    // Update brand
+    if (pendingFilters.brands.length > 0) {
+      params.set('brand', pendingFilters.brands.join(','));
+    } else {
+      params.delete('brand');
     }
 
     // Update color
@@ -112,6 +127,7 @@ const ProductFilter = ({
     if (onFiltersChange) {
       onFiltersChange({
         category: pendingFilters.categories,
+        brand: pendingFilters.brands,
         color: pendingFilters.colors,
         size: pendingFilters.sizes,
         minPrice: pendingFilters.priceRange[0],
@@ -120,14 +136,11 @@ const ProductFilter = ({
     }
   };
 
-  // Category filter options
-  const categoryOptions = [
-    { id: "apple", label: "Apple" },
-    { id: "samsung", label: "Samsung" },
-    { id: "huawei", label: "Huawei" },
-    { id: "tecno", label: "Tecno" },
-    { id: "infinix", label: "Infinix" },
-  ];
+  // Category filter options (product type – match Product model)
+  const categoryOptions = PRODUCT_CATEGORIES.filter((c) => c !== 'Other').map((label) => ({ id: label, label }));
+
+  // Brand filter options (match Product model)
+  const brandOptions = PRODUCT_BRANDS.filter((b) => b !== 'Custom').map((label) => ({ id: label, label }));
 
   // Color filter options
   const colorOptions = [
@@ -154,6 +167,19 @@ const ProductFilter = ({
         checked
           ? [...prev, categoryId]
           : prev.filter(id => id !== categoryId)
+      );
+    }
+  };
+
+  // Handle brand checkbox changes
+  const handleBrandChange = (brandId, checked) => {
+    if (onBrandChange) {
+      onBrandChange(brandId, checked);
+    } else {
+      setSelectedBrands(prev =>
+        checked
+          ? [...prev, brandId]
+          : prev.filter(id => id !== brandId)
       );
     }
   };
@@ -205,7 +231,7 @@ const ProductFilter = ({
         </Button>
       </div>
 
-      {/* Category filter */}
+      {/* Category filter (product type) */}
       <Accordion
         type="single"
         collapsible
@@ -217,21 +243,62 @@ const ProductFilter = ({
             Category
           </AccordionTrigger>
           <AccordionContent className="pt-6">
-            <div className="flex flex-col w-[108px] items-start gap-4">
+            <div className="flex flex-col max-h-[200px] overflow-y-auto w-full items-start gap-4 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-red-500 [&::-webkit-scrollbar-thumb]:rounded-full" style={{ scrollbarColor: 'rgb(239 68 68) transparent' }}>
               {categoryOptions.map((option) => (
                 <div
                   key={option.id}
                   className="flex items-center gap-3 w-full"
                 >
                   <Checkbox
-                    id={option.id}
+                    id={`cat-${option.id}`}
                     checked={selectedCategories.includes(option.id)}
                     onCheckedChange={(checked) => handleCategoryChange(option.id, checked)}
                     className="w-5 h-5 rounded border-neutral-100 data-[state=checked]:bg-red-500 data-[state=checked]:border-red-500"
                   />
                   <label
-                    htmlFor={option.id}
-                    className="font-body-large-large-medium font-[number:var(--body-large-large-medium-font-weight)] text-defaultgrey-2 text-[length:var(--body-large-large-medium-font-size)] tracking-[var(--body-large-large-medium-letter-spacing)] leading-[var(--body-large-large-medium-line-height)] whitespace-nowrap [font-style:var(--body-large-large-medium-font-style)]"
+                    htmlFor={`cat-${option.id}`}
+                    className="font-body-large-large-medium font-[number:var(--body-large-large-medium-font-weight)] text-defaultgrey-2 text-[length:var(--body-large-large-medium-font-size)] tracking-[var(--body-large-large-medium-letter-spacing)] leading-[var(--body-large-large-medium-line-height)] [font-style:var(--body-large-large-medium-font-style)]"
+                  >
+                    {option.label}
+                  </label>
+                </div>
+              ))}
+            </div>
+          </AccordionContent>
+        </AccordionItem>
+      </Accordion>
+
+      <Separator
+        className="w-full h-px mt-[-1.00px] bg-neutral-600 relative self-stretch object-cover"
+      />
+
+      {/* Brand filter */}
+      <Accordion
+        type="single"
+        collapsible
+        className="w-full"
+        defaultValue="brand"
+      >
+        <AccordionItem value="brand" className="border-none">
+          <AccordionTrigger className="font-heading-header-6-header-6-semibold font-[number:var(--heading-header-6-header-6-semibold-font-weight)] text-white text-[length:var(--heading-header-6-header-6-semibold-font-size)] tracking-[var(--heading-header-6-header-6-semibold-letter-spacing)] leading-[var(--heading-header-6-header-6-semibold-line-height)] [font-style:var(--heading-header-6-header-6-semibold-font-style)] py-0">
+            Brand
+          </AccordionTrigger>
+          <AccordionContent className="pt-6">
+            <div className="flex flex-col max-h-[200px] overflow-y-auto w-full items-start gap-4 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-red-500 [&::-webkit-scrollbar-thumb]:rounded-full" style={{ scrollbarColor: 'rgb(239 68 68) transparent' }}>
+              {brandOptions.map((option) => (
+                <div
+                  key={option.id}
+                  className="flex items-center gap-3 w-full"
+                >
+                  <Checkbox
+                    id={`brand-${option.id}`}
+                    checked={selectedBrands.includes(option.id)}
+                    onCheckedChange={(checked) => handleBrandChange(option.id, checked)}
+                    className="w-5 h-5 rounded border-neutral-100 data-[state=checked]:bg-red-500 data-[state=checked]:border-red-500"
+                  />
+                  <label
+                    htmlFor={`brand-${option.id}`}
+                    className="font-body-large-large-medium font-[number:var(--body-large-large-medium-font-weight)] text-defaultgrey-2 text-[length:var(--body-large-large-medium-font-size)] tracking-[var(--body-large-large-medium-letter-spacing)] leading-[var(--body-large-large-medium-line-height)] [font-style:var(--body-large-large-medium-font-style)]"
                   >
                     {option.label}
                   </label>
@@ -262,10 +329,10 @@ const ProductFilter = ({
               <div className="flex flex-col items-start gap-2 w-full">
                 <div className="flex items-start justify-between w-full">
                   <div className="leading-[var(--body-xlarge-xlarge-semibold-line-height)] mt-[-1.00px] text-defaultwhite whitespace-nowrap ">
-                    {userCurrency}{' '}{priceRange[0].toLocaleString()}
+                    {userCurrency}{' '}{Number(priceRange[0]).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </div>
                   <div className="leading-[var(--heading-header-6-header-6-semibold-line-height)] mt-[-1.00px] text-defaultwhite whitespace-nowrap">
-                    {userCurrency}{' '}{priceRange[1].toLocaleString()}
+                    {userCurrency}{' '}{Number(priceRange[1]).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </div>
                 </div>
                 <div className="relative self-stretch w-full h-6 mx-auto">
@@ -386,6 +453,9 @@ export const MobileFilterButton = ({ onFiltersChange }) => {
   const [selectedCategories, setSelectedCategories] = useState(
     searchParams.get('category') ? searchParams.get('category').split(',') : []
   );
+  const [selectedBrands, setSelectedBrands] = useState(
+    searchParams.get('brand') ? searchParams.get('brand').split(',') : []
+  );
   const [selectedColors, setSelectedColors] = useState(
     searchParams.get('color') ? searchParams.get('color').split(',') : []
   );
@@ -393,14 +463,10 @@ export const MobileFilterButton = ({ onFiltersChange }) => {
     searchParams.get('size') ? searchParams.get('size').split(',') : []
   );
 
-  // Category filter options
-  const categoryOptions = [
-    { id: "apple", label: "Apple" },
-    { id: "samsung", label: "Samsung" },
-    { id: "huawei", label: "Huawei" },
-    { id: "tecno", label: "Tecno" },
-    { id: "infinix", label: "Infinix" },
-  ];
+  // Category filter options (product type – match Product model)
+  const categoryOptions = PRODUCT_CATEGORIES.filter((c) => c !== 'Other').map((label) => ({ id: label, label }));
+  // Brand filter options (match Product model)
+  const brandOptions = PRODUCT_BRANDS.filter((b) => b !== 'Custom').map((label) => ({ id: label, label }));
 
   // Color filter options
   const colorOptions = [
@@ -421,6 +487,7 @@ export const MobileFilterButton = ({ onFiltersChange }) => {
   // State for pending filters (before apply)
   const [pendingFilters, setPendingFilters] = useState({
     categories: selectedCategories,
+    brands: selectedBrands,
     colors: selectedColors,
     sizes: selectedSizes,
     priceRange: priceRange
@@ -430,38 +497,37 @@ export const MobileFilterButton = ({ onFiltersChange }) => {
   useEffect(() => {
     setPendingFilters({
       categories: selectedCategories,
+      brands: selectedBrands,
       colors: selectedColors,
       sizes: selectedSizes,
       priceRange: priceRange
     });
-  }, [selectedCategories, selectedColors, selectedSizes, priceRange]);
+  }, [selectedCategories, selectedBrands, selectedColors, selectedSizes, priceRange]);
 
   // Apply filters function for mobile
   const applyMobileFilters = () => {
     const params = new URLSearchParams(searchParams);
 
-    // Update category
     if (pendingFilters.categories.length > 0) {
       params.set('category', pendingFilters.categories.join(','));
     } else {
       params.delete('category');
     }
-
-    // Update color
+    if (pendingFilters.brands.length > 0) {
+      params.set('brand', pendingFilters.brands.join(','));
+    } else {
+      params.delete('brand');
+    }
     if (pendingFilters.colors.length > 0) {
       params.set('color', pendingFilters.colors.join(','));
     } else {
       params.delete('color');
     }
-
-    // Update size
     if (pendingFilters.sizes.length > 0) {
       params.set('size', pendingFilters.sizes.join(','));
     } else {
       params.delete('size');
     }
-
-    // Update price range
     if (pendingFilters.priceRange[0] !== 100 || pendingFilters.priceRange[1] !== 2000) {
       params.set('minPrice', pendingFilters.priceRange[0].toString());
       params.set('maxPrice', pendingFilters.priceRange[1].toString());
@@ -469,32 +535,29 @@ export const MobileFilterButton = ({ onFiltersChange }) => {
       params.delete('minPrice');
       params.delete('maxPrice');
     }
-
-    // Reset to page 1 when filters change
     params.set('page', '1');
-
     setSearchParams(params, { replace: true });
-
-    // Notify parent component of filter changes
     if (onFiltersChange) {
       onFiltersChange({
         category: pendingFilters.categories,
+        brand: pendingFilters.brands,
         color: pendingFilters.colors,
         size: pendingFilters.sizes,
         minPrice: pendingFilters.priceRange[0],
         maxPrice: pendingFilters.priceRange[1]
       });
     }
-
     setIsFilterOpen(false);
   };
 
-  // Handle category checkbox changes
   const handleCategoryChange = (categoryId, checked) => {
     setSelectedCategories(prev =>
-      checked
-        ? [...prev, categoryId]
-        : prev.filter(id => id !== categoryId)
+      checked ? [...prev, categoryId] : prev.filter(id => id !== categoryId)
+    );
+  };
+  const handleBrandChange = (brandId, checked) => {
+    setSelectedBrands(prev =>
+      checked ? [...prev, brandId] : prev.filter(id => id !== brandId)
     );
   };
 
@@ -541,9 +604,9 @@ export const MobileFilterButton = ({ onFiltersChange }) => {
                   Apply filters to narrow down your search
                 </DrawerDescription>
               </DrawerHeader>
-              <div className="p-6 overflow-y-auto max-h-[60vh]">
+              <div className="p-6 overflow-y-auto max-h-[60vh] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-red-500 [&::-webkit-scrollbar-thumb]:rounded-full" style={{ scrollbarColor: 'rgb(239 68 68) transparent' }}>
                 <div className="flex flex-col w-full items-start gap-6">
-                  {/* Category filter */}
+                  {/* Category filter (product type) */}
                   <Accordion
                     type="single"
                     collapsible
@@ -555,21 +618,62 @@ export const MobileFilterButton = ({ onFiltersChange }) => {
                         Category
                       </AccordionTrigger>
                       <AccordionContent className="pt-6">
-                        <div className="flex flex-col w-[108px] items-start gap-4">
+                        <div className="flex flex-col max-h-[200px] overflow-y-auto w-full items-start gap-4 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-red-500 [&::-webkit-scrollbar-thumb]:rounded-full" style={{ scrollbarColor: 'rgb(239 68 68) transparent' }}>
                           {categoryOptions.map((option) => (
                             <div
                               key={option.id}
                               className="flex items-center gap-3 w-full"
                             >
                               <Checkbox
-                                id={option.id}
+                                id={`m-cat-${option.id}`}
                                 checked={selectedCategories.includes(option.id)}
                                 onCheckedChange={(checked) => handleCategoryChange(option.id, checked)}
                                 className="w-5 h-5 rounded border-neutral-100 data-[state=checked]:bg-red-500 data-[state=checked]:border-red-500"
                               />
                               <label
-                                htmlFor={option.id}
-                                className="font-body-large-large-medium font-[number:var(--body-large-large-medium-font-weight)] text-defaultgrey-2 text-[length:var(--body-large-large-medium-font-size)] tracking-[var(--body-large-large-medium-letter-spacing)] leading-[var(--body-large-large-medium-line-height)] whitespace-nowrap [font-style:var(--body-large-large-medium-font-style)]"
+                                htmlFor={`m-cat-${option.id}`}
+                                className="font-body-large-large-medium font-[number:var(--body-large-large-medium-font-weight)] text-defaultgrey-2 text-[length:var(--body-large-large-medium-font-size)] tracking-[var(--body-large-large-medium-letter-spacing)] leading-[var(--body-large-large-medium-line-height)] [font-style:var(--body-large-large-medium-font-style)]"
+                              >
+                                {option.label}
+                              </label>
+                            </div>
+                          ))}
+                        </div>
+                      </AccordionContent>
+                    </AccordionItem>
+                  </Accordion>
+
+                  <Separator
+                    className="w-full h-px mt-[-1.00px] bg-neutral-600 relative self-stretch object-cover"
+                  />
+
+                  {/* Brand filter */}
+                  <Accordion
+                    type="single"
+                    collapsible
+                    className="w-full"
+                    defaultValue="brand"
+                  >
+                    <AccordionItem value="brand" className="border-none">
+                      <AccordionTrigger className="font-heading-header-6-header-6-semibold font-[number:var(--heading-header-6-header-6-semibold-font-weight)] text-white text-[length:var(--heading-header-6-header-6-semibold-font-size)] tracking-[var(--heading-header-6-header-6-semibold-letter-spacing)] leading-[var(--heading-header-6-header-6-semibold-line-height)] [font-style:var(--heading-header-6-header-6-semibold-font-style)] py-0">
+                        Brand
+                      </AccordionTrigger>
+                      <AccordionContent className="pt-6">
+                        <div className="flex flex-col max-h-[200px] overflow-y-auto w-full items-start gap-4 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-red-500 [&::-webkit-scrollbar-thumb]:rounded-full" style={{ scrollbarColor: 'rgb(239 68 68) transparent' }}>
+                          {brandOptions.map((option) => (
+                            <div
+                              key={option.id}
+                              className="flex items-center gap-3 w-full"
+                            >
+                              <Checkbox
+                                id={`m-brand-${option.id}`}
+                                checked={selectedBrands.includes(option.id)}
+                                onCheckedChange={(checked) => handleBrandChange(option.id, checked)}
+                                className="w-5 h-5 rounded border-neutral-100 data-[state=checked]:bg-red-500 data-[state=checked]:border-red-500"
+                              />
+                              <label
+                                htmlFor={`m-brand-${option.id}`}
+                                className="font-body-large-large-medium font-[number:var(--body-large-large-medium-font-weight)] text-defaultgrey-2 text-[length:var(--body-large-large-medium-font-size)] tracking-[var(--body-large-large-medium-letter-spacing)] leading-[var(--body-large-large-medium-line-height)] [font-style:var(--body-large-large-medium-font-style)]"
                               >
                                 {option.label}
                               </label>
@@ -600,10 +704,10 @@ export const MobileFilterButton = ({ onFiltersChange }) => {
                           <div className="flex flex-col items-start gap-2 w-full">
                             <div className="flex items-start justify-between w-full">
                               <div className="leading-[var(--body-xlarge-xlarge-semibold-line-height)] mt-[-1.00px] text-defaultwhite whitespace-nowrap ">
-                                {userCurrency}{' '}{priceRange[0].toLocaleString()}
+                                {userCurrency}{' '}{Number(priceRange[0]).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                               </div>
                               <div className="leading-[var(--heading-header-6-header-6-semibold-line-height)] mt-[-1.00px] text-defaultwhite whitespace-nowrap">
-                                {userCurrency}{' '}{priceRange[1].toLocaleString()}
+                                {userCurrency}{' '}{Number(priceRange[1]).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                               </div>
                             </div>
                             <div className="relative self-stretch w-full h-6 mx-auto">
