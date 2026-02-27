@@ -38,7 +38,7 @@ function UserOrdersPage() {
       const userOrders = await orderService.getOrders();
       setOrders(userOrders);
     } catch (error) {
-      console.error('Error fetching orders:', error);
+      // Fetch failed
     } finally {
       setLoading(false);
     }
@@ -101,7 +101,6 @@ function UserOrdersPage() {
       setShowCancelModal(false);
       setOrderToCancel(null);
     } catch (err) {
-      console.error('Error cancelling order:', err);
       addNotification('Failed to cancel order. Please try again.', 'error');
     } finally {
       setCancellingOrderId(null);

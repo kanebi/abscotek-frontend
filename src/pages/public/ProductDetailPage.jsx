@@ -42,12 +42,12 @@ export default function ProductDetail() {
                     const related = await productService.getRelatedProducts(id, 8);
                     setRelatedProducts(Array.isArray(related) ? related : []);
                 } catch (e) {
-                    console.warn('Failed to fetch related products', e);
+                    // Fetch related failed
                     setRelatedProducts([]);
                 }
             } catch (err) {
                 setError(err);
-                console.error("Failed to fetch product:", err);
+                // Fetch failed
             } finally {
                 setLoading(false);
             }
@@ -152,7 +152,7 @@ export default function ProductDetail() {
                 setAddingToWishlist(false);
             }, 2000);
         } catch (error) {
-            console.error("Failed to add to wishlist:", error);
+            // Add to wishlist failed
             setAddingToWishlist(false);
         }
     };

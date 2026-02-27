@@ -3,7 +3,11 @@ import { Card, CardContent } from "@/components/ui/card";
 import AmountCurrency from "@/components/ui/AmountCurrency";
 import React, { useCallback } from "react";
 
+const CANCELLABLE_STATUSES = ['pending', 'confirmed', 'processing'];
+
 const OrderCard = ({ order, onViewOrder }) => {
+  const showCancelAndRefund = order?.status && CANCELLABLE_STATUSES.includes(String(order.status).toLowerCase());
+
   const handleCardClick = useCallback((e) => {
     // Don't trigger if clicking on a button or interactive element
     const target = e.target;
@@ -135,18 +139,20 @@ const OrderCard = ({ order, onViewOrder }) => {
                 </div>
 
                 <div className="inline-flex items-center gap-3 relative flex-[0_0_auto]">
-                  <Button
-                    variant="outline"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      // Handle cancel order action here if needed
-                    }}
-                    className="inline-flex items-center justify-center gap-2.5 px-7 py-[13px] relative flex-[0_0_auto] rounded-xl border border-solid border-primaryp-300 h-auto hover:bg-defaulttop-background bg-transparent"
-                  >
-                    <span className="relative w-fit mt-[-1.00px] font-body-base-base-medium font-[number:var(--body-base-base-medium-font-weight)] text-white text-[length:var(--body-base-base-medium-font-size)] tracking-[var(--body-base-base-medium-letter-spacing)] leading-[var(--body-base-base-medium-line-height)] whitespace-nowrap [font-style:var(--body-base-base-medium-font-style)]">
-                      Cancel Order
-                    </span>
-                  </Button>
+                  {showCancelAndRefund && (
+                    <Button
+                      variant="outline"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        // Handle cancel order action here if needed
+                      }}
+                      className="inline-flex items-center justify-center gap-2.5 px-7 py-[13px] relative flex-[0_0_auto] rounded-xl border border-solid border-primaryp-300 h-auto hover:bg-defaulttop-background bg-transparent"
+                    >
+                      <span className="relative w-fit mt-[-1.00px] font-body-base-base-medium font-[number:var(--body-base-base-medium-font-weight)] text-white text-[length:var(--body-base-base-medium-font-size)] tracking-[var(--body-base-base-medium-letter-spacing)] leading-[var(--body-base-base-medium-line-height)] whitespace-nowrap [font-style:var(--body-base-base-medium-font-style)]">
+                        Cancel Order
+                      </span>
+                    </Button>
+                  )}
 
                   <Button
                     variant="outline"
@@ -251,18 +257,20 @@ const OrderCard = ({ order, onViewOrder }) => {
                 </div>
 
                 <div className="flex flex-col md:flex-row items-center gap-2 md:gap-3 relative flex-[0_0_auto] w-full md:w-auto">
-                  <Button
-                    variant="outline"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      // Handle cancel order action here if needed
-                    }}
-                    className="h-auto hover:bg-defaulttop-background bg-transparent w-full md:w-auto inline-flex items-center justify-center gap-2.5 px-4 md:px-7 py-2 md:py-[13px] relative flex-[0_0_auto] rounded-xl border border-solid border-primaryp-300"
-                  >
-                    <span className="relative w-fit mt-[-1.00px] font-body-base-base-medium font-[number:var(--body-base-base-medium-font-weight)] text-white text-xs md:text-[length:var(--body-base-base-medium-font-size)] tracking-[var(--body-base-base-medium-letter-spacing)] leading-[16px] md:leading-[var(--body-base-base-medium-line-height)] whitespace-nowrap [font-style:var(--body-base-base-medium-font-style)]">
-                      Cancel Order
-                    </span>
-                  </Button>
+                  {showCancelAndRefund && (
+                    <Button
+                      variant="outline"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        // Handle cancel order action here if needed
+                      }}
+                      className="h-auto hover:bg-defaulttop-background bg-transparent w-full md:w-auto inline-flex items-center justify-center gap-2.5 px-4 md:px-7 py-2 md:py-[13px] relative flex-[0_0_auto] rounded-xl border border-solid border-primaryp-300"
+                    >
+                      <span className="relative w-fit mt-[-1.00px] font-body-base-base-medium font-[number:var(--body-base-base-medium-font-weight)] text-white text-xs md:text-[length:var(--body-base-base-medium-font-size)] tracking-[var(--body-base-base-medium-letter-spacing)] leading-[16px] md:leading-[var(--body-base-base-medium-line-height)] whitespace-nowrap [font-style:var(--body-base-base-medium-font-style)]">
+                        Cancel Order
+                      </span>
+                    </Button>
+                  )}
 
                   <Button
                     variant="outline"

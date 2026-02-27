@@ -35,7 +35,7 @@ export default function ProductCard({ image, name, price, badge, outOfStock, _id
           setIsAddingToWishlist(false);
         }, 2000);
       } catch (error) {
-        console.error('Failed to add to wishlist:', error);
+        // Add failed
         setIsAddingToWishlist(false);
       }
     };

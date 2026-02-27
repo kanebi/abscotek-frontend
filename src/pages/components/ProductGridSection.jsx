@@ -48,7 +48,7 @@ const ProductGridSection = ({ products = [], activePage = 1, totalPages = 1, onP
         setAddingToCart(null);
       }, 2000);
     } catch (error) {
-      console.error("Failed to add to cart:", error);
+      // Add to cart failed
       setAddingToCart(null);
     }
   };
@@ -71,7 +71,7 @@ const ProductGridSection = ({ products = [], activePage = 1, totalPages = 1, onP
         await addToWishlist(productId);
       }
     } catch (error) {
-      console.error("Failed to toggle wishlist:", error);
+      // Toggle wishlist failed
     }
   };
 

@@ -109,7 +109,7 @@ function DeliveryAddressForm({ onSave, onCancel, showCancel = false, editingAddr
         }
       );
     } catch (error) {
-      console.error('Error loading Google Places:', error);
+      // Load failed
       setCitySuggestions([]);
       setShowCitySuggestions(false);
     }
@@ -147,7 +147,7 @@ function DeliveryAddressForm({ onSave, onCancel, showCancel = false, editingAddr
         }
       );
     } catch (error) {
-      console.error('Error loading Google Places:', error);
+      // Load failed
       setStateSuggestions([]);
       setShowStateSuggestions(false);
     }
@@ -179,7 +179,7 @@ function DeliveryAddressForm({ onSave, onCancel, showCancel = false, editingAddr
       // Call the real API through the parent component
       await onSave(formData);
     } catch (error) {
-      console.error('Error saving address:', error);
+      // Save failed
       // Handle error (could add error state/toast here)
     } finally {
       setIsLoading(false);

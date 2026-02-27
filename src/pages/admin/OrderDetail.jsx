@@ -35,12 +35,8 @@ function OrderDetail() {
     try {
       setLoading(true);
       const data = await orderService.adminGetOrderById(id);
-      console.log('Order data received:', data);
-      console.log('Order items:', data.items);
-      console.log('Items count:', data.items?.length || 0);
       setOrder(data);
     } catch (error) {
-      console.error('Error fetching order:', error);
       setErrorMessage('Failed to load order details');
     } finally {
       setLoading(false);
@@ -57,7 +53,6 @@ function OrderDetail() {
       setSuccessMessage(`Order status updated to ${newStatus}`);
       fetchOrder();
     } catch (error) {
-      console.error('Error updating status:', error);
       const errorMsg = error.response?.data?.msg || error.response?.data?.message || 'Failed to update status';
       setErrorMessage(errorMsg);
     } finally {

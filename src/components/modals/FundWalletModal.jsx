@@ -13,7 +13,6 @@ function FundWalletModal({ isOpen, onClose, cartTotal, usdcBalance, cartCurrency
 
   const handleFundWallet = () => {
     // In a real application, this would navigate to a funding page or initiate a crypto transaction
-    console.log('Initiating fund wallet process...');
     alert('Please fund your wallet. (This is a placeholder action)');
     onClose();
   };
@@ -25,7 +24,7 @@ function FundWalletModal({ isOpen, onClose, cartTotal, usdcBalance, cartCurrency
         setCopyStatus('Copied!');
         setTimeout(() => setCopyStatus(''), 2000);
       } catch (err) {
-        console.error('Failed to copy address:', err);
+        // Copy failed
         setCopyStatus('Failed to copy');
         setTimeout(() => setCopyStatus(''), 2000);
       }

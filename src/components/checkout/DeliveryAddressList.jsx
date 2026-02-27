@@ -19,7 +19,7 @@ function DeliveryAddressList({
       await new Promise(resolve => setTimeout(resolve, 500));
       onSelectAddress && onSelectAddress(addressId);
     } catch (error) {
-      console.error('Error selecting address:', error);
+      // Select failed
     } finally {
       setIsLoading(false);
     }

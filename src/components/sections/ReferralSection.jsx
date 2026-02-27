@@ -34,7 +34,7 @@ const ReferralSection = () => {
       const data = await userService.getWalletBalance();
       setWalletBalance(parseFloat(data.balance || 0));
     } catch (error) {
-      console.error('Error fetching wallet balance:', error);
+      // Fetch balance failed
       setWalletBalance(null);
     }
   };
@@ -45,7 +45,7 @@ const ReferralSection = () => {
       const data = await referralService.getReferralStats();
       setStats(data);
     } catch (error) {
-      console.error('Error fetching referral stats:', error);
+      // Fetch stats failed
     } finally {
       setLoading(false);
     }

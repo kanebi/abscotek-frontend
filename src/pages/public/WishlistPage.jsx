@@ -37,7 +37,7 @@ function WishlistPage() {
     try {
       await removeFromWishlist(productId);
     } catch (error) {
-      console.error('Error removing from wishlist:', error);
+      // Remove failed
     } finally {
       setIsRemoving(null);
     }
@@ -48,7 +48,7 @@ function WishlistPage() {
     try {
       await addToCart(productId, 1);
     } catch (error) {
-      console.error('Error adding to cart:', error);
+      // Add to cart failed
     } finally {
       setIsAddingToCart(null);
     }

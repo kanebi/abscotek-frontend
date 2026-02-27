@@ -22,7 +22,7 @@ const useAdminStore = create((set) => ({
         const user = JSON.parse(userStr);
         set({ isAuthenticated: true, token, user });
       } catch (error) {
-        console.error('Error parsing admin user from storage:', error);
+        // Parse failed
         localStorage.removeItem('adminToken');
         localStorage.removeItem('adminUser');
       }

@@ -27,7 +27,7 @@ function CartManagement() {
       const data = await cartService.getCartByUserId(userId);
       setCart(data);
     } catch (error) {
-      console.error('Error fetching cart:', error);
+      // Fetch failed
       setErrorMessage('Failed to fetch cart. Make sure the user ID is correct and the backend supports fetching carts by user ID.');
       setCart(null);
     } finally {
@@ -43,7 +43,7 @@ function CartManagement() {
         setSuccessMessage('Item removed from cart successfully!');
         fetchCart(searchUserId);
       } catch (error) {
-        console.error('Error removing item:', error);
+        // Remove failed
         setErrorMessage('Failed to remove item from cart.');
       }
     }

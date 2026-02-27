@@ -98,7 +98,6 @@ export default function Desktop() {
         }
       } catch (err) {
         setError(err);
-        console.error("Failed to fetch products:", err);
       } finally {
         setLoading(false);
       }

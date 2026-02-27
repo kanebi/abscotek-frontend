@@ -17,49 +17,29 @@ function OrderSuccessPage() {
   // Fetch order details
   useEffect(() => {
     const fetchOrderDetails = async () => {
-      console.log('OrderSuccessPage - orderId from params:', orderId, 'type:', typeof orderId);
-
       if (!orderId) {
-        console.log('OrderSuccessPage - No orderId provided');
         setLoading(false);
         return;
       }
-
       try {
-        // Ensure orderId is a string and clean it
         const orderIdStr = (typeof orderId === 'object' ? orderId.toString() : orderId).trim();
-        console.log('OrderSuccessPage - Fetching order with ID/Number:', orderIdStr);
-        
         let orderData = null;
-        
-        // Try to fetch by order number first (if it looks like an order number)
         if (orderIdStr && orderIdStr.length > 10) {
           try {
-            console.log('OrderSuccessPage - Trying to fetch by order number:', orderIdStr);
             orderData = await orderService.getOrderByNumber(orderIdStr);
-            console.log('OrderSuccessPage - Order data by number:', orderData);
           } catch (numberError) {
-            console.log('OrderSuccessPage - Failed to fetch by order number, trying by ID:', numberError.message);
+            // Try by ID next
           }
         }
-        
-        // If not found by order number, try by ID
         if (!orderData) {
-          console.log('OrderSuccessPage - Trying to fetch by order ID:', orderIdStr);
           orderData = await orderService.getOrderById(orderIdStr);
-          console.log('OrderSuccessPage - Order data by ID:', orderData);
         }
-        
         if (orderData) {
           setOrder(orderData);
         } else {
-          console.log('OrderSuccessPage - No order data received');
           addNotification('Order not found', 'error');
         }
       } catch (error) {
-        console.error('Error fetching order details:', error);
-        console.error('Error response:', error.response?.data);
-        console.error('Error status:', error.response?.status);
         addNotification('Failed to load order details', 'error');
       } finally {
         setLoading(false);

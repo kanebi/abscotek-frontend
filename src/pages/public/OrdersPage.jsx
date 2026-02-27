@@ -30,7 +30,7 @@ function OrdersPage() {
         setError(null);
       } catch (err) {
         setError('Failed to fetch orders. Please try again later.');
-        console.error(err);
+        // Error
       } finally {
         setLoading(false);
       }

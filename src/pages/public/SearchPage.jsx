@@ -98,7 +98,7 @@ function SearchPage() {
 
       setSearchParams(newSearchParams, { replace: true });
     } catch (err) {
-      console.error('Search failed:', err);
+      // Search failed
       setError('Failed to load search results. Please try again.');
       setProducts([]);
       setTotalCount(0);

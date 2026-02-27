@@ -15,7 +15,6 @@ const validateSession = async () => {
     const user = await userService.getUser();
     return { token, user };
   } catch (error) {
-    console.warn('Session validation failed, clearing stored data:', error.message);
     // Clear invalid session data
     localStorage.removeItem('token');
     localStorage.removeItem('userInfo');
@@ -43,7 +42,6 @@ const useStore = create((set, get) => {
         initialCurrency = initialUser.preferences.currency === 'USDT' ? 'USDC' : initialUser.preferences.currency;
       }
     } catch (error) {
-      console.error('Error parsing stored user info:', error);
       localStorage.removeItem('userInfo');
     }
   }
@@ -62,22 +60,12 @@ const useStore = create((set, get) => {
         try {
           return JSON.parse(cart);
         } catch (error) {
-          console.error('Error parsing guest cart from localStorage:', error);
           localStorage.removeItem('guestCart');
         }
       }
       return { items: [], total: 0, subtotal: 0 };
     })()
   };
-
-  // Log initial state for debugging
-  console.log('useStore - Initializing with:', {
-    hasToken: !!storedToken,
-    hasUser: !!initialUser,
-    isAuthenticated: initialState.isAuthenticated,
-    userName: initialUser?.name,
-    userEmail: initialUser?.email
-  });
 
   return {
   // User state (initialize from localStorage)
@@ -110,7 +98,6 @@ const useStore = create((set, get) => {
           userCurrency: normalizedCurrency,
           walletAddress: user?.walletAddress || localStorage.getItem('walletAddress') || null
         });
-        console.log('Session validated successfully:', { user: user.name, email: user.email });
         return true;
       } else {
         // Clear any stale data; keep current currency (e.g. NGN from geo) so UI doesn't flip to USDC
@@ -124,7 +111,6 @@ const useStore = create((set, get) => {
         return false;
       }
     } catch (error) {
-      console.error('Session validation error:', error);
       set({
         token: null,
         currentUser: null,
@@ -232,7 +218,6 @@ const useStore = create((set, get) => {
     }
   },
   setChainId: (id) => {
-    console.log('useStore - setChainId:', id);
     set({ chainId: id });
   },
 
@@ -257,33 +242,24 @@ const useStore = create((set, get) => {
     set({ cartLoading: true });
     try {
       const { isAuthenticated } = get();
-      console.log('fetchCart - isAuthenticated:', isAuthenticated);
       if (isAuthenticated) {
-        console.log('fetchCart - Fetching authenticated user cart...');
         const response = await cartService.getCart();
-        console.log('fetchCart - Cart response:', response);
         set({ cart: response });
-        console.log('fetchCart - Cart set in store');
       } else {
-        console.log('fetchCart - User not authenticated, loading guest cart...');
-        // For non-authenticated users, get guest cart
         const guestCart = localStorage.getItem('guestCart');
         if (guestCart) {
           try {
             const parsedCart = JSON.parse(guestCart);
-            console.log('fetchCart - Guest cart loaded:', parsedCart);
             set({ cart: parsedCart });
           } catch (error) {
-            console.error('Error parsing guest cart:', error);
             set({ cart: { items: [], total: 0, subtotal: 0 } });
           }
         } else {
-          console.log('fetchCart - No guest cart found, setting empty cart');
           set({ cart: { items: [], total: 0, subtotal: 0 } });
         }
       }
     } catch (error) {
-      console.error('Failed to fetch cart:', error);
+      // Fetch failed
     } finally {
       set({ cartLoading: false });
     }
@@ -321,7 +297,6 @@ const useStore = create((set, get) => {
       const message = itemExists ? 'Cart item quantity updated' : 'Item added to cart';
       useNotificationStore.getState().addNotification(message, 'success');
     } catch (error) {
-      console.error('Failed to add to cart:', error);
       useNotificationStore.getState().addNotification('Failed to add item to cart', 'error');
     } finally {
       set({ cartUpdating: false });
@@ -337,7 +312,6 @@ const useStore = create((set, get) => {
       const response = await cartService.updateItemQuantity(productId, newQuantity, variantName, specs);
       set({ cart: response });
     } catch (error) {
-      console.error('Failed to update cart quantity:', error);
       useNotificationStore.getState().addNotification('Failed to update cart quantity', 'error');
     } finally {
       set({ cartUpdating: false });
@@ -351,10 +325,7 @@ const useStore = create((set, get) => {
       if (isAuthenticated || walletAddress) {
         // Ensure we have a valid user ID
         const userId = currentUser?._id || currentUser?.id;
-        if (!userId) {
-          console.error('No user ID found for cart removal:', currentUser);
-          throw new Error('User ID not found');
-        }
+        if (!userId) throw new Error('User ID not found');
         await cartService.removeFromCart(userId, productId);
         // Reload cart from backend to ensure structure is correct
         await fetchCart();
@@ -366,9 +337,7 @@ const useStore = create((set, get) => {
       }
       useNotificationStore.getState().addNotification('Item removed from cart', 'success');
     } catch (error) {
-      console.error('Failed to remove from cart:', error);
       useNotificationStore.getState().addNotification('Failed to remove item from cart', 'error');
-      // On error, try to reload cart to ensure consistency
       try {
         const { isAuthenticated, fetchCart } = get();
         if (isAuthenticated || get().walletAddress) {
@@ -378,7 +347,7 @@ const useStore = create((set, get) => {
           set({ cart: guestCart });
         }
       } catch (reloadError) {
-        console.error('Failed to reload cart after removal error:', reloadError);
+        // Reload failed
       }
     } finally {
       set({ cartUpdating: false });
@@ -392,10 +361,7 @@ const useStore = create((set, get) => {
       // Clear backend cart if authenticated
       if (isAuthenticated) {
         await cartService.clearCart();
-        console.log('Backend cart cleared successfully');
       }
-      
-      // Clear frontend state
       set({
         cart: {
           items: [],
@@ -403,12 +369,8 @@ const useStore = create((set, get) => {
           subtotal: 0,
         }
       });
-      
-      // Also clear localStorage guest cart
       localStorage.removeItem('guestCart');
-      console.log('Frontend cart cleared successfully');
     } catch (error) {
-      console.error('Error clearing cart:', error);
       // Still clear frontend state even if backend fails
       set({
         cart: {
@@ -450,7 +412,7 @@ const useStore = create((set, get) => {
         set({ wishlist: response });
       }
     } catch (error) {
-      console.error('Failed to fetch wishlist:', error);
+      // Fetch failed
     } finally {
       set({ wishlistLoading: false });
     }
@@ -465,7 +427,7 @@ const useStore = create((set, get) => {
         set({ wishlist: response });
       }
     } catch (error) {
-      console.error('Failed to add to wishlist:', error);
+      // Add failed
     } finally {
       set({ wishlistUpdating: false });
     }
@@ -480,7 +442,7 @@ const useStore = create((set, get) => {
         set({ wishlist: response });
       }
     } catch (error) {
-      console.error('Failed to remove from wishlist:', error);
+      // Remove failed
     } finally {
       set({ wishlistUpdating: false });
     }

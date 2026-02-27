@@ -26,10 +26,8 @@ export default function UserPopover({ children }) {
     if (toCopy) {
       try {
         await navigator.clipboard.writeText(toCopy);
-        // You could add a toast notification here
-        console.log('Address copied to clipboard');
       } catch (err) {
-        console.error('Failed to copy address:', err);
+        // Copy failed
       }
     }
   };

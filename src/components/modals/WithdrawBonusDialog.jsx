@@ -56,7 +56,6 @@ export default function WithdrawBonusDialog({ open, onOpenChange, onSuccess, ava
       
       addNotification(`Withdrawal of ${withdrawAmount} USDC submitted successfully!`, 'success');
     } catch (err) {
-      console.error('Withdrawal error:', err);
       const errorMsg = err?.errors?.[0]?.msg || err?.message || 'Withdrawal failed. Please try again.';
       setError(errorMsg);
       addNotification(errorMsg, 'error');

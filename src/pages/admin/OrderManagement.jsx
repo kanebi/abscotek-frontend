@@ -42,7 +42,7 @@ function OrderManagement() {
       const data = await orderService.adminGetAllOrders();
       setOrders(data);
     } catch (error) {
-      console.error('Error fetching orders:', error);
+      // Fetch failed
       setErrorMessage('Failed to fetch orders.');
     } finally {
       setLoading(false);
@@ -57,7 +57,7 @@ function OrderManagement() {
       // Refetch orders to show the change immediately
       fetchOrders();
     } catch (error) {
-      console.error('Error updating order status:', error);
+      // Update failed
       const errorMsg = error.response?.data?.msg || error.response?.data?.message || 'Failed to update order status.';
       setErrorMessage(errorMsg);
     }

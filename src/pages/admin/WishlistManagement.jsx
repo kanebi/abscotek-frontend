@@ -33,7 +33,7 @@ function WishlistManagement() {
       }
       setWishlist(data);
     } catch (error) {
-      console.error('Error fetching wishlist:', error);
+      // Fetch failed
       setErrorMessage("Failed to fetch wishlist. This component currently fetches the authenticated user's wishlist. For admin management, you might need a backend endpoint to fetch any user's wishlist by ID.");
       setWishlist(null);
     } finally {
@@ -49,7 +49,7 @@ function WishlistManagement() {
         setSuccessMessage('Item removed from wishlist successfully!');
         fetchWishlist(searchUserId || null);
       } catch (error) {
-        console.error('Error removing item:', error);
+        // Remove failed
         setErrorMessage('Failed to remove item from wishlist.');
       }
     }

@@ -19,13 +19,9 @@ export default function ConnectWalletModal() {
       // Reset dismissal flag if 24+ hours have passed
       if (lastWelcomeDismissal && (now - parseInt(lastWelcomeDismissal)) > twentyFourHours) {
         localStorage.removeItem('welcomeBackModalDismissed');
-        console.log('Welcome back modal dismissal reset - 24 hours have passed');
       }
-      
-      // If dismissed within 24 hours, close the modal automatically
       if (lastWelcomeDismissal && (now - parseInt(lastWelcomeDismissal)) < twentyFourHours) {
         setConnectWalletModalOpen(false);
-        console.log('Welcome back modal auto-closed - dismissed recently');
       }
     }
   }, [isConnectWalletModalOpen, userIsAuthenticated, setConnectWalletModalOpen]);
@@ -44,7 +40,6 @@ export default function ConnectWalletModal() {
             // If this is a welcome back modal (user is authenticated), set dismissal timestamp
             if (userIsAuthenticated) {
               localStorage.setItem('welcomeBackModalDismissed', Date.now().toString());
-              console.log('Welcome back modal dismissed, will not show again for 24 hours');
             }
           }} 
           className="absolute top-4 right-4 text-white text-2xl"
@@ -67,9 +62,7 @@ export default function ConnectWalletModal() {
               <button
                 onClick={() => {
                   setConnectWalletModalOpen(false);
-                  // Set dismissal timestamp for welcome back modal
                   localStorage.setItem('welcomeBackModalDismissed', Date.now().toString());
-                  console.log('Welcome back modal dismissed via Continue Shopping button');
                 }}
                 className="px-6 py-3 bg-primaryp-300 text-white rounded-lg hover:bg-primaryp-400 transition-colors"
               >

@@ -58,7 +58,6 @@ export default function SliderCart({ triggerClassName = ""}) {
   };
 
   const handleDeleteConfirm = async () => {
-console.log('handleDeleteConfirm deleteModal.item', deleteModal.item);
 if (!deleteModal.item) return;
 
 setIsDeleting(true);
@@ -69,7 +68,7 @@ try {
   removeFromCart(productIdToDelete);
   setDeleteModal({ isOpen: false, item: null });
 } catch (error) {
-  console.error('Error removing item:', error);
+  // Remove failed
 } finally {
   setIsDeleting(false);
 }

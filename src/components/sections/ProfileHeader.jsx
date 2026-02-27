@@ -51,14 +51,13 @@ const ProfileHeader = () => {
         setUserBalance(statsData.balance ?? userData?.balance ?? 0);
         setOrderCount(statsData.orderCount ?? 0);
       } catch (error) {
-        console.error('Error fetching profile data:', error);
         try {
           const userData = await userService.getUser();
           setUserBalance(userData?.balance ?? 0);
           const orders = await orderService.getOrders();
           setOrderCount(orders?.length ?? 0);
         } catch (fallbackError) {
-          console.error('Error in fallback profile data fetch:', fallbackError);
+          // Fallback fetch failed
         }
       } finally {
         setLoading(false);

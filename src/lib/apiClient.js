@@ -54,7 +54,7 @@ apiClient.interceptors.request.use(
         config.headers['X-User-Name'] = user.name || '';
         config.headers['X-User-ID'] = user.id || '';
       } catch (error) {
-        console.error('Error parsing user info:', error);
+        // Parse failed
       }
     }
     
@@ -97,8 +97,6 @@ apiClient.interceptors.response.use(
                                    originalRequest.url?.includes('/wishlist')) && 
                                   !originalRequest._isUserAction;
         
-        // Always clear auth on 401, but only show modal for user actions
-        console.log('401 Unauthorized - clearing auth state');
         localStorage.removeItem('token');
         localStorage.removeItem('walletAddress');
         localStorage.removeItem('userInfo');
@@ -109,19 +107,14 @@ apiClient.interceptors.response.use(
         store.setCurrentUser(null);
         store.setWalletAddress(null);
         
-        // Only show modal if this was a user action (not background fetch)
         if (!isBackgroundFetch) {
-          console.log('401 on user action - showing connect wallet modal');
           store.setConnectWalletModalOpen(true);
-        } else {
-          console.log('401 on background fetch - auth cleared silently');
         }
       }
     }
     
-    // Handle 403 Forbidden - insufficient permissions
     if (error.response?.status === 403) {
-      console.error('Access forbidden - insufficient permissions');
+      // Forbidden
     }
     
     return Promise.reject(error);

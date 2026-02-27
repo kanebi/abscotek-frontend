@@ -38,32 +38,20 @@ export default function ReferModal({ open, onClose }) {
             await new Promise(resolve => setTimeout(resolve, 300)); // Slightly faster polling
             authToken = token || localStorage.getItem('token');
             attempts++;
-            console.log(`ReferModal - Attempt ${attempts}: Token available:`, !!authToken);
           }
-
-          console.log('ReferModal - Final token check:', {
-            storeToken: !!token,
-            localStorageToken: !!localStorage.getItem('token'),
-            isAuthenticated: userIsAuthenticated,
-            attempts
-          });
 
           if (!authToken) {
             throw new Error('Authentication token not available. Please refresh the page and try again.');
           }
 
-          console.log('ReferModal - Calling referral service...');
           const data = await referralService.generateReferralLink();
-          console.log('ReferModal - Referral code response:', data);
           setReferralCode(data.referralCode);
         } catch (err) {
-          console.error('ReferModal - Failed to fetch referral code:', err);
           setError(err);
         } finally {
           setLoading(false);
         }
       } else {
-        console.log('ReferModal - Not authenticated, skipping referral code fetch');
         setLoading(false);
       }
     };
@@ -88,7 +76,7 @@ export default function ReferModal({ open, onClose }) {
       await navigator.clipboard.writeText(fullReferralLink);
       // Could add a success notification here
     } catch (error) {
-      console.error('Failed to copy link:', error);
+      // Copy failed
     } finally {
       setTimeout(() => setCopying(false), 1000);
     }

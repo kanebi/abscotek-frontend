@@ -42,22 +42,6 @@ function CartPage() {
     }
   }, [token, fetchCart, loadGuestCart]);
 
-  // Debug cart data
-  useEffect(() => {
-    if (cart && cart.items) {
-      console.log('Frontend - Cart data:', {
-        itemCount: cart.items.length,
-        firstItem: cart.items[0] ? {
-          name: cart.items[0].name,
-          hasImage: !!cart.items[0].image,
-          image: cart.items[0].image,
-          imagesCount: cart.items[0].images?.length || 0,
-          product: cart.items[0].product
-        } : null
-      });
-    }
-  }, [cart]);
-
   // For now, assume sufficient funds for guest checkout or handle differently
   const isSufficientFunds = true;
 
@@ -71,15 +55,13 @@ function CartPage() {
   };
 
   const handleDeleteConfirm = async () => {
-    console.log('handleDeleteConfirm deleteModal.item', deleteModal.item);
     if (!deleteModal.item) return;
-    
     setIsDeleting(true);
     try {
       await removeFromCart(deleteModal.item.product._id);
       setDeleteModal({ isOpen: false, item: null });
     } catch (error) {
-      console.error('Error removing item:', error);
+      // Remove failed
     } finally {
       setIsDeleting(false);
     }
@@ -142,9 +124,7 @@ function CartPage() {
         <div className="md:hidden">
           {/* Cart Items - Mobile */}
           <div className="space-y-4 mb-6">
-            {cart.items.map((item, index) => {
-              console.log('cart item', item);
-              return (
+            {cart.items.map((item, index) => (
               <div key={item.product._id}>
                 <div className="flex items-start py-4 relative">
                   {/* Product Image */}
@@ -208,7 +188,7 @@ function CartPage() {
                   
                   {/* Delete Button - Bottom Right */}
                   <button
-                    onClick={() => console.log('delete button clicked')}
+                    onClick={() => handleDeleteClick(item)}
                     disabled={cartUpdating}
                     className="absolute bottom-4 right-0 p-2 hover:bg-neutralneutral-700 rounded-lg disabled:opacity-50"
                   >
@@ -216,7 +196,7 @@ function CartPage() {
                   </button>
                 </div>
               </div>
-            )})}
+            ))}
           </div>
           
           {/* Summary - Mobile */}

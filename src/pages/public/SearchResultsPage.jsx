@@ -47,7 +47,7 @@ export default function SearchResultsPage() {
         }
       } catch (err) {
         setError(err);
-        console.error("Failed to fetch products:", err);
+        // Fetch failed
       } finally {
         setLoading(false);
       }

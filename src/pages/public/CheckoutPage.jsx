@@ -111,18 +111,6 @@ function CheckoutPage() {
   // Prevent redirects if user is authenticated
   const shouldRedirect = !isUserAuthenticated && !cartLoading;
 
-  // Debug authentication state
-  console.log('CheckoutPage - Auth state:', {
-    privyAuthenticated: authenticated,
-    storeAuthenticated,
-    isUserAuthenticated,
-    privyUser: !!privyUser,
-    currentUser: !!currentUser,
-    token: !!localStorage.getItem('token'),
-    tokenValue: localStorage.getItem('token')?.substring(0, 20) + '...',
-    userWalletAddress
-  });
-
   useEffect(() => {
     const fetchData = async () => {
       setIsLoading(true);
@@ -145,8 +133,7 @@ function CheckoutPage() {
         
         const syncedMethods = await deliveryMethodService.syncDeliveryMethods(frontendMethods);
         setDeliveryMethods(syncedMethods);
-        console.log('Synced delivery methods:', syncedMethods);
-        
+
         // Restore selected delivery method from localStorage
         const savedDeliveryMethod = localStorage.getItem('selectedDeliveryMethod');
         if (savedDeliveryMethod) {
@@ -157,14 +144,11 @@ function CheckoutPage() {
               m._id === parsedMethod._id || m.id === parsedMethod.id
             );
             if (methodExists) {
-              setSelectedDeliveryMethod(methodExists); // Use the synced method
-              console.log('Restored delivery method from localStorage:', methodExists);
+              setSelectedDeliveryMethod(methodExists);
             } else {
-              console.log('Saved delivery method no longer exists, clearing localStorage');
               localStorage.removeItem('selectedDeliveryMethod');
             }
           } catch (error) {
-            console.error('Error parsing saved delivery method:', error);
             localStorage.removeItem('selectedDeliveryMethod');
           }
         }
@@ -177,7 +161,7 @@ function CheckoutPage() {
            await refetchAddresses();
           }
         } catch (error) {
-          console.error("Failed to fetch checkout data:", error);
+          // Fetch failed
       } finally {
         setIsLoading(false);
       }
@@ -186,15 +170,8 @@ function CheckoutPage() {
     fetchData();
   }, [authenticated, fetchCart]);
 
-  // Fetch addresses when authentication state changes
   useEffect(() => {
-    console.log("Auth state changed:", { isUserAuthenticated, storeAuthenticated });
-    if (isUserAuthenticated) {
-      console.log("User authenticated, fetching addresses...");
-      refetchAddresses();
-    } else {
-      console.log("Not authenticated, skipping address fetch");
-    }
+    if (isUserAuthenticated) refetchAddresses();
   }, [isUserAuthenticated]);
 
   // Removed redirect logic to prevent blank screen
@@ -271,7 +248,6 @@ function CheckoutPage() {
           setPaymentAmount(Number(totalConv));
         }
       } catch (error) {
-        console.error('Currency conversion failed:', error);
         setConvertedAmount(0);
         setPaymentAmount(0);
       }
@@ -283,25 +259,12 @@ function CheckoutPage() {
   const refetchAddresses = async () => {
     try {
       // Check if user is authenticated before fetching addresses
-      if (!isUserAuthenticated) {
-        console.log("User not authenticated, skipping address fetch");
-        return;
-      }
-      
-      console.log("Fetching delivery addresses...");
-      console.log("Current token:", localStorage.getItem('token')?.substring(0, 20) + '...');
-      
+      if (!isUserAuthenticated) return;
       const addresses = await deliveryAddressService.getDeliveryAddresses();
-      console.log("Delivery addresses fetched successfully:", addresses);
-    setUserAddresses(addresses);
+      setUserAddresses(addresses);
     } catch (error) {
-      console.error("Failed to fetch addresses:", error);
-      console.error("Error response:", error.response?.data);
-      console.error("Error status:", error.response?.status);
-      
       if (error.response?.status === 401) {
-        console.log("Authentication failed when fetching addresses");
-        // Don't clear auth state here, just log the error
+        // Auth failed; interceptor may clear state
       }
     }
   };
@@ -310,8 +273,6 @@ function CheckoutPage() {
     try {
       // Check if user is authenticated before saving address
       if (!isUserAuthenticated) {
-        console.error("User not authenticated, cannot save address");
-        console.log("Auth state:", { isUserAuthenticated, storeAuthenticated, token: !!localStorage.getItem('token') });
         addNotification("Please login to save addresses", "error");
         return;
       }
@@ -326,7 +287,6 @@ function CheckoutPage() {
       setEditingAddress(null);
       addNotification(editingAddress ? "Address updated successfully!" : "Address saved successfully!", "success");
     } catch (error) {
-      console.error("Failed to save address:", error);
       if (error.response?.status === 401) {
         const errorMsg = error.response?.data?.errors?.[0]?.details || "Authentication failed. Please login again.";
         if (errorMsg.includes("Too many requests")) {
@@ -352,8 +312,6 @@ function CheckoutPage() {
   const handleAddNewAddress = () => {
     // Check if user is authenticated before showing address form
       if (!isUserAuthenticated) {
-        console.error("User not authenticated, cannot add address");
-        console.log("Auth state:", { isUserAuthenticated, storeAuthenticated, token: !!localStorage.getItem('token') });
         addNotification("Please login to add addresses", "error");
         return;
       }
@@ -364,8 +322,6 @@ function CheckoutPage() {
   const handleEditAddress = (address) => {
     // Check if user is authenticated before editing address
       if (!isUserAuthenticated) {
-        console.error("User not authenticated, cannot edit address");
-        console.log("Auth state:", { isUserAuthenticated, storeAuthenticated, token: !!localStorage.getItem('token') });
         addNotification("Please login to edit addresses", "error");
         return;
       }
@@ -377,17 +333,11 @@ function CheckoutPage() {
     try {
       // Check if user is authenticated before deleting address
       if (!isUserAuthenticated) {
-        console.error("User not authenticated, cannot delete address");
-        console.log("Auth state:", { isUserAuthenticated, storeAuthenticated, token: !!localStorage.getItem('token') });
         addNotification("Please login to delete addresses", "error");
         return;
       }
 
-      console.log("Deleting address with ID:", addressId);
-      console.log("Current token:", localStorage.getItem('token')?.substring(0, 20) + '...');
-      
       await deliveryAddressService.deleteDeliveryAddress(addressId);
-      console.log("Address deleted successfully");
       
       await refetchAddresses();
       if (selectedAddressId === addressId) {
@@ -395,10 +345,6 @@ function CheckoutPage() {
       }
       addNotification("Address deleted successfully!", "success");
     } catch (error) {
-      console.error("Failed to delete address:", error);
-      console.error("Error response:", error.response?.data);
-      console.error("Error status:", error.response?.status);
-      
       if (error.response?.status === 401) {
         const errorMsg = error.response?.data?.errors?.[0]?.details || "Authentication failed. Please login again.";
         if (errorMsg.includes("Too many requests")) {
@@ -505,7 +451,6 @@ function CheckoutPage() {
       }
       if (paymentMethod === 'crypto' && selectedCurrency === 'USDC') {
         // Crypto payment for USDC
-        console.log('Creating crypto payment order...');
         
         // Get network from selected currency
         const network = getNetworkFromCurrency(selectedCurrency);
@@ -527,17 +472,7 @@ function CheckoutPage() {
           walletAddress: userWalletAddress || undefined, // User's connected wallet - attach to user if not already set
         };
         
-        console.log('Crypto payment order data:', {
-          isUserFromNigeria,
-          isCurrencyProviderUSD,
-          orderCurrency, // NGN if Nigeria+NGN, else USD
-          paymentCurrency: selectedCurrency, // What user pays with
-          network,
-          convertedAmount
-        });
-
         const cryptoResponse = await orderService.createCryptoPaymentOrder(cryptoOrderData);
-        console.log('Crypto payment order created:', cryptoResponse);
 
         // Store crypto payment data to show modal
         setCryptoPaymentData({
@@ -553,7 +488,6 @@ function CheckoutPage() {
         setIsPlacingOrder(false);
       }
     } catch (error) {
-      console.error('Error placing order:', error);
       const errorMessage = error.response?.data?.msg || error.message || 'Failed to place order. Please try again.';
       addNotification(errorMessage, "error");
     } finally {
@@ -565,27 +499,12 @@ function CheckoutPage() {
   const handlePaystackSuccess = async (reference) => {
     setIsProcessingPayment(true);
     try {
-      console.log('Paystack payment successful:', reference);
-      console.log('Current state at payment success:', {
-        selectedDeliveryMethod,
-        selectedAddressId,
-        selectedCurrency,
-        paymentMethod
-      });
       addNotification('Payment successful! Your order is being processed...', 'success');
 
-      // Extract the actual reference string from the Paystack response
       const paystackRef = typeof reference === 'object' ? reference.reference : reference;
-      console.log('Extracted Paystack reference:', paystackRef);
 
-      // Validate required data before proceeding
       if (!selectedDeliveryMethod || !selectedDeliveryMethod._id) {
-        console.error('No delivery method selected:', selectedDeliveryMethod);
-        console.error('Available delivery methods:', deliveryMethods);
-        
-        // Try to auto-select the first available delivery method as fallback
         if (deliveryMethods && deliveryMethods.length > 0) {
-          console.log('Auto-selecting first available delivery method as fallback');
           const fallbackMethod = deliveryMethods[0];
           setSelectedDeliveryMethod(fallbackMethod);
           
@@ -599,24 +518,15 @@ function CheckoutPage() {
             notes: ''
           };
           
-          console.log('Using fallback delivery method:', fallbackMethod);
-          console.log('Paystack order data being sent:', orderData);
-          
           const response = await orderService.verifyPaymentAndCreateOrder(orderData);
-          console.log('Fallback method response:', response);
-          
-          // Check for orderNumber in response (could be in response directly or in response.data)
           const orderNumber = response?.orderNumber || response?.data?.orderNumber;
-          
+
           if (orderNumber) {
             await clearCart();
             setOrderedSuccess(true);
-            // Clear saved delivery method from localStorage
             localStorage.removeItem('selectedDeliveryMethod');
-            console.log('Paystack order success redirecting with order number:', orderNumber);
             navigate(AppRoutes.orderSuccess.path.replace(':orderId?', orderNumber));
           } else {
-            console.error('Order creation/verification failed - no orderNumber in response:', response);
             addNotification('Payment successful but order processing failed. Please contact support.', 'error');
           }
           return;
@@ -627,7 +537,6 @@ function CheckoutPage() {
       }
 
       if (!selectedAddressId) {
-        console.error('No shipping address selected:', selectedAddressId);
         addNotification('Shipping address is required. Please try again.', 'error');
         return;
       }
@@ -642,32 +551,19 @@ function CheckoutPage() {
         notes: ''
       };
 
-      console.log('Paystack order data being sent:', orderData);
-      console.log('Selected delivery method:', selectedDeliveryMethod);
-      console.log('Selected address ID:', selectedAddressId);
-
-      console.log('Verifying payment and creating order with Paystack reference:', paystackRef);
       const response = await orderService.verifyPaymentAndCreateOrder(orderData);
-      console.log('Full response from verifyPaymentAndCreateOrder:', response);
-
-      // Check for orderNumber in response (could be in response directly or in response.data)
       const orderNumber = response?.orderNumber || response?.data?.orderNumber;
-      
+
       if (orderNumber) {
         await clearCart();
         setOrderedSuccess(true);
-        // Clear saved delivery method from localStorage
         localStorage.removeItem('selectedDeliveryMethod');
-        console.log('Paystack order success redirecting with order number:', orderNumber);
         navigate(AppRoutes.orderSuccess.path.replace(':orderId?', orderNumber));
       } else {
-        console.error('Order creation/verification failed - no orderNumber in response:', response);
         addNotification('Payment successful but order processing failed. Please contact support.', 'error');
       }
 
     } catch (error) {
-      console.error('Error processing Paystack payment success:', error);
-      console.error('Error details:', error.response?.data || error.message);
       addNotification('Payment successful but there was an issue processing your order. Please contact support.', 'error');
     } finally {
       setIsProcessingPayment(false);
@@ -675,7 +571,6 @@ function CheckoutPage() {
   };
 
   const handlePaystackClose = () => {
-    console.log('Paystack payment cancelled');
     setIsPlacingOrder(false);
   };
 
@@ -948,7 +843,6 @@ function CheckoutPage() {
               setCryptoPaymentData(null);
               navigate(AppRoutes.userOrders.path);
             } catch (error) {
-              console.error('Error cancelling order:', error);
               addNotification('Error cancelling order. Please try again.', 'error');
             }
           }}

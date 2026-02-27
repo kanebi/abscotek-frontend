@@ -192,20 +192,14 @@ const mergeGuestCart = async () => {
     const { isAuthenticated, walletAddress } = useStore.getState();
     const userCurrency = useStore.getState().userCurrency || 'USDC';
 
-    console.log('Merging guest cart with', guestCart.items.length, 'items');
-
     for (const item of guestCart.items) {
       try {
-        console.log('Merging item:', item.product._id, item.quantity);
         await addToCart(item.product._id, item.quantity, userCurrency, item.variant?.name, item.specs, isAuthenticated, walletAddress);
       } catch (error) {
-        console.error('Failed to merge cart item:', item.product._id, error);
+        // Merge item failed
       }
     }
-
-    // Clear guest cart after successful merge
     localStorage.removeItem('guestCart');
-    console.log('Guest cart merged and cleared');
   }
 };
 

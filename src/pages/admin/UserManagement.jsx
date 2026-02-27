@@ -35,7 +35,7 @@ function UserManagement() {
       const data = await userService.getAllUsers();
       setUsers(data);
     } catch (error) {
-      console.error('Error fetching users:', error);
+      // Fetch failed
       setErrorMessage('Failed to fetch users.');
     } finally {
       setLoading(false);
@@ -50,7 +50,7 @@ function UserManagement() {
         fetchUsers();
         setSuccessMessage('User deleted successfully!');
       } catch (error) {
-        console.error('Error deleting user:', error);
+        // Delete failed
         setErrorMessage('Failed to delete user.');
       }
     }
@@ -80,7 +80,7 @@ function UserManagement() {
       fetchUsers();
       setSuccessMessage('User created successfully!');
     } catch (error) {
-      console.error('Error creating user:', error);
+      // Create failed
       setErrorMessage('Failed to create user.');
     }
   };
@@ -94,7 +94,7 @@ function UserManagement() {
       fetchUsers();
       setSuccessMessage('User updated successfully!');
     } catch (error) {
-      console.error('Error updating user:', error);
+      // Update failed
       setErrorMessage('Failed to update user.');
     }
   };
@@ -106,7 +106,7 @@ function UserManagement() {
       fetchUsers();
       setSuccessMessage(`User ${approved ? 'approved' : 'rejected'} successfully!`);
     } catch (error) {
-      console.error('Error approving user:', error);
+      // Approve failed
       setErrorMessage('Failed to update approval status.');
     }
   };
@@ -125,7 +125,7 @@ function UserManagement() {
       fetchUsers();
       setSuccessMessage(`User promoted to ${newRole} successfully!`);
     } catch (error) {
-      console.error('Error promoting user:', error);
+      // Promote failed
       const errorMsg = error.response?.data?.errors?.[0]?.msg || 'Failed to promote user.';
       setErrorMessage(errorMsg);
     }

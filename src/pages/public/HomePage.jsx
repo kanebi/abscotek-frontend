@@ -47,7 +47,7 @@ function HomePage() {
         }));
         setNewArrivals(newestItems);
       } catch (err) {
-        console.error('Failed to load home products', err);
+        // Load failed
         setError(err);
       } finally {
         setLoading(false);

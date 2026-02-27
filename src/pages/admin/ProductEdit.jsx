@@ -78,7 +78,7 @@ function ProductEdit() {
       });
       setExistingImages(Array.isArray(product.images) ? product.images : []);
     } catch (error) {
-      console.error('Error fetching product:', error);
+      // Fetch failed
       const errorMsg = error.response?.data?.errors?.[0]?.msg || error.response?.data?.message || 'Failed to load product details';
       setErrorMessage(errorMsg);
     } finally {
@@ -169,7 +169,7 @@ function ProductEdit() {
       // Scroll to top to show success message
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (error) {
-      console.error('Error updating product:', error);
+      // Update failed
       const errorMsg = error.response?.data?.errors?.[0]?.msg || error.response?.data?.message || 'Failed to update product';
       setErrorMessage(errorMsg);
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -208,7 +208,7 @@ function ProductEdit() {
         window.scrollTo({ top: 0, behavior: 'smooth' });
       }
     } catch (error) {
-      console.error('Error uploading images:', error);
+      // Upload failed
       setErrorMessage('Failed to upload images');
     } finally {
       setIsUploading(false);
@@ -223,7 +223,7 @@ function ProductEdit() {
       setExistingImages(updated.images || []);
       setSuccessMessage('Image removed successfully!');
     } catch (error) {
-      console.error('Error removing image:', error);
+      // Remove failed
       setErrorMessage('Failed to remove image');
     }
   };

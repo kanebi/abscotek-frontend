@@ -36,14 +36,13 @@ export default function UserProfileSection() {
       setTotalPages(response.pagination?.totalPages || 0);
       setPaginationData(response.pagination || {});
     } catch (error) {
-      console.error('Error fetching orders:', error);
       try {
         const data = await orderService.getOrders(orderCategory);
         setOrders(data);
         setTotalPages(Math.ceil(data.length / ordersPerPage));
         setPaginationData({});
       } catch (fallbackError) {
-        console.error('Error in fallback order fetch:', fallbackError);
+        // Fallback failed
       }
     } finally {
       setLoading(false);
@@ -66,20 +65,6 @@ export default function UserProfileSection() {
   const transformedOrders = paginatedOrders.map(order => {
     const firstItem = order.items?.[0];
     if (!firstItem) return null;
-
-    // Debug logging to see the actual data structure
-    console.log('Order item data:', {
-      orderId: order._id,
-      productId: firstItem.product?._id,
-      productName: firstItem.product?.name,
-      productImage: firstItem.productImage, // Direct image field
-      hasImages: !!firstItem.product?.images,
-      imagesLength: firstItem.product?.images?.length || 0,
-      hasVariants: !!firstItem.product?.variants,
-      variantsLength: firstItem.product?.variants?.length || 0,
-      hasFirstImage: !!firstItem.product?.firstImage,
-      firstImage: firstItem.product?.firstImage
-    });
 
     // Get the appropriate image - use direct productImage field first, then fallback to populated data
     let productImages = [];
@@ -110,10 +95,8 @@ export default function UserProfileSection() {
     }
     // Check if there's a product field that's a string (unpopulated)
     else if (typeof firstItem.product === 'string') {
-      console.warn('Product not populated for order item:', firstItem._id);
+      // Product not populated
     }
-
-    console.log('Final productImages:', productImages);
 
     // If still no images, use a placeholder or default
     if (productImages.length === 0) {

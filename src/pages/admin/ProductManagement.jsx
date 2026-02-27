@@ -65,7 +65,7 @@ function ProductManagement() {
       setProducts(items);
       if (data && typeof data.total === 'number') setTotal(data.total);
     } catch (error) {
-      console.error('Error fetching products:', error);
+      // Fetch failed
       setErrorMessage('Failed to fetch products.');
       setProducts([]);
       setTotal(0);
@@ -76,7 +76,7 @@ function ProductManagement() {
     clearMessages();
     if (window.confirm('Are you sure you want to delete this product?')) {
       try { await productService.deleteProduct(id); fetchProducts(); setSuccessMessage('Product deleted successfully!'); }
-      catch (error) { console.error('Error deleting product:', error); setErrorMessage('Failed to delete product.'); }
+      catch (error) { setErrorMessage('Failed to delete product.'); }
     }
   };
 
@@ -105,7 +105,7 @@ function ProductManagement() {
       setCreateStep(2);
       setSuccessMessage('Product created. Please upload up to 10 images before publishing.');
     } catch (error) {
-      console.error('Error creating product:', error);
+      // Create failed
       const errorMsg = error.response?.data?.errors?.[0]?.msg || error.response?.data?.message || 'Failed to create product.';
       setErrorMessage(errorMsg);
     }
@@ -172,7 +172,7 @@ function ProductManagement() {
       setNewProduct({ name: '', description: '', price: '', image: '', badge: '', category: '', brand: '', sku: '', specs: [], variants: [], stock: 0 });
       fetchProducts();
     } catch (error) {
-      console.error('Error uploading images:', error);
+      // Upload failed
       setErrorMessage('Failed to upload images.');
     } finally { setIsUploading(false); }
   };
@@ -192,7 +192,7 @@ function ProductManagement() {
       setSuccessMessage(`Product ${next ? 'published' : 'unpublished'} successfully!`);
       fetchProducts();
     } catch (error) {
-      console.error('Error toggling publish:', error);
+      // Toggle failed
       setErrorMessage('Failed to update publish status.');
     }
   };

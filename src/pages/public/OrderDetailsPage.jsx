@@ -171,7 +171,7 @@ function OrderDetailsPage() {
         navigate(AppRoutes.userOrders.path);
       }, 2000);
     } catch (err) {
-      console.error('Error cancelling order:', err);
+      // Cancel failed
       addNotification('Failed to cancel order. Please try again.', 'error');
     } finally {
       setCancelling(false);

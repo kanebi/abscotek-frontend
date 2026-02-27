@@ -38,7 +38,7 @@ function DeliveryMethodManagement() {
       const data = await deliveryMethodService.getAllDeliveryMethods();
       setDeliveryMethods(data);
     } catch (error) {
-      console.error('Error fetching delivery methods:', error);
+      // Fetch failed
       setErrorMessage('Failed to fetch delivery methods.');
     } finally {
       setLoading(false);
@@ -53,7 +53,7 @@ function DeliveryMethodManagement() {
         fetchDeliveryMethods();
         setSuccessMessage('Delivery method deleted successfully!');
       } catch (error) {
-        console.error('Error deleting delivery method:', error);
+        // Delete failed
         setErrorMessage('Failed to delete delivery method.');
       }
     }
@@ -68,7 +68,7 @@ function DeliveryMethodManagement() {
       fetchDeliveryMethods();
       setSuccessMessage('Delivery method created successfully!');
     } catch (error) {
-      console.error('Error creating delivery method:', error);
+      // Create failed
       setErrorMessage('Failed to create delivery method.');
     }
   };
@@ -82,7 +82,7 @@ function DeliveryMethodManagement() {
       fetchDeliveryMethods();
       setSuccessMessage('Delivery method updated successfully!');
     } catch (error) {
-      console.error('Error updating delivery method:', error);
+      // Update failed
       setErrorMessage('Failed to update delivery method.');
     }
   };
