@@ -4,7 +4,7 @@ const CurrencySelection = ({ selectedCurrency, onCurrencyChange, className = "" 
   // Only support currencies compatible with Ethereum network (Alchemy setup)
   const currencies = [
     { code: 'USDC', name: 'USDC (Crypto)', type: 'crypto' },
-    { code: 'USD', name: 'USD (Card/Bank)', type: 'fiat' },
+    // { code: 'USD', name: 'USD (Card/Bank)', type: 'fiat' }, // hidden for now
     { code: 'NGN', name: 'NGN (Card/Bank)', type: 'fiat' }
   ];
 

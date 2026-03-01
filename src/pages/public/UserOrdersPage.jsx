@@ -10,6 +10,7 @@ import { AppRoutes } from '../../config/routes';
 import { Package, Eye } from 'lucide-react';
 import useStore from '../../store/useStore';
 import useNotificationStore from '../../store/notificationStore';
+import { getOrderItemDisplay } from '../../utils/orderProduct';
 
 function UserOrdersPage() {
   const [orders, setOrders] = useState([]);
@@ -217,11 +218,14 @@ function UserOrdersPage() {
                     {(order.items || order.products) && (order.items?.length > 0 || order.products?.length > 0) && (
                       <div className="mt-4">
                         <div className="flex flex-wrap gap-2">
-                          {(order.items || order.products).slice(0, 3).map((item, index) => (
-                            <span key={index} className="text-xs bg-neutral-800 px-2 py-1 rounded text-neutral-300">
-                              {item.productName || item.product?.name || item.name || 'Product'} x{item.quantity}
-                            </span>
-                          ))}
+                          {(order.items || order.products).slice(0, 3).map((item, index) => {
+                            const display = getOrderItemDisplay(item);
+                            return (
+                              <span key={item._id || index} className="text-xs bg-neutral-800 px-2 py-1 rounded text-neutral-300">
+                                {display.name} x{display.quantity}
+                              </span>
+                            );
+                          })}
                           {(order.items || order.products).length > 3 && (
                             <span className="text-xs text-neutral-500">
                               +{(order.items || order.products).length - 3} more

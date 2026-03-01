@@ -82,7 +82,7 @@ const ProductGridSection = ({ products = [], activePage = 1, totalPages = 1, onP
   };
 
   return (
-    <div className="flex flex-col w-[100%]  items-start absolute top-[156px] ">
+    <div className="flex flex-col w-[100%] items-start absolute top-[164px] md:top-[124px] ">
       <Separator className="w-full h-px mt-[-1.00px] bg-neutral-600 relative self-stretch object-cover" />
 
       <div className="flex w-[100%] items-start justify-between relative flex-1 grow">

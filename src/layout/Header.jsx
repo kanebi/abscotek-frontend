@@ -283,12 +283,12 @@ export function NavigationBar() {
         { label: "USDC", value: "USDC" },
         { label: "NGN", value: "NGN" },
         { label: "USD", value: "USD" },
-        { label: "GHC", value: "GHC" }
+        { label: "GHS", value: "GHS" }
     ];
     const currencyIconMap = {
         NGN: { src: "/images/ngn-icon.svg" },
         USD: { src: "/images/usd-icon.svg" },
-        GHC: { src: "/images/ghc-icon.svg" },
+        GHS: { src: "/images/ghc-icon.svg" },
         USDC: { src: "/images/usdc-icon.svg" },
     };
 
@@ -425,7 +425,7 @@ export function NavigationBar() {
 
             {/* Mobile Layout */}
             <div className="flex lg:hidden flex-col gap-2  pb-10">
-                {/* Top row - Categories */}
+                {/* Top row - Categories: visible on mobile */}
                 <div className="w-full relative">
                     <div className="flex items-center gap-2 overflow-x-auto" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
                         <style>{`

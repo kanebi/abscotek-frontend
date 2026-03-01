@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import AmountCurrency from "@/components/ui/AmountCurrency";
 import React, { useCallback } from "react";
+import { resolveOrderImageUrl } from "@/utils/orderProduct";
 
 const CANCELLABLE_STATUSES = ['pending', 'confirmed', 'processing'];
 
@@ -68,7 +69,7 @@ const OrderCard = ({ order, onViewOrder }) => {
                   <img
                     className="absolute w-16 h-16 top-0 left-0 object-cover"
                     alt={`${order.product.name}${order.product.variant !== 'N/A' ? ` - ${order.product.variant}` : ''}`}
-                    src={order.product.images[0]}
+                    src={resolveOrderImageUrl(order.product.images[0])}
                   />
                 ) : (
                   <div className="absolute w-16 h-16 top-0 left-0 bg-neutralneutral-800 rounded-lg flex items-center justify-center">
@@ -183,7 +184,7 @@ const OrderCard = ({ order, onViewOrder }) => {
                 <img
                   className="absolute w-full h-full top-0 left-0 object-cover"
                   alt={`${order.product.name}${order.product.variant !== 'N/A' ? ` - ${order.product.variant}` : ''}`}
-                  src={order.product.images[0]}
+                  src={resolveOrderImageUrl(order.product.images[0])}
                 />
               ) : (
                 <div className="absolute w-full h-full top-0 left-0 bg-neutralneutral-800 rounded-lg flex items-center justify-center">

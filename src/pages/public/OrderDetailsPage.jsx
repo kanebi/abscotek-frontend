@@ -12,6 +12,7 @@ import { getPageSEO } from '../../config/seo';
 import { format } from 'date-fns';
 import { ArrowLeft } from 'lucide-react';
 import useNotificationStore from '../../store/notificationStore';
+import { getOrderItemDisplay } from '../../utils/orderProduct';
 
 function OrderDetailsPage() {
   const { id } = useParams(); // Changed from orderId to id to match route parameter
@@ -24,6 +25,7 @@ function OrderDetailsPage() {
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [completingPayment, setCompletingPayment] = useState(false);
   const [pollingPayment, setPollingPayment] = useState(false);
+  const [retryingSeerbit, setRetryingSeerbit] = useState(false);
 
   useEffect(() => {
     const fetchOrderDetails = async () => {
@@ -150,6 +152,23 @@ function OrderDetailsPage() {
       }
     } finally {
       setCompletingPayment(false);
+    }
+  };
+
+  const handleSeerbitRetry = async () => {
+    if (!order?._id) return;
+    setRetryingSeerbit(true);
+    try {
+      const result = await orderService.reinitializeSeerbitPayment(order._id);
+      if (result?.redirectLink) {
+        window.location.href = result.redirectLink;
+      } else {
+        addNotification('Could not get payment link. Please try again.', 'error');
+      }
+    } catch (err) {
+      addNotification(err.response?.data?.msg || 'Failed to start payment. Please try again.', 'error');
+    } finally {
+      setRetryingSeerbit(false);
     }
   };
 
@@ -337,18 +356,22 @@ function OrderDetailsPage() {
             <Card className="bg-[#1F1F21] border-none p-6 rounded-xl">
               <h2 className="text-xl font-semibold text-white mb-4">Order Summary</h2>
               <div className="space-y-4">
-                {order.items?.map(item => (
-                  <div key={item.product?._id || item._id} className="flex items-center justify-between">
+                {order.items?.map(item => {
+                  const display = getOrderItemDisplay(item);
+                  return (
+                  <div key={item.product?._id || item._id || display.productId} className="flex items-center justify-between">
                     <div className="flex items-center">
-                      {item.product?.images && item.product.images.length > 0 ? (
-                        <img src={item.product.images[0]} alt={item.product.name || item.productName} className="w-16 h-16 object-cover rounded-lg mr-4" />
-                      ) : (
-                        <div className="w-16 h-16 bg-neutral-800 rounded-lg mr-4 flex items-center justify-center">
-                          <span className="text-neutral-400 text-xs">No Image</span>
-                        </div>
-                      )}
+                      <img
+                        src={display.imageUrl}
+                        alt={display.name}
+                        className="w-16 h-16 object-cover rounded-lg mr-4"
+                        onError={(e) => { e.target.onerror = null; e.target.src = '/images/desktop-1.png'; }}
+                      />
                       <div>
-                        <p className="text-white font-medium">{item.product?.name || item.productName || 'Product'}</p>
+                        <p className="text-white font-medium">{display.name}</p>
+                        {display.description && (
+                          <p className="text-xs text-neutral-400 mt-0.5 line-clamp-2">{display.description}</p>
+                        )}
                         {item.variant?.name && (
                           <p className="text-sm text-neutral-300">Variant: {item.variant.name}</p>
                         )}
@@ -379,7 +402,7 @@ function OrderDetailsPage() {
                       )}
                     </div>
                   </div>
-                )) || []}
+                ); }) || []}
               </div>
             </Card>
           </div>
@@ -446,6 +469,32 @@ function OrderDetailsPage() {
                 <p className="text-neutral-400">No delivery method selected.</p>
               )}
             </Card>
+
+            {/* Pay Now - For pending SeerBit orders */}
+            {order.paymentMethod === 'seerbit' &&
+              order.paymentStatus !== 'paid' &&
+              order.status?.toLowerCase() === 'pending' && (
+              <Card className="bg-[#1F1F21] border-none p-6 rounded-xl">
+                <h2 className="text-xl font-semibold text-white mb-2">Complete Payment</h2>
+                <p className="text-neutral-300 text-sm mb-4">
+                  This order is awaiting payment. Click below to complete your payment via bank transfer or card.
+                </p>
+                <Button
+                  onClick={handleSeerbitRetry}
+                  disabled={retryingSeerbit}
+                  className="w-full bg-red-500 hover:bg-red-600 text-white font-semibold"
+                >
+                  {retryingSeerbit ? (
+                    <span className="flex items-center justify-center gap-2">
+                      <span className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full" />
+                      Redirecting to payment…
+                    </span>
+                  ) : (
+                    'Pay Now'
+                  )}
+                </Button>
+              </Card>
+            )}
 
             {/* Continue Payment - For pending crypto orders */}
             {order.status?.toLowerCase() === 'pending' &&
@@ -561,7 +610,7 @@ function OrderDetailsPage() {
                     <div className="flex justify-between items-center">
                       <span className="text-neutral-300">Subtotal:</span>
                       <span className="text-neutral-300">
-                        <AmountCurrency amount={order.pricing?.subtotal || order.subTotal || 0} fromCurrency={order.currency} />
+                        <AmountCurrency amount={order.pricing?.subtotal || order.subTotal || 0} fromCurrency={order.currency || 'USDC'} />
                       </span>
                     </div>
                     <div className="flex justify-between items-center">

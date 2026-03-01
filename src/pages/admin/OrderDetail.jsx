@@ -17,6 +17,7 @@ import {
   DollarSign
 } from 'lucide-react';
 import { AppRoutes } from '../../config/routes';
+import { getOrderItemDisplay } from '../../utils/orderProduct';
 
 function OrderDetail() {
   const navigate = useNavigate();
@@ -165,15 +166,12 @@ function OrderDetail() {
                 ) : (
                   <div className="space-y-4">
                     {order.items.map((item, index) => {
-                      // Get product image with multiple fallbacks
-                      const productImage = item.product?.images?.[0] || item.productImage || '/images/desktop-1.png';
-                      const productName = item.product?.name || item.productName || 'Product';
-                      
+                      const display = getOrderItemDisplay(item);
                       return (
-                        <div key={index} className="flex gap-4 p-4 bg-neutralneutral-800 rounded-lg">
+                        <div key={item._id || index} className="flex gap-4 p-4 bg-neutralneutral-800 rounded-lg">
                           <img 
-                            src={productImage} 
-                            alt={productName}
+                            src={display.imageUrl} 
+                            alt={display.name}
                             className="w-20 h-20 object-cover rounded"
                             onError={(e) => {
                               e.target.onerror = null;
@@ -182,8 +180,11 @@ function OrderDetail() {
                           />
                           <div className="flex-1">
                             <h3 className="text-white font-body-large-large-bold mb-1">
-                              {productName}
+                              {display.name}
                             </h3>
+                            {display.description && (
+                              <p className="text-neutralneutral-400 text-sm mb-1 line-clamp-2">{display.description}</p>
+                            )}
                             {item.variant?.name && (
                               <p className="text-neutralneutral-400 text-sm mb-1">
                                 Variant: {item.variant.name}

@@ -43,6 +43,7 @@ const ProductFilter = ({
   const {userCurrency} = useStore();
 
   // Use props if provided (for mobile), otherwise use local state from URL
+  // All filters support multiple values (checkboxes); URL uses comma-separated e.g. category=Smartphones,Laptops
   const [selectedCategories, setSelectedCategories] = useState(
     propSelectedCategories || (searchParams.get('category') ? searchParams.get('category').split(',') : [])
   );
@@ -136,6 +137,39 @@ const ProductFilter = ({
     }
   };
 
+  // Apply filters with explicit state (for desktop immediate apply on change)
+  const applyFiltersWithState = (state) => {
+    const { categories, brands, colors, sizes, priceRange: pr } = state;
+    const params = new URLSearchParams(searchParams);
+    if (categories?.length > 0) params.set('category', categories.join(','));
+    else params.delete('category');
+    if (brands?.length > 0) params.set('brand', brands.join(','));
+    else params.delete('brand');
+    if (colors?.length > 0) params.set('color', colors.join(','));
+    else params.delete('color');
+    if (sizes?.length > 0) params.set('size', sizes.join(','));
+    else params.delete('size');
+    if (pr && (pr[0] !== 100 || pr[1] !== 2000)) {
+      params.set('minPrice', pr[0].toString());
+      params.set('maxPrice', pr[1].toString());
+    } else {
+      params.delete('minPrice');
+      params.delete('maxPrice');
+    }
+    params.set('page', '1');
+    setSearchParams(params, { replace: true });
+    if (onFiltersChange) {
+      onFiltersChange({
+        category: categories || [],
+        brand: brands || [],
+        color: colors || [],
+        size: sizes || [],
+        minPrice: pr ? pr[0] : 100,
+        maxPrice: pr ? pr[1] : 2000
+      });
+    }
+  };
+
   // Category filter options (product type – match Product model)
   const categoryOptions = PRODUCT_CATEGORIES.filter((c) => c !== 'Other').map((label) => ({ id: label, label }));
 
@@ -163,11 +197,17 @@ const ProductFilter = ({
     if (onCategoryChange) {
       onCategoryChange(categoryId, checked);
     } else {
-      setSelectedCategories(prev =>
-        checked
-          ? [...prev, categoryId]
-          : prev.filter(id => id !== categoryId)
-      );
+      const next = checked
+        ? [...selectedCategories, categoryId]
+        : selectedCategories.filter(id => id !== categoryId);
+      setSelectedCategories(next);
+      applyFiltersWithState({
+        categories: next,
+        brands: selectedBrands,
+        colors: selectedColors,
+        sizes: selectedSizes,
+        priceRange
+      });
     }
   };
 
@@ -176,11 +216,17 @@ const ProductFilter = ({
     if (onBrandChange) {
       onBrandChange(brandId, checked);
     } else {
-      setSelectedBrands(prev =>
-        checked
-          ? [...prev, brandId]
-          : prev.filter(id => id !== brandId)
-      );
+      const next = checked
+        ? [...selectedBrands, brandId]
+        : selectedBrands.filter(id => id !== brandId);
+      setSelectedBrands(next);
+      applyFiltersWithState({
+        categories: selectedCategories,
+        brands: next,
+        colors: selectedColors,
+        sizes: selectedSizes,
+        priceRange
+      });
     }
   };
 
@@ -189,11 +235,17 @@ const ProductFilter = ({
     if (onColorChange) {
       onColorChange(colorId, checked);
     } else {
-      setSelectedColors(prev =>
-        checked
-          ? [...prev, colorId]
-          : prev.filter(id => id !== colorId)
-      );
+      const next = checked
+        ? [...selectedColors, colorId]
+        : selectedColors.filter(id => id !== colorId);
+      setSelectedColors(next);
+      applyFiltersWithState({
+        categories: selectedCategories,
+        brands: selectedBrands,
+        colors: next,
+        sizes: selectedSizes,
+        priceRange
+      });
     }
   };
 
@@ -202,11 +254,17 @@ const ProductFilter = ({
     if (onSizeChange) {
       onSizeChange(sizeId, checked);
     } else {
-      setSelectedSizes(prev =>
-        checked
-          ? [...prev, sizeId]
-          : prev.filter(id => id !== sizeId)
-      );
+      const next = checked
+        ? [...selectedSizes, sizeId]
+        : selectedSizes.filter(id => id !== sizeId);
+      setSelectedSizes(next);
+      applyFiltersWithState({
+        categories: selectedCategories,
+        brands: selectedBrands,
+        colors: selectedColors,
+        sizes: next,
+        priceRange
+      });
     }
   };
 
@@ -216,21 +274,18 @@ const ProductFilter = ({
       onPriceRangeChange(value);
     } else {
       setPriceRange(value);
+      applyFiltersWithState({
+        categories: selectedCategories,
+        brands: selectedBrands,
+        colors: selectedColors,
+        sizes: selectedSizes,
+        priceRange: value
+      });
     }
   };
 
   return (
     <div className={`flex flex-col w-full items-start gap-6 ${className}`}>
-      {/* Apply Filters Button - Desktop Only */}
-      <div className="hidden md:block w-full">
-        <Button
-          onClick={applyFilters}
-          className="w-full bg-red-500 hover:bg-red-600 text-white py-3 rounded-lg font-medium"
-        >
-          Apply Filters
-        </Button>
-      </div>
-
       {/* Category filter (product type) */}
       <Accordion
         type="single"
@@ -253,7 +308,7 @@ const ProductFilter = ({
                     id={`cat-${option.id}`}
                     checked={selectedCategories.includes(option.id)}
                     onCheckedChange={(checked) => handleCategoryChange(option.id, checked)}
-                    className="w-5 h-5 rounded border-neutral-100 data-[state=checked]:bg-red-500 data-[state=checked]:border-red-500"
+                    className="w-5 h-5 rounded border-neutral-500 data-[state=checked]:bg-red-500 data-[state=checked]:border-red-500"
                   />
                   <label
                     htmlFor={`cat-${option.id}`}
@@ -294,7 +349,7 @@ const ProductFilter = ({
                     id={`brand-${option.id}`}
                     checked={selectedBrands.includes(option.id)}
                     onCheckedChange={(checked) => handleBrandChange(option.id, checked)}
-                    className="w-5 h-5 rounded border-neutral-100 data-[state=checked]:bg-red-500 data-[state=checked]:border-red-500"
+                    className="w-5 h-5 rounded border-neutral-500 data-[state=checked]:bg-red-500 data-[state=checked]:border-red-500"
                   />
                   <label
                     htmlFor={`brand-${option.id}`}
@@ -378,7 +433,7 @@ const ProductFilter = ({
                       id={`color-${option.id}`}
                       checked={selectedColors.includes(option.id)}
                       onCheckedChange={(checked) => handleColorChange(option.id, checked)}
-                      className="w-5 h-5 rounded border-neutral-100 data-[state=checked]:bg-red-500 data-[state=checked]:border-red-500"
+                      className="w-5 h-5 rounded border-neutral-500 data-[state=checked]:bg-red-500 data-[state=checked]:border-red-500"
                     />
                     <label
                       htmlFor={`color-${option.id}`}
@@ -425,7 +480,7 @@ const ProductFilter = ({
                     id={`size-${option.id}`}
                     checked={selectedSizes.includes(option.id)}
                     onCheckedChange={(checked) => handleSizeChange(option.id, checked)}
-                    className="w-5 h-5 rounded border-neutral-100 data-[state=checked]:bg-red-500 data-[state=checked]:border-red-500"
+                    className="w-5 h-5 rounded border-neutral-500 data-[state=checked]:bg-red-500 data-[state=checked]:border-red-500"
                   />
                   <label
                     htmlFor={`size-${option.id}`}
@@ -628,7 +683,7 @@ export const MobileFilterButton = ({ onFiltersChange }) => {
                                 id={`m-cat-${option.id}`}
                                 checked={selectedCategories.includes(option.id)}
                                 onCheckedChange={(checked) => handleCategoryChange(option.id, checked)}
-                                className="w-5 h-5 rounded border-neutral-100 data-[state=checked]:bg-red-500 data-[state=checked]:border-red-500"
+                                className="w-5 h-5 rounded border-neutral-500 data-[state=checked]:bg-red-500 data-[state=checked]:border-red-500"
                               />
                               <label
                                 htmlFor={`m-cat-${option.id}`}
@@ -669,7 +724,7 @@ export const MobileFilterButton = ({ onFiltersChange }) => {
                                 id={`m-brand-${option.id}`}
                                 checked={selectedBrands.includes(option.id)}
                                 onCheckedChange={(checked) => handleBrandChange(option.id, checked)}
-                                className="w-5 h-5 rounded border-neutral-100 data-[state=checked]:bg-red-500 data-[state=checked]:border-red-500"
+                                className="w-5 h-5 rounded border-neutral-500 data-[state=checked]:bg-red-500 data-[state=checked]:border-red-500"
                               />
                               <label
                                 htmlFor={`m-brand-${option.id}`}
@@ -753,7 +808,7 @@ export const MobileFilterButton = ({ onFiltersChange }) => {
                                   id={`color-${option.id}`}
                                   checked={selectedColors.includes(option.id)}
                                   onCheckedChange={(checked) => handleColorChange(option.id, checked)}
-                                  className="w-5 h-5 rounded border-neutral-100 data-[state=checked]:bg-red-500 data-[state=checked]:border-red-500"
+                                  className="w-5 h-5 rounded border-neutral-500 data-[state=checked]:bg-red-500 data-[state=checked]:border-red-500"
                                 />
                                 <label
                                   htmlFor={`color-${option.id}`}
@@ -800,7 +855,7 @@ export const MobileFilterButton = ({ onFiltersChange }) => {
                                 id={`size-${option.id}`}
                                 checked={selectedSizes.includes(option.id)}
                                 onCheckedChange={(checked) => handleSizeChange(option.id, checked)}
-                                className="w-5 h-5 rounded border-neutral-100 data-[state=checked]:bg-red-500 data-[state=checked]:border-red-500"
+                                className="w-5 h-5 rounded border-neutral-500 data-[state=checked]:bg-red-500 data-[state=checked]:border-red-500"
                               />
                               <label
                                 htmlFor={`size-${option.id}`}

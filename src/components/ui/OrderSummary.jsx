@@ -2,8 +2,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import AmountCurrency from "@/components/ui/AmountCurrency";
 import React from "react";
+import { getOrderProductDisplay } from "@/utils/orderProduct";
 
 export default function OrderSummary({ order }) {
+  const display = getOrderProductDisplay(order);
   // Calculate subtotal and delivery from order data
   const subtotal = order.pricing?.subtotal || order.subTotal || 0;
   const delivery = order.pricing?.delivery || order.deliveryFee || 0;
@@ -12,10 +14,10 @@ export default function OrderSummary({ order }) {
   
   const orderDetails = {
     product: {
-      name: order.product?.name || order.productName || 'Product',
-      variant: order.product?.variant || order.variant || 'N/A',
-      quantity: order.product?.quantity || order.quantity || 1,
-      image: order.product?.images?.[0] || order.product?.image || order.productImage || '/images/desktop-1.png',
+      name: display.name,
+      variant: display.variant || 'N/A',
+      quantity: display.quantity,
+      image: display.imageUrl,
     },
     pricing: [
       { label: "Subtotal", value: subtotal },

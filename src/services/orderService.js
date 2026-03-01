@@ -104,6 +104,12 @@ const confirmCryptoPayment = async (orderId) => {
   return response.data;
 };
 
+// Re-initialize SeerBit payment for a pending/unpaid order - returns { redirectLink, reference }
+const reinitializeSeerbitPayment = async (orderId) => {
+  const response = await apiClient.post(`/orders/${orderId}/seerbit-pay`);
+  return response.data;
+};
+
 export default {
   createOrder,
   checkout,
@@ -113,6 +119,7 @@ export default {
   getOrderByNumber,
   getOrderByPaystackReference,
   verifyPaymentAndCreateOrder,
+  reinitializeSeerbitPayment,
   processUSDCWalletPayment,
   createCryptoPaymentOrder,
   checkCryptoPaymentStatus,

@@ -15,6 +15,10 @@ import { OrderDetailsSection } from "./OrderDetail";
 import ReferralSection from "./ReferralSection";
 import { ACTIVE_PAGINATION_ITEM_STYLE, PAGINATION_ITEM_STYLE, SELECT_CONTENT_STYLE } from "@/components/constants";
 import orderService from "@/services/orderService";
+import { resolveOrderImageUrl } from "@/utils/orderProduct";
+
+// Order status values — never show these as product name
+const ORDER_STATUS_VALUES = new Set(['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled', 'refunded', 'pending_payment', 'unpaid', 'paid', 'partial', 'ordered', 'failed']);
 
 export default function UserProfileSection() {
   const navigate = useNavigate();
@@ -61,47 +65,34 @@ export default function UserProfileSection() {
   // Orders are already filtered and paginated from backend
   const paginatedOrders = orders;
 
-  // Transform backend order data to match UI format
+  // Transform backend order data to match UI format.
+  // The backend already builds a flat `order.product` in getOrdersPaginated — use it directly.
   const transformedOrders = paginatedOrders.map(order => {
+    // Use the backend-built flat product object; fall back gracefully if missing
+    const flatProduct = order.product || {};
     const firstItem = order.items?.[0];
-    if (!firstItem) return null;
 
-    // Get the appropriate image - use direct productImage field first, then fallback to populated data
-    let productImages = [];
-    
-    // First priority: Use direct productImage field from OrderItem
-    if (firstItem.productImage) {
-      productImages = [firstItem.productImage];
-    }
-    // Second priority: Check if we have variant data and product variants
-    else if (firstItem.variant?.name && firstItem.product?.variants) {
-      // Find the variant in the product and get its images
-      const variant = firstItem.product.variants.find(v => v.name === firstItem.variant.name);
-      if (variant?.images?.length > 0) {
-        productImages = variant.images;
-      }
-    }
-    // Third priority: Fallback to product images if no variant images
-    else if (firstItem.product?.images?.length > 0) {
-      productImages = firstItem.product.images;
-    }
-    // Fourth priority: Check for firstImage virtual field
-    else if (firstItem.product?.firstImage) {
-      productImages = [firstItem.product.firstImage];
-    }
-    // Fifth priority: Check if product data is directly on the item (old schema)
-    else if (firstItem.product && typeof firstItem.product === 'object' && firstItem.product.images) {
-      productImages = firstItem.product.images;
-    }
-    // Check if there's a product field that's a string (unpopulated)
-    else if (typeof firstItem.product === 'string') {
-      // Product not populated
+    const productImages =
+      flatProduct.images?.length > 0
+        ? flatProduct.images.map(resolveOrderImageUrl)
+        : firstItem?.productImage
+          ? [resolveOrderImageUrl(firstItem.productImage)]
+          : ['/images/desktop-1.png'];
+
+    let productName = flatProduct.name || firstItem?.productName || firstItem?.product?.name || 'Product';
+    if (ORDER_STATUS_VALUES.has(String(productName).toLowerCase().trim())) {
+      productName = 'Product';
     }
 
-    // If still no images, use a placeholder or default
-    if (productImages.length === 0) {
-      productImages = ['/images/desktop-1.png']; // Default placeholder
-    }
+    const productVariant =
+      flatProduct.variant ||
+      firstItem?.variant?.name ||
+      (firstItem?.variant?.attributes?.length > 0
+        ? firstItem.variant.attributes.map(a => `${a.name}: ${a.value}`).join(', ')
+        : null);
+
+    const total = order.totalAmount || order.pricing?.total ||
+      ((order.pricing?.subtotal || order.subTotal || 0) + (order.pricing?.delivery || order.deliveryFee || 0));
 
     return {
       id: order._id,
@@ -111,28 +102,26 @@ export default function UserProfileSection() {
       paymentMethod: order.paymentMethod,
       paymentStatus: order.paymentStatus,
       paymentAddress: order.paymentAddress,
-      currency: order.currency || firstItem.currency || 'USDC',
+      currency: order.currency || flatProduct.currency || 'USDC',
       product: {
-        name: firstItem.product?.name || 'Product',
-        variant: firstItem.variant?.name || (firstItem.variant?.attributes?.length > 0
-          ? firstItem.variant.attributes.map(attr => `${attr.name}: ${attr.value}`).join(', ')
-          : null),
-        specs: firstItem.specs || null,
-        images: productImages, // Use images array instead of single image
-        price: firstItem.unitPrice || firstItem.product?.price || 0,
-        currency: firstItem.currency || firstItem.product?.currency || order.currency || 'USDC',
-        quantity: firstItem.quantity || 1,
+        name: productName,
+        variant: productVariant || null,
+        specs: firstItem?.specs || null,
+        images: productImages,
+        price: flatProduct.price || firstItem?.unitPrice || firstItem?.product?.price || 0,
+        currency: flatProduct.currency || firstItem?.currency || order.currency || 'USDC',
+        quantity: flatProduct.quantity || firstItem?.quantity || 1,
       },
-      total: order.totalAmount || order.pricing?.total || ((order.pricing?.subtotal || order.subTotal || 0) + (order.pricing?.delivery || order.deliveryFee || 0)),
+      total,
       pricing: {
         subtotal: order.pricing?.subtotal || order.subTotal || 0,
         delivery: order.pricing?.delivery || order.deliveryFee || 0,
-        total: order.totalAmount || order.pricing?.total || ((order.pricing?.subtotal || order.subTotal || 0) + (order.pricing?.delivery || order.deliveryFee || 0)),
+        total,
       },
       shipping: order.shipping || order.shippingAddress || {},
       delivery: order.delivery || order.deliveryMethod || {},
     };
-  }).filter(Boolean); // Remove null entries
+  });
 
 
   // Use only real orders from backend

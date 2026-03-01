@@ -23,7 +23,7 @@ import SEO from "@/components/SEO";
 import { getPageSEO, generateBreadcrumbStructuredData } from "@/config/seo";
 import productService from "@/services/productService";
 import EmptyProducts from "@/components/widgets/EmptyProducts";
-import { PRODUCT_CATEGORIES } from "@/config/categories";
+import { PRODUCT_CATEGORIES, PRODUCT_BRANDS } from "@/config/categories";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 
@@ -108,6 +108,43 @@ export default function Desktop() {
 
   const [resultCount, setResultCount] = useState(0);
   useEffect(() => { setResultCount(products.length); }, [products]);
+
+  // Suggested brands: from current products (by count), or fallback to top brands from config (at least 5)
+  const suggestedBrands = useMemo(() => {
+    const fromProducts = (products || [])
+      .map(p => p.brand)
+      .filter(Boolean);
+    const countByBrand = fromProducts.reduce((acc, b) => {
+      acc[b] = (acc[b] || 0) + 1;
+      return acc;
+    }, {});
+    const fromResult = Object.entries(countByBrand)
+      .sort((a, b) => b[1] - a[1])
+      .map(([name]) => name);
+    if (fromResult.length >= 5) return fromResult;
+    const rest = PRODUCT_BRANDS.filter(b => !fromResult.includes(b));
+    return [...fromResult, ...rest].slice(0, Math.max(5, fromResult.length + 5));
+  }, [products]);
+
+  const selectedBrands = useMemo(() => {
+    const b = searchParams.get('brand');
+    return b ? b.split(',').map((s) => s.trim()).filter(Boolean) : [];
+  }, [searchParams]);
+
+  const onBrandTabClick = (brandName) => {
+    const next = new URLSearchParams(searchParams);
+    next.set('page', '1');
+    if (!brandName || brandName === 'All') {
+      next.delete('brand');
+    } else {
+      const current = next.get('brand') ? next.get('brand').split(',').map((s) => s.trim()).filter(Boolean) : [];
+      const hasBrand = current.includes(brandName);
+      const nextBrands = hasBrand ? current.filter((b) => b !== brandName) : [...current, brandName];
+      if (nextBrands.length === 0) next.delete('brand');
+      else next.set('brand', nextBrands.join(','));
+    }
+    setSearchParams(next);
+  };
 
   const onPageChange = (nextPage) => {
     const next = new URLSearchParams(searchParams);
@@ -196,7 +233,7 @@ export default function Desktop() {
 
     <div className="relative w-[92%] md:w-[86%] m-auto h-[2600px] md:h-[2000px] bg-[#131314] overflow-y-auto overflow-hidden">
 
-      <nav className="absolute top-[10px]  md:top-[29px]">
+      <nav className="absolute top-[10px] md:top-[29px]">
         <Breadcrumb>
           <BreadcrumbList>
             {breadcrumbItems.map((item, index) => (
@@ -218,7 +255,8 @@ export default function Desktop() {
         </Breadcrumb>
       </nav>
 
-      <div className="inline-flex md:absolute md:w-[80%]  justify-between items-center w-full md:gap-0 gap-2 mt-[100px] right-[0]">
+      {/* Desktop: breadcrumb ends ~49px; +5px gap → sort row starts 54px. Mobile: +10px margin from top */}
+      <div className="inline-flex md:absolute md:w-[80%] justify-between items-center w-full md:gap-0 gap-2 mt-[58px] md:mt-[54px] right-[0]">
       <div className="md:w-[20%] w-[50%]">
         <MobileFilterButton onFiltersChange={() => {}} />
       </div>
@@ -241,22 +279,51 @@ export default function Desktop() {
       </div>
       </div>
 
-      {/* Shopping count - moved to bottom on mobile */}
-      <h2 className=" absolute top-[100px] text-sm text-defaultgrey-2 md:block hidden">
+      {/* Shopping count - desktop: same row as sort (5px below breadcrumb) */}
+      <h2 className="absolute top-[54px] text-sm text-defaultgrey-2 md:block hidden">
         Shopping Options ({resultCount} Results)
       </h2>
 
-      {/* Desktop Filter Panel */}
-      <div className="hidden md:block absolute left-0 top-[156px] w-[20%]">
+      {/* Brand suggestion tabs - desktop: moved up by ~5% */}
+      <div className="absolute top-[87px] left-0 right-0 md:flex hidden flex-wrap gap-2 items-center">
+        <button
+          type="button"
+          onClick={() => onBrandTabClick('All')}
+          className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+            selectedBrands.length === 0
+              ? 'bg-primaryp-300/20 text-primaryp-300 border border-primaryp-300'
+              : 'text-defaultgrey-2 border border-neutral-600 hover:border-neutral-500 hover:text-white'
+          }`}
+        >
+          All
+        </button>
+        {suggestedBrands.map((brandName) => (
+          <button
+            key={brandName}
+            type="button"
+            onClick={() => onBrandTabClick(brandName)}
+            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+              selectedBrands.includes(brandName)
+                ? 'bg-primaryp-300/20 text-primaryp-300 border border-primaryp-300'
+                : 'text-defaultgrey-2 border border-neutral-600 hover:border-neutral-500 hover:text-white'
+            }`}
+          >
+            {brandName}
+          </button>
+        ))}
+      </div>
+
+      {/* Desktop Filter Panel + content: below brand tabs */}
+      <div className="hidden md:block absolute left-0 top-[124px] w-[20%]">
           {/* <ProductFilter /> */}
       </div>
 
       {loading ? (
-        <div className="absolute top-[156px] w-full md:w-[73%] md:right-0 md:ml-1 p-4 flex items-center justify-center min-h-[400px]">
+        <div className="absolute top-[124px] w-full md:w-[73%] md:right-0 md:ml-1 p-4 flex items-center justify-center min-h-[400px]">
           <Loader2 className="h-10 w-10 animate-spin text-red-500" aria-hidden="true" />
         </div>
       ) : showEmpty ? (
-        <div className="absolute top-[156px] w-full md:w-[73%] md:right-0 md:ml-1 p-4">
+        <div className="absolute top-[124px] w-full md:w-[73%] md:right-0 md:ml-1 p-4">
           <EmptyProducts
             onPrimaryAction={() => {
               const next = new URLSearchParams(searchParams);
@@ -282,11 +349,38 @@ export default function Desktop() {
         />
       )}
 
-      {/* Mobile Shopping count at bottom */}
-      <div className="md:hidden absolute top-[65px] left-0 right-0 ">
-        <h2 className="text-sm text-defaultgrey-2">
+      {/* Mobile: section height restored (py-5); Shopping Options 10px lower. */}
+      <div className="md:hidden absolute top-[81px] left-0 right-0 py-8">
+        <h2 className="text-sm text-defaultgrey-2 mb-0.5">
           Shopping Options ({resultCount})
         </h2>
+        <div className="flex flex-wrap gap-2 pt-1 hidden">
+          <button
+            type="button"
+            onClick={() => onBrandTabClick('All')}
+            className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+              selectedBrands.length === 0
+                ? 'bg-primaryp-300/20 text-primaryp-300 border border-primaryp-300'
+                : 'text-defaultgrey-2 border border-neutral-600'
+            }`}
+          >
+            All
+          </button>
+          {suggestedBrands.map((brandName) => (
+            <button
+              key={brandName}
+              type="button"
+              onClick={() => onBrandTabClick(brandName)}
+              className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                selectedBrands.includes(brandName)
+                  ? 'bg-primaryp-300/20 text-primaryp-300 border border-primaryp-300'
+                  : 'text-defaultgrey-2 border border-neutral-600'
+              }`}
+            >
+              {brandName}
+            </button>
+          ))}
+        </div>
       </div>
 
     </div>

@@ -14,6 +14,7 @@ import AmountCurrency from "@/components/ui/AmountCurrency";
 import React, { useState, useEffect } from "react";
 import orderService from "@/services/orderService";
 import useNotificationStore from "@/store/notificationStore";
+import { resolveOrderImageUrl } from "@/utils/orderProduct";
 
 export const OrderDetailsSection = ({ order, onBackToList, onOrderUpdated }) => {
   const [localOrder, setLocalOrder] = useState(order);
@@ -287,11 +288,11 @@ export const OrderDetailsSection = ({ order, onBackToList, onOrderUpdated }) => 
             <div className="flex flex-col w-full max-w-[913px] px-4 items-end justify-center gap-5">
               <div className="flex h-[127px] items-start gap-5 w-full">
                 <div className="relative w-[127px] h-[127px] bg-white rounded-[10.16px] overflow-hidden">
-                  {order.product.images && order.product.images.length > 0 ? (
+                  {order.product?.images?.length > 0 ? (
                     <img
                       className="absolute w-[127px] h-[127px] top-0 left-0 object-cover"
                       alt={order.product.name}
-                      src={order.product.images[0]}
+                      src={resolveOrderImageUrl(order.product.images[0])}
                     />
                   ) : (
                     <div className="absolute w-[127px] h-[127px] top-0 left-0 bg-neutralneutral-800 rounded-lg flex items-center justify-center">

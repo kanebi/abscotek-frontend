@@ -96,7 +96,7 @@ function OrdersPage() {
                   </div>
                   <div className="text-right">
                     <p className="text-lg font-semibold text-white">
-                      <AmountCurrency amount={order.totalAmount} fromCurrency={order.currency} />
+                      <AmountCurrency amount={order.totalAmount || 0} fromCurrency={order.currency || 'USDC'} />
                     </p>
                     <Link to={AppRoutes.orderDetail.path.replace(':orderId', order._id)}>
                       <Button variant="link" className="text-red-500 hover:text-red-600 p-0 h-auto mt-2">
