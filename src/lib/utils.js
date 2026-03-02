@@ -8,7 +8,7 @@ export function cn(...inputs) {
 let cachedRates = null;
 let lastFetchTime = 0;
 let ratesFetchPromise = null;
-const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes so backend rate/markup updates are picked up
+const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
 
 /**
  * Get platform exchange rates from backend. Single in-flight request; 24h cache.
