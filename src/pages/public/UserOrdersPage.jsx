@@ -49,8 +49,10 @@ function UserOrdersPage() {
     if (statusFilter === 'all') {
       setFilteredOrders(orders);
     } else {
-      setFilteredOrders(orders.filter(order => 
-        order.orderStatus === statusFilter || order.blockchainStatus?.toLowerCase() === statusFilter.toLowerCase()
+      const s = statusFilter?.toLowerCase();
+      setFilteredOrders(orders.filter(order =>
+        (order.status || order.orderStatus || '').toLowerCase() === s ||
+        order.blockchainStatus?.toLowerCase() === s
       ));
     }
   };

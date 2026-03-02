@@ -36,7 +36,8 @@ export function getOrderItemDisplay(item) {
   const description = product.description ?? null;
   const images = product.images ?? (item?.productImage ? [item.productImage] : []);
   const imageUrl = getOrderProductImage(item);
-  const price = product.price ?? item?.unitPrice ?? item?.price ?? 0;
+  const priceRaw = product.price ?? item?.unitPrice ?? item?.price ?? 0;
+  const price = (typeof priceRaw === 'number' && !Number.isNaN(priceRaw)) ? priceRaw : (Number(priceRaw) || 0);
   const currency = product.currency ?? item?.currency ?? 'USDC';
   const productId = product._id ?? product.productId ?? item?.product ?? null;
   const variant = product.variant ?? item?.variant?.name ?? item?.variant ?? null;
@@ -53,10 +54,60 @@ export function getOrderProductDisplay(order) {
   const description = product.description ?? null;
   const images = product.images ?? [];
   const imageUrl = resolveOrderImageUrl(images?.[0] || order?.productImage || '/images/desktop-1.png');
-  const price = product.price ?? product.unitPrice ?? 0;
+  const priceRaw = product.price ?? product.unitPrice ?? 0;
+  const price = (typeof priceRaw === 'number' && !Number.isNaN(priceRaw)) ? priceRaw : (Number(priceRaw) || 0);
   const currency = product.currency ?? order?.currency ?? 'USDC';
   const productId = product.productId ?? product._id ?? null;
   const variant = product.variant ?? null;
   const quantity = product.quantity ?? 1;
   return { name, description, images, imageUrl, price, currency, productId, variant, quantity };
+}
+
+/**
+ * Normalize order from getOrderById (API) to the shape expected by OrderDetailsSection (profile).
+ * Ensures product.currency and product.unitPrice match order currency for correct conversion.
+ */
+export function normalizeOrderForDetail(order) {
+  if (!order) return null;
+  const product = order.product || {};
+  const firstItem = order.items?.[0];
+  const shipping = order.shipping || (order.shippingAddress && {
+    name: [order.shippingAddress.firstName, order.shippingAddress.lastName].filter(Boolean).join(' '),
+    email: order.shippingAddress.email,
+    phone: order.shippingAddress.phoneNumber || order.shippingAddress.areaNumber,
+    address: order.shippingAddress.streetAddress,
+  }) || {};
+  const delivery = order.delivery || (order.deliveryMethod && {
+    method: order.deliveryMethod.name,
+    timeframe: order.deliveryMethod.estimatedDeliveryTime,
+  }) || {};
+  return {
+    ...order,
+    id: order._id || order.id,
+    date: order.orderDate || order.createdAt ? new Date(order.orderDate || order.createdAt).toLocaleString() : '',
+    number: order.orderNumber || (order._id ? String(order._id).slice(-8).toUpperCase() : '') || order._id,
+    currency: order.currency || 'USDC',
+    product: (() => {
+      const priceRaw = product.price ?? product.unitPrice ?? firstItem?.unitPrice ?? 0;
+      const safePrice = (typeof priceRaw === 'number' && !Number.isNaN(priceRaw)) ? priceRaw : (Number(priceRaw) || 0);
+      return {
+        name: product.name || firstItem?.productName || 'Product',
+        variant: product.variant ?? firstItem?.variant?.name ?? null,
+        specs: firstItem?.specs ?? product.specs ?? null,
+        images: product.images || [],
+        quantity: product.quantity ?? firstItem?.quantity ?? 1,
+        price: safePrice,
+        unitPrice: safePrice,
+        currency: order.currency || product.currency || 'USDC',
+      };
+    })(),
+    pricing: order.pricing || {
+      subtotal: order.subTotal,
+      delivery: order.deliveryFee,
+      total: order.totalAmount,
+    },
+    shipping,
+    delivery,
+    total: order.totalAmount || order.pricing?.total,
+  };
 }

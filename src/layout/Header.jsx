@@ -10,6 +10,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { PRODUCT_CATEGORIES } from "@/config/categories"
 import SliderCart from "@/components/ui/SliderCart";
 import { useNavigate } from 'react-router-dom';
+import { getCurrencyRates } from "@/lib/utils";
 import { AppRoutes } from '@/config/routes';
 import AvatarBlock from "@/components/ui/avatar";
 import UserPopover from "@/components/ui/UserPopover";
@@ -247,10 +248,44 @@ export default function Frame() {
 }
 
 
+function formatRate(rates, code) {
+    if (!rates || typeof rates !== 'object') return null;
+    const rate = rates[code] ?? (code === 'USD' ? rates.USDC : null);
+    if (rate == null) return null;
+    const n = Number(rate);
+    if (Number.isNaN(n)) return null;
+    return n >= 1
+        ? n.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 3 })
+        : n.toFixed(3);
+}
+
+function getRateLabel(rates, code) {
+    const str = formatRate(rates, code);
+    return str != null ? str : '—';
+}
+
 export function NavigationBar() {
     const navigate = useNavigate();
     const [showCategoriesCard, setShowCategoriesCard] = React.useState(false);
     const categoriesCardRef = React.useRef(null);
+    // Fallback so rates always show (e.g. if API fails or before load)
+    const [rates, setRates] = React.useState({
+        USDC: 1,
+        USD: 1,
+        NGN: 1500,
+        GHS: 15,
+        EUR: 0.92,
+    });
+
+    React.useEffect(() => {
+        let cancelled = false;
+        getCurrencyRates()
+            .then((r) => {
+                if (!cancelled && r && typeof r === 'object' && Object.keys(r).length > 0) setRates(r);
+            })
+            .catch(() => {});
+        return () => { cancelled = true; };
+    }, []);
 
     // Close categories card when clicking outside (backdrop handles this now)
     // Main navigation items (visible in header)
@@ -313,30 +348,33 @@ export function NavigationBar() {
     return (
         <nav className="text-defaultwhite">
             {/* Desktop Layout */}
-            <div className="hidden lg:flex items-center justify-between max-w-full py-2">
-                {/* Left side - Price indicator */}
-                <div className="flex items-center gap-3">
-                    <span className="text-sm text-defaultgrey whitespace-nowrap">Today Price:</span>
+            <div className="hidden lg:flex items-center justify-between max-w-full py-1">
+                {/* Left side - Price indicator and rates list */}
+                <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-xs text-defaultgrey whitespace-nowrap">Today Price:</span>
                     <div className="flex items-center gap-2">
                         <DropdownMenu modal >
                             <DropdownMenuTrigger asChild>
                                 <Button
                                     variant="ghost"
-                                    className={`text-defaultwhite w-36 relative hover:text-defaultwhite hover:bg-defaulttop-background h-auto font-normal outline-none border-none hover:outline-none flex items-center gap-1 `}
+                                    className="text-defaultwhite min-w-[7rem] w-auto max-w-[12rem] relative hover:text-defaultwhite hover:bg-defaulttop-background h-auto font-normal outline-none border-none hover:outline-none flex items-center gap-1 pr-8"
                                 >
-                                    <div className="flex items-center gap-2 pl-2">
-                                        <img src={currencyIconMap[userCurrency || 'USDC']?.src} className="w-4 h-4" />
-                                        <span className="text-sm font-medium">{userCurrency || 'USDC'}</span>
+                                    <div className="flex items-center gap-2 pl-2 flex-1 min-w-0">
+                                        <img src={currencyIconMap[userCurrency || 'USDC']?.src} className="w-4 h-4 flex-shrink-0" alt="" />
+                                        <span className="text-xs font-medium truncate">
+                                            {userCurrency || 'USDC'}
+                                            <span className="text-defaultgrey font-normal ml-1">- {getRateLabel(rates, userCurrency || 'USDC')}</span>
+                                        </span>
                                     </div>
-                                    <img src="/images/dropdown.svg" alt="Dropdown Icon" className=" absolute right-0" />
+                                    <img src="/images/dropdown.svg" alt="" className="absolute right-2 w-3 h-3 flex-shrink-0" />
                                 </Button>
                             </DropdownMenuTrigger >
-                            <DropdownMenuContent   style={DROPDOWN_MENU_CONTENT_STYLE} className="text-sm text-white border-neutral-600" align="start">
+                            <DropdownMenuContent style={DROPDOWN_MENU_CONTENT_STYLE} className="text-xs text-white border-neutral-600" align="start">
                                 {CurrencyOptions.map((c) => (
                                     <DropdownMenuItem key={c.value} onClick={() => setUserCurrency(c.value)}>
-                                        <div className="flex items-center gap-2" >
-                                            <img src={currencyIconMap[c.value]?.src} className="w-4 h-4" />
-                                            <span>{c.label}</span>
+                                        <div className="flex items-center gap-2">
+                                            <img src={currencyIconMap[c.value]?.src} className="w-4 h-4" alt="" />
+                                            <span className="text-xs">{c.label} - {getRateLabel(rates, c.value)}</span>
                                         </div>
                                     </DropdownMenuItem>
                                 ))}
@@ -346,12 +384,12 @@ export function NavigationBar() {
                 </div>
 
                 {/* Right side - Navigation menu */}
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1">
                     {mainNavItems.map((item) => (
                         <Button
                             key={item} variant="ghost"
                             onClick={() => handleNavigation(item)}
-                            className="text-defaultwhite hover:bg-defaulttop-background hover:text-defaultwhite px-4 py-2 text-sm font-normal h-auto cursor-pointer"
+                            className="text-defaultwhite hover:bg-defaulttop-background hover:text-defaultwhite px-2.5 py-1.5 text-sm font-normal h-auto cursor-pointer"
                         >
                             {item}
                         </Button>
@@ -363,7 +401,7 @@ export function NavigationBar() {
                             <Button
                                 variant="ghost"
                                 onClick={() => setShowCategoriesCard(!showCategoriesCard)}
-                                className="text-defaultwhite hover:bg-defaulttop-background hover:text-defaultwhite px-4 py-2 text-sm font-normal h-auto cursor-pointer"
+                                className="text-defaultwhite hover:bg-defaulttop-background hover:text-defaultwhite px-2.5 py-1.5 text-sm font-normal h-auto cursor-pointer"
                             >
                                 More
                                 <img src="/images/dropdown.svg" alt="Dropdown" className="ml-1 w-3 h-3" />
@@ -424,10 +462,10 @@ export function NavigationBar() {
             </div>
 
             {/* Mobile Layout */}
-            <div className="flex lg:hidden flex-col gap-2  pb-10">
+            <div className="flex lg:hidden flex-col gap-1.5 pb-10">
                 {/* Top row - Categories: visible on mobile */}
                 <div className="w-full relative">
-                    <div className="flex items-center gap-2 overflow-x-auto" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+                    <div className="flex items-center gap-1.5 overflow-x-auto" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
                         <style>{`
                             .mobile-nav-categories::-webkit-scrollbar {
                                 display: none;
@@ -437,13 +475,13 @@ export function NavigationBar() {
                                 scrollbar-width: none;
                             }
                         `}</style>
-                        <div className="flex items-center gap-2 mobile-nav-categories">
+                        <div className="flex items-center gap-1.5 mobile-nav-categories">
                             {mainNavItems.map((item) => (
                                 <Button
                                     key={item} 
                                     variant="ghost"
                                     onClick={() => handleNavigation(item)}
-                                    className="text-defaultwhite hover:bg-defaulttop-background hover:text-defaultwhite px-3 py-1.5 text-xs font-normal h-auto cursor-pointer whitespace-nowrap flex-shrink-0 max-w-[120px] truncate"
+                                    className="text-defaultwhite hover:bg-defaulttop-background hover:text-defaultwhite px-2 py-1 text-xs font-normal h-auto cursor-pointer whitespace-nowrap flex-shrink-0 max-w-[120px] truncate"
                                     title={item}
                                 >
                                     {item}
@@ -456,7 +494,7 @@ export function NavigationBar() {
                                     <Button
                                         variant="ghost"
                                         onClick={() => setShowCategoriesCard(!showCategoriesCard)}
-                                        className="text-defaultwhite hover:bg-defaulttop-background hover:text-defaultwhite px-3 py-1.5 text-xs font-normal h-auto cursor-pointer whitespace-nowrap flex-shrink-0"
+                                        className="text-defaultwhite hover:bg-defaulttop-background hover:text-defaultwhite px-2 py-1 text-xs font-normal h-auto cursor-pointer whitespace-nowrap flex-shrink-0"
                                     >
                                         More
                                         <img src="/images/dropdown.svg" alt="Dropdown" className="ml-1 w-3 h-3" />
@@ -518,34 +556,37 @@ export function NavigationBar() {
                     )}
                 </div>
 
-                {/* Bottom row - Currency selector */}
-                <div className="flex items-center justify-between w-full px-2">
-                    <div className="flex items-center gap-2">
+                {/* Bottom row - Currency selector (with rates in options and active) */}
+                <div className="flex items-center justify-between w-full px-2 flex-wrap gap-1.5">
+                    <div className="flex items-center gap-1.5">
                         <span className="text-xs text-defaultgrey whitespace-nowrap">Today Price:</span>
                         <DropdownMenu modal >
                             <DropdownMenuTrigger asChild>
                                 <Button
                                     variant="ghost"
-                                    className={`text-defaultwhite w-28 relative hover:text-defaultwhite hover:bg-defaulttop-background h-auto font-normal outline-none border-none hover:outline-none flex items-center gap-1 text-xs`}
+                                    className="text-defaultwhite min-w-[5rem] w-auto max-w-[10rem] relative hover:text-defaultwhite hover:bg-defaulttop-background h-auto font-normal outline-none border-none hover:outline-none flex items-center gap-1 text-xs pr-6"
                                 >
-                                    <div className="flex items-center gap-1.5 pl-1">
-                                        <img src={currencyIconMap[userCurrency || 'USDC']?.src} className="w-3 h-3" />
-                                        <span className="text-xs font-medium">{userCurrency || 'USDC'}</span>
+                                    <div className="flex items-center gap-1.5 pl-1 min-w-0">
+                                        <img src={currencyIconMap[userCurrency || 'USDC']?.src} className="w-3 h-3 flex-shrink-0" alt="" />
+                                        <span className="text-xs font-medium truncate">
+                                            {userCurrency || 'USDC'}
+                                            <span className="text-defaultgrey font-normal ml-1">- {getRateLabel(rates, userCurrency || 'USDC')}</span>
+                                        </span>
                                     </div>
-                                    <img src="/images/dropdown.svg" alt="Dropdown Icon" className="absolute right-0 w-2 h-2" />
+                                    <img src="/images/dropdown.svg" alt="" className="absolute right-2 w-2 h-2 flex-shrink-0" />
                                 </Button>
                             </DropdownMenuTrigger >
-                            <DropdownMenuContent   style={DROPDOWN_MENU_CONTENT_STYLE} className="text-sm text-white border-neutral-600" align="start">
+                            <DropdownMenuContent style={DROPDOWN_MENU_CONTENT_STYLE} className="text-xs text-white border-neutral-600" align="start">
                                 {CurrencyOptions.map((c) => (
                                     <DropdownMenuItem key={c.value} onClick={() => setUserCurrency(c.value)}>
-                                        <div className="flex items-center gap-2" >
-                                            <img src={currencyIconMap[c.value]?.src} className="w-4 h-4" />
-                                            <span>{c.label}</span>
+                                        <div className="flex items-center gap-2">
+                                            <img src={currencyIconMap[c.value]?.src} className="w-4 h-4" alt="" />
+                                            <span className="text-xs">{c.label} - {getRateLabel(rates, c.value)}</span>
                                         </div>
                                     </DropdownMenuItem>
-                            ))}
-                        </DropdownMenuContent>
-                    </DropdownMenu>
+                                ))}
+                            </DropdownMenuContent>
+                        </DropdownMenu>
                     </div>
                 </div>
             </div>

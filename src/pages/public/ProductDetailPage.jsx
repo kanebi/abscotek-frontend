@@ -663,7 +663,7 @@ export default function ProductDetail() {
                             <div className="text-rose-500 text-xl font-semibold    leading-relaxed">Description</div>
                         </div>
                         <div className="flex flex-col gap-8">
-                            <div className="text-white text-2xl font-semibold    leading-loose whitespace-pre-wrap break-words max-w-full">{p.description}</div>
+                            <div className="text-white   leading-loose whitespace-pre-wrap break-words max-w-full">{p.description}</div>
                             {/* Specs Selection - Only show if no variant is selected */}
                             {!selectedVariant && p.specs && p.specs.length > 0 && (
                             <div className="flex flex-col gap-6">

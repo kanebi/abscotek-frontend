@@ -20,8 +20,15 @@ export default function AmountCurrency({ amount, fromCurrency = "USDC" }) {
     return <span className="text-white leading-snug">Loading...</span>; // Or a placeholder
   }
 
-  const converted = convertCurrency(amount, fromCurr, userCurr, rates);
-  const formatted = currencyConversionService.formatCurrency(Number(converted), userCurr);
+  const numAmount = Number(amount);
+  if (amount == null || Number.isNaN(numAmount)) {
+    return <span className="text-white leading-snug">—</span>;
+  }
+
+  const converted = convertCurrency(numAmount, fromCurr, userCurr, rates);
+  const convertedNum = Number(converted);
+  const safeAmount = Number.isNaN(convertedNum) ? 0 : convertedNum;
+  const formatted = currencyConversionService.formatCurrency(safeAmount, userCurr);
 
   return (
     <span className="text-white leading-snug">{formatted}</span>

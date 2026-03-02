@@ -9,10 +9,10 @@ import { AppRoutes } from '../../config/routes';
 import orderService from '../../services/orderService';
 import SEO from '../../components/SEO';
 import { getPageSEO } from '../../config/seo';
-import { format } from 'date-fns';
 import { ArrowLeft } from 'lucide-react';
 import useNotificationStore from '../../store/notificationStore';
-import { getOrderItemDisplay } from '../../utils/orderProduct';
+import { normalizeOrderForDetail } from '../../utils/orderProduct';
+import { OrderDetailsSection } from '../../components/sections/OrderDetail';
 
 function OrderDetailsPage() {
   const { id } = useParams(); // Changed from orderId to id to match route parameter
@@ -99,60 +99,14 @@ function OrderDetailsPage() {
   //   );
   // }
 
-  const { shippingAddress, deliveryMethod, shipping, delivery } = order;
+  const normalizedOrder = normalizeOrderForDetail(order);
 
-  // Order progress steps based on status
-  const getProgressSteps = (status) => {
-    const steps = [
-      { id: 1, name: "Submit Order", completed: true },
-      { id: 2, name: "Waiting for Delivery", completed: false },
-      { id: 3, name: "Out for delivery", completed: false },
-      { id: 4, name: "Transaction Complete", completed: false },
-    ];
-
-    switch (status) {
-      case "confirmed":
-      case "processing":
-        steps[0].completed = true;
-        steps[1].completed = true;
-        break;
-      case "shipped":
-        steps[0].completed = true;
-        steps[1].completed = true;
-        steps[2].completed = true;
-        break;
-      case "delivered":
-        steps.forEach(step => step.completed = true);
-        break;
-      default:
-        break;
-    }
-
-    return steps;
-  };
-
-  const progressSteps = getProgressSteps(order.status);
-
-  const handleIHaveCompletedPayment = async () => {
-    if (!order?._id) return;
-    setCompletingPayment(true);
+  const handleRefetchOrder = async () => {
+    if (!id) return;
     try {
-      const result = await orderService.confirmCryptoPayment(order._id);
-      if (result.success) {
-        addNotification('Payment confirmed! Your order is being processed.', 'success');
-        const updatedOrder = await orderService.getOrderById(id);
-        setOrder(updatedOrder);
-      }
-    } catch (err) {
-      if (err.response?.status === 400) {
-        addNotification('Payment not yet detected. Checking every few seconds...', 'info');
-        setPollingPayment(true);
-      } else {
-        addNotification(err.response?.data?.msg || 'Error confirming payment', 'error');
-      }
-    } finally {
-      setCompletingPayment(false);
-    }
+      const updatedOrder = await orderService.getOrderById(id);
+      setOrder(updatedOrder);
+    } catch (_) {}
   };
 
   const handleSeerbitRetry = async () => {
@@ -206,363 +160,70 @@ function OrderDetailsPage() {
           Back to My Orders
         </Link>
 
-        {/* Order Status Card - Mobile */}
-        <Card className="flex md:hidden w-full border-none flex-col items-start gap-2.5 px-4 py-4 relative bg-[#1F1F21] rounded-xl overflow-hidden mb-6">
-          <CardContent className="flex flex-col items-center gap-8 relative self-stretch w-full flex-[0_0_auto] p-0">
-            <div className="flex flex-col items-end gap-8 relative self-stretch w-full flex-[0_0_auto]">
-              <div className="flex flex-col items-start gap-[13px] relative self-stretch w-full flex-[0_0_auto]">
-                <div className="inline-flex flex-col items-start justify-center gap-1 relative flex-[0_0_auto]">
-                  <div className="inline-flex items-center gap-0.5 relative flex-[0_0_auto]">
-                    <span className="relative w-fit mt-[-1.00px] font-body-base-base-medium text-neutral-300">
-                      Order date:
-                    </span>
-                    <span className="relative w-fit mt-[-1.00px] font-body-base-base-medium text-neutral-300">
-                      {format(new Date(order.orderDate || order.createdAt), 'MMMM d, yyyy')}
-                    </span>
-                  </div>
+        {/* Same order detail as profile ?orderId= — correct product/price/currency */}
+        {normalizedOrder && (
+          <OrderDetailsSection
+            order={normalizedOrder}
+            onBackToList={() => navigate(AppRoutes.userOrders.path)}
+            onOrderUpdated={handleRefetchOrder}
+          />
+        )}
 
-                  <div className="inline-flex items-center gap-0.5 relative flex-[0_0_auto]">
-                    <span className="relative w-fit mt-[-1.00px] font-body-base-base-medium text-neutral-300">
-                      Order NO:
-                    </span>
-                    <span className="relative w-fit mt-[-1.00px] font-body-base-base-medium text-neutral-300">
-                      {order.orderNumber || order._id.slice(-8).toUpperCase()}
-                    </span>
-                  </div>
-                </div>
-
-                <h2 className="relative w-fit font-heading-header-6-header-6-semibold text-white">
-                  {order.status}
-                </h2>
-              </div>
-
-              <Separator className="relative self-stretch w-full h-px bg-[#3f3f3f]" />
-            </div>
-
-            <div className="inline-flex items-start gap-[35.72px] relative flex-[0_0_auto]">
-              <div className="absolute w-[280px] h-px top-1.5 left-5 bg-[#3f3f3f]" />
-
-              {progressSteps.map((step, index) => (
-                <div
-                  key={index}
-                  className="inline-flex flex-col items-center gap-[5.36px] relative flex-[0_0_auto]"
-                >
-                  <div
-                    className={`relative w-[12.5px] h-[12.5px] ${step.completed ? "bg-primary-500" : "bg-neutral-600"} rounded-[4465.08px] overflow-hidden flex items-center justify-center`}
-                  >
-                    {step.completed && (
-                      <svg
-                        className="w-[9px] h-[9px] text-white"
-                        viewBox="0 0 20 20"
-                        fill="currentColor"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path
-                          d="M16.6663 5L7.49967 14.1667L3.33301 10"
-                          stroke="none"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                    )}
-                  </div>
-                  <div
-                    className={`relative w-fit ${step.completed ? "text-white" : "text-neutral-600"} text-[7.1px] tracking-[0] leading-[10.7px] whitespace-nowrap`}
-                  >
-                    {step.name}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Order Status Card - Desktop */}
-        <Card className="hidden md:flex border-none w-full bg-[#1F1F21] rounded-xl overflow-hidden mb-8">
-          <CardContent className="p-6 w-full">
-            <div className="flex flex-col items-center gap-8 w-full">
-              {/* Order Header */}
-              <div className="flex flex-col items-end gap-8 w-full">
-                <div className="flex items-center justify-between w-full">
-                  <div className="inline-flex flex-col items-start justify-center gap-1">
-                    <div className="inline-flex items-center gap-0.5">
-                      <span className="font-body-large-large-regular text-neutral-300">
-                        Order date:
-                      </span>
-                      <span className="font-body-large-large-medium text-neutral-300">
-                        {format(new Date(order.orderDate || order.createdAt), 'MMMM d, yyyy')}
-                      </span>
-                    </div>
-                    <div className="inline-flex items-center gap-0.5">
-                      <span className="font-body-large-large-regular text-neutral-300">
-                        Order NO:
-                      </span>
-                      <span className="font-body-large-large-medium text-neutral-300">
-                        {order.orderNumber || order._id.slice(-8).toUpperCase()}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="font-heading-header-5-header-5-semibold text-white">
-                    {order.status}
-                  </div>
-                </div>
-                <Separator className="w-full bg-[#3f3f3f]" />
-              </div>
-
-              {/* Order Progress Tracker */}
-              <div className="inline-flex items-start gap-8 md:gap-20 relative overflow-x-auto w-full">
-                <div className="absolute w-full md:w-[628px] top-[13px] left-4 md:left-11 h-px bg-[#3f3f3f]" />
-
-                {progressSteps.map((step, index) => (
-                  <div
-                    key={step.id}
-                    className="inline-flex flex-col items-center gap-3 min-w-[100px]"
-                  >
-                    <div
-                      className={`relative w-7 h-7 ${step.completed ? "bg-primary-500" : "bg-neutral-600"} rounded-full overflow-hidden flex items-center justify-center`}
-                    >
-                      {step.completed && (
-                        <svg
-                          className="w-5 h-5 text-white"
-                          viewBox="0 0 20 20"
-                          fill="currentColor"
-                          xmlns="http://www.w3.org/2000/svg"
-                        >
-                          <path
-                            d="M16.6663 5L7.49967 14.1667L3.33301 10"
-                            stroke="none"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          />
-                        </svg>
-                      )}
-                    </div>
-                    <div
-                      className={`font-body-large-large-${step.completed ? "medium text-white" : "regular text-neutral-600"} text-center text-xs md:text-sm`}
-                    >
-                      {step.name}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2 space-y-6">
-            <Card className="bg-[#1F1F21] border-none p-6 rounded-xl">
-              <h2 className="text-xl font-semibold text-white mb-4">Order Summary</h2>
-              <div className="space-y-4">
-                {order.items?.map(item => {
-                  const display = getOrderItemDisplay(item);
-                  return (
-                  <div key={item.product?._id || item._id || display.productId} className="flex items-center justify-between">
-                    <div className="flex items-center">
-                      <img
-                        src={display.imageUrl}
-                        alt={display.name}
-                        className="w-16 h-16 object-cover rounded-lg mr-4"
-                        onError={(e) => { e.target.onerror = null; e.target.src = '/images/desktop-1.png'; }}
-                      />
-                      <div>
-                        <p className="text-white font-medium">{display.name}</p>
-                        {display.description && (
-                          <p className="text-xs text-neutral-400 mt-0.5 line-clamp-2">{display.description}</p>
-                        )}
-                        {item.variant?.name && (
-                          <p className="text-sm text-neutral-300">Variant: {item.variant.name}</p>
-                        )}
-                        {item.specs && item.specs.length > 0 && (
-                          <div className="text-xs text-neutral-400 mt-1">
-                            {item.specs.map((spec, idx) => (
-                              <span key={idx}>
-                                {spec.label}: {spec.value}
-                                {idx < item.specs.length - 1 && ', '}
-                              </span>
-                            ))}
-                          </div>
-                        )}
-                        <p className="text-sm text-neutral-400">Qty: {item.quantity}</p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-white font-medium">
-                        <AmountCurrency 
-                          amount={(item.unitPrice || item.price || 0) * (item.quantity || 1)} 
-                          fromCurrency={item.currency || order.currency || 'USDC'} 
-                        />
-                      </p>
-                      {item.unitPrice && item.quantity > 1 && (
-                        <p className="text-xs text-neutral-400 mt-1">
-                          <AmountCurrency amount={item.unitPrice} fromCurrency={item.currency || order.currency || 'USDC'} /> each
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                ); }) || []}
-              </div>
-            </Card>
-          </div>
-
-          <div className="space-y-6">
-            <Card className="bg-[#1F1F21] border-none p-6 rounded-xl">
-              <h2 className="text-xl font-semibold text-white mb-4">Shipping Address</h2>
-              {(shipping || shippingAddress) ? (
-                <div className="text-neutral-300 space-y-1">
-                  <p><strong>Name:</strong> {shipping?.name || `${shippingAddress?.firstName} ${shippingAddress?.lastName}`}</p>
-                  <p><strong>Email:</strong> {shipping?.email || shippingAddress?.email}</p>
-                  <p><strong>Phone:</strong> {shipping?.phone || shippingAddress?.phoneNumber}</p>
-                  <p><strong>Address:</strong> {shipping?.address || shippingAddress?.streetAddress}</p>
-                  {shippingAddress && !shipping && (
-                    <>
-                      <p><strong>City:</strong> {shippingAddress.city}, {shippingAddress.state}</p>
-                      <p><strong>Country:</strong> {shippingAddress.country}</p>
-                    </>
-                  )}
-                </div>
-              ) : (
-                <p className="text-neutral-400">No address provided.</p>
-              )}
-            </Card>
-
-            <Card className="bg-[#1F1F21] border-none p-6 rounded-xl">
-              <h2 className="text-xl font-semibold text-white mb-4">Payment Summary</h2>
-              <div className="space-y-2 text-neutral-300">
-                <div className="flex justify-between">
-                  <span>Subtotal</span>
-                  <span><AmountCurrency amount={order.pricing?.subtotal || order.subTotal || 0} fromCurrency={order.currency || 'USDC'} /></span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Shipping</span>
-                  <span><AmountCurrency amount={order.pricing?.delivery || order.deliveryFee || deliveryMethod?.price || 0} fromCurrency={order.pricing?.deliveryCurrency || deliveryMethod?.currency || order.currency || 'USDC'} /></span>
-                </div>
-                <div className="border-t border-neutral-700 my-2"></div>
-                <div className="flex justify-between text-white font-semibold text-lg">
-                  <span>Total</span>
-                  <span>
-                    <AmountCurrency 
-                      amount={
-                        (order.pricing?.subtotal || order.subTotal || 0) + 
-                        (order.pricing?.delivery || order.deliveryFee || deliveryMethod?.price || 0)
-                      } 
-                      fromCurrency={order.currency || 'USDC'} 
-                    />
-                  </span>
-                </div>
-              </div>
-            </Card>
-
-            <Card className="bg-[#1F1F21] border-none p-6 rounded-xl">
-              <h2 className="text-xl font-semibold text-white mb-4">Delivery Method</h2>
-              {(delivery || deliveryMethod) ? (
-                <div className="text-neutral-300 space-y-1">
-                  <p><strong>Method:</strong> {delivery?.method || deliveryMethod?.name}</p>
-                  <p><strong>Timeframe:</strong> {delivery?.timeframe || deliveryMethod?.estimatedDeliveryTime || 'N/A'}</p>
-                  {deliveryMethod && !delivery && deliveryMethod.description && (
-                    <p><strong>Description:</strong> {deliveryMethod.description}</p>
-                  )}
-                </div>
-              ) : (
-                <p className="text-neutral-400">No delivery method selected.</p>
-              )}
-            </Card>
-
-            {/* Pay Now - For pending SeerBit orders */}
+        <div className="mt-8 space-y-6">
+            {/* Pay Now / Pay again - For pending or failed/cancelled SeerBit orders (retry without new order) */}
             {order.paymentMethod === 'seerbit' &&
               order.paymentStatus !== 'paid' &&
-              order.status?.toLowerCase() === 'pending' && (
+              ['pending', 'failed', 'cancelled', 'refunded'].includes(order.status?.toLowerCase()) && (
               <Card className="bg-[#1F1F21] border-none p-6 rounded-xl">
-                <h2 className="text-xl font-semibold text-white mb-2">Complete Payment</h2>
-                <p className="text-neutral-300 text-sm mb-4">
-                  This order is awaiting payment. Click below to complete your payment via bank transfer or card.
-                </p>
-                <Button
-                  onClick={handleSeerbitRetry}
-                  disabled={retryingSeerbit}
-                  className="w-full bg-red-500 hover:bg-red-600 text-white font-semibold"
-                >
-                  {retryingSeerbit ? (
-                    <span className="flex items-center justify-center gap-2">
-                      <span className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full" />
-                      Redirecting to payment…
-                    </span>
-                  ) : (
-                    'Pay Now'
-                  )}
-                </Button>
-              </Card>
-            )}
-
-            {/* Continue Payment - For pending crypto orders */}
-            {order.status?.toLowerCase() === 'pending' &&
-              order.paymentMethod === 'crypto' &&
-              order.paymentStatus !== 'paid' &&
-              order.paymentAddress && (
-              <Card className="bg-[#1F1F21] border-none p-6 rounded-xl">
-                <h2 className="text-xl font-semibold text-white mb-4">Complete Payment</h2>
-                <p className="text-neutral-300 text-sm mb-3">
-                  Send exactly <strong className="text-white">{order.totalAmount ?? ((order.pricing?.subtotal || order.subTotal || 0) + (order.pricing?.delivery || order.deliveryFee || 0))}</strong> USDC to your payment address:
-                </p>
-                <div className="bg-[#2C2C2E] rounded-lg p-3 flex items-center justify-between gap-2">
-                  <code className="text-xs text-white break-all font-mono flex-1">
-                    {order.paymentAddress}
-                  </code>
+                <CardContent className="p-0 pt-0">
+                  <h2 className="text-xl font-semibold text-white mb-2">
+                    {order.status?.toLowerCase() === 'pending' ? 'Complete Payment' : 'Pay Again'}
+                  </h2>
+                  <p className="text-neutral-300 text-sm mb-4">
+                    {order.status?.toLowerCase() === 'pending'
+                      ? 'This order is awaiting payment. Click below to complete your payment via bank transfer or card.'
+                      : 'Previous payment did not complete. You can pay for this order again without creating a new one.'}
+                  </p>
                   <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      navigator.clipboard.writeText(order.paymentAddress);
-                      addNotification('Address copied to clipboard!', 'success');
-                    }}
-                    className="flex-shrink-0"
+                    onClick={handleSeerbitRetry}
+                    disabled={retryingSeerbit}
+                    className="w-full bg-red-500 hover:bg-red-600 text-white font-semibold"
                   >
-                    Copy
+                    {retryingSeerbit ? (
+                      <span className="flex items-center justify-center gap-2">
+                        <span className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full" />
+                        Redirecting to payment…
+                      </span>
+                    ) : (
+                      'Pay Now'
+                    )}
                   </Button>
-                </div>
-                <p className="text-neutral-400 text-xs mt-2">
-                  This is your tied payment address. Use it for all crypto orders.
-                </p>
-                <Button
-                  onClick={handleIHaveCompletedPayment}
-                  disabled={completingPayment}
-                  className="w-full mt-4 bg-primary-500 hover:bg-primary-600 text-white"
-                >
-                  {completingPayment ? (
-                    <>
-                      <span className="animate-spin mr-2">⏳</span>
-                      {pollingPayment ? 'Checking for payment...' : 'Confirming...'}
-                    </>
-                  ) : (
-                    'I have completed payment'
-                  )}
-                </Button>
+                </CardContent>
               </Card>
             )}
 
             {/* Cancel Order Section - Only show for cancellable orders */}
             {['pending', 'confirmed', 'processing'].includes(order.status?.toLowerCase()) && (
               <Card className="bg-[#1F1F21] border-none p-6 rounded-xl">
-                <h2 className="text-xl font-semibold text-white mb-4">Order Actions</h2>
-                <div className="space-y-4">
-                  <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4">
-                    <h3 className="text-red-400 font-medium mb-2">Cancel Order</h3>
-                    <p className="text-neutral-300 text-sm mb-4">
-                      You can cancel this order before it ships. Refund will be processed within 3-5 business days.
-                    </p>
-                    <Button
-                      onClick={() => setShowCancelModal(true)}
-                      className="w-full bg-red-500 hover:bg-red-600 text-white"
-                    >
-                      Cancel Order & Request Refund
-                    </Button>
+                <CardContent className="p-0 pt-0">
+                  <h2 className="text-xl font-semibold text-white mb-4">Order Actions</h2>
+                  <div className="space-y-4">
+                    <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4">
+                      <h3 className="text-red-400 font-medium mb-2">Cancel Order</h3>
+                      <p className="text-neutral-300 text-sm mb-4">
+                        You can cancel this order before it ships. Refund will be processed within 3-5 business days.
+                      </p>
+                      <Button
+                        onClick={() => setShowCancelModal(true)}
+                        className="w-full bg-red-500 hover:bg-red-600 text-white"
+                      >
+                        Cancel Order & Request Refund
+                      </Button>
+                    </div>
                   </div>
-                </div>
+                </CardContent>
               </Card>
             )}
-          </div>
         </div>
       </div>
 
@@ -616,7 +277,7 @@ function OrderDetailsPage() {
                     <div className="flex justify-between items-center">
                       <span className="text-neutral-300">Shipping:</span>
                       <span className="text-neutral-300">
-                        <AmountCurrency amount={order.pricing?.delivery || order.deliveryFee || deliveryMethod?.price || 0} fromCurrency={order.pricing?.deliveryCurrency || deliveryMethod?.currency || order.currency || 'USDC'} />
+                        <AmountCurrency amount={order.pricing?.delivery || order.deliveryFee || order.deliveryMethod?.price || 0} fromCurrency={order.pricing?.deliveryCurrency || order.deliveryMethod?.currency || order.currency || 'USDC'} />
                       </span>
                     </div>
                     <div className="border-t border-neutral-600 my-2"></div>
@@ -626,7 +287,7 @@ function OrderDetailsPage() {
                         <AmountCurrency 
                           amount={
                             (order.pricing?.subtotal || order.subTotal || 0) + 
-                            (order.pricing?.delivery || order.deliveryFee || deliveryMethod?.price || 0)
+                            (order.pricing?.delivery || order.deliveryFee || order.deliveryMethod?.price || 0)
                           } 
                           fromCurrency={order.currency || 'USDC'} 
                         />

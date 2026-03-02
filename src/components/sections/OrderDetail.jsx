@@ -16,12 +16,39 @@ import orderService from "@/services/orderService";
 import useNotificationStore from "@/store/notificationStore";
 import { resolveOrderImageUrl } from "@/utils/orderProduct";
 
+function paymentMethodLabel(method) {
+  if (!method) return '—';
+  const m = String(method).toLowerCase();
+  if (m === 'seerbit') return 'Seerbit';
+  if (m === 'crypto') return 'Crypto (USDC)';
+  if (m === 'paystack') return 'Paystack';
+  return method;
+}
+
 export const OrderDetailsSection = ({ order, onBackToList, onOrderUpdated }) => {
   const [localOrder, setLocalOrder] = useState(order);
   const [completingPayment, setCompletingPayment] = useState(false);
   const [pollingPayment, setPollingPayment] = useState(false);
+  const [retryingSeerbit, setRetryingSeerbit] = useState(false);
   const { addNotification } = useNotificationStore();
   const displayOrder = localOrder || order;
+
+  const handleSeerbitPay = async () => {
+    if (!displayOrder?.id) return;
+    setRetryingSeerbit(true);
+    try {
+      const result = await orderService.reinitializeSeerbitPayment(displayOrder.id);
+      if (result?.redirectLink) {
+        window.location.href = result.redirectLink;
+      } else {
+        addNotification('Could not get payment link. Please try again.', 'error');
+      }
+    } catch (err) {
+      addNotification(err?.response?.data?.msg || 'Failed to start payment. Please try again.', 'error');
+    } finally {
+      setRetryingSeerbit(false);
+    }
+  };
 
   useEffect(() => {
     setLocalOrder(order);
@@ -171,6 +198,10 @@ export const OrderDetailsSection = ({ order, onBackToList, onOrderUpdated }) => 
                       {order.number}
                     </span>
                   </div>
+                  <div className="inline-flex items-center gap-0.5 relative flex-[0_0_auto]">
+                    <span className="relative w-fit font-body-base-base-medium text-defaultgrey-2 text-[length:var(--body-base-base-medium-font-size)]">Payment:</span>
+                    <span className="relative w-fit font-body-base-base-medium text-defaultgrey-2 text-[length:var(--body-base-base-medium-font-size)]">{paymentMethodLabel(displayOrder?.paymentMethod)}{displayOrder?.paymentStatus && displayOrder.paymentStatus !== 'paid' ? ` (${displayOrder.paymentStatus})` : ''}</span>
+                  </div>
                 </div>
 
                 <h2 className="relative w-fit font-heading-header-6-header-6-semibold font-[number:var(--heading-header-6-header-6-semibold-font-weight)] text-defaultgrey-2 text-[length:var(--heading-header-6-header-6-semibold-font-size)] tracking-[var(--heading-header-6-header-6-semibold-letter-spacing)] leading-[var(--heading-header-6-header-6-semibold-line-height)] whitespace-nowrap [font-style:var(--heading-header-6-header-6-semibold-font-style)]">
@@ -212,6 +243,10 @@ export const OrderDetailsSection = ({ order, onBackToList, onOrderUpdated }) => 
                       <span className="font-body-large-large-medium text-defaultgrey-2">
                         {order.number}
                       </span>
+                    </div>
+                    <div className="inline-flex items-center gap-0.5">
+                      <span className="font-body-large-large-regular text-defaultgrey-2">Payment:</span>
+                      <span className="font-body-large-large-medium text-defaultgrey-2">{paymentMethodLabel(displayOrder?.paymentMethod)}{displayOrder?.paymentStatus && displayOrder.paymentStatus !== 'paid' ? ` (${displayOrder.paymentStatus})` : ''}</span>
                     </div>
                   </div>
                   <div className="font-heading-header-5-header-5-semibold text-defaultgrey-2">
@@ -328,8 +363,8 @@ export const OrderDetailsSection = ({ order, onBackToList, onOrderUpdated }) => 
                     </div>
                     <div className="w-[74px] font-body-large-large-semibold text-defaultwhite text-center">
                       <AmountCurrency 
-                        amount={order.product.unitPrice || order.product.price || 0} 
-                        fromCurrency={order.product.currency || order.currency || 'USDC'} 
+                        amount={Number(order.product?.unitPrice ?? order.product?.price) || 0} 
+                        fromCurrency={order.product?.currency || order.currency || 'USDC'} 
                       />
                     </div>
                   </div>
@@ -396,39 +431,53 @@ export const OrderDetailsSection = ({ order, onBackToList, onOrderUpdated }) => 
             </h2>
             <div className="flex flex-col items-start gap-3 w-full">
               <div className="inline-flex items-center gap-1">
-                <span className="font-body-large-large-medium text-defaultwhite">
-                  Name:
-                </span>
-                <span className="font-body-large-large-regular text-defaultwhite">
-                  {order.shipping.name}
-                </span>
+                <span className="font-body-large-large-medium text-defaultwhite">Name:</span>
+                <span className="font-body-large-large-regular text-defaultwhite">{order.shipping?.name ?? '—'}</span>
               </div>
               <div className="inline-flex items-center gap-1">
-                <span className="font-body-large-large-medium text-defaultwhite">
-                  Email:
-                </span>
-                <span className="font-body-large-large-regular text-defaultwhite">
-                  {order.shipping.email}
-                </span>
+                <span className="font-body-large-large-medium text-defaultwhite">Email:</span>
+                <span className="font-body-large-large-regular text-defaultwhite">{order.shipping?.email ?? '—'}</span>
               </div>
               <div className="inline-flex items-center gap-1">
-                <span className="font-body-large-large-medium text-defaultwhite">
-                  Phone:
-                </span>
-                <span className="font-body-large-large-regular text-defaultwhite">
-                  {order.shipping.phone}
-                </span>
+                <span className="font-body-large-large-medium text-defaultwhite">Phone:</span>
+                <span className="font-body-large-large-regular text-defaultwhite">{order.shipping?.phone ?? '—'}</span>
               </div>
               <div className="inline-flex items-center gap-1">
-                <span className="font-body-large-large-medium text-defaultwhite">
-                  Address:
-                </span>
-                <span className="font-body-large-large-regular text-defaultwhite">
-                  {order.shipping.address}
-                </span>
+                <span className="font-body-large-large-medium text-defaultwhite">Address:</span>
+                <span className="font-body-large-large-regular text-defaultwhite">{order.shipping?.address ?? '—'}</span>
               </div>
             </div>
           </div>
+
+          {/* Complete Payment - For pending or failed/cancelled Seerbit orders */}
+          {displayOrder?.paymentMethod === 'seerbit' &&
+            displayOrder?.paymentStatus !== 'paid' &&
+            ['pending', 'failed', 'cancelled', 'refunded'].includes(displayOrder?.status?.toLowerCase()) && (
+            <div className="flex flex-col w-full md:w-[414px] items-start gap-5">
+              <h2 className="font-heading-header-6-header-6-semibold text-white w-full">
+                {displayOrder?.status?.toLowerCase() === 'pending' ? 'Complete Payment' : 'Pay Again'}
+              </h2>
+              <p className="text-neutral-300 text-sm">
+                {displayOrder?.status?.toLowerCase() === 'pending'
+                  ? 'This order is awaiting payment. Click below to complete your payment via bank transfer or card.'
+                  : 'Previous payment did not complete. You can pay for this order again without creating a new one.'}
+              </p>
+              <Button
+                onClick={handleSeerbitPay}
+                disabled={retryingSeerbit}
+                className="w-full bg-red-500 hover:bg-red-600 text-white font-semibold"
+              >
+                {retryingSeerbit ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <span className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full" />
+                    Redirecting to payment…
+                  </span>
+                ) : (
+                  'Pay Now'
+                )}
+              </Button>
+            </div>
+          )}
 
           {/* Complete Payment - For pending crypto orders */}
           {displayOrder?.status?.toLowerCase() === 'pending' &&
@@ -469,10 +518,10 @@ export const OrderDetailsSection = ({ order, onBackToList, onOrderUpdated }) => 
             <div className="flex flex-col items-start gap-3 w-full">
               <div className="inline-flex items-center gap-1">
                 <span className="font-body-large-large-medium text-defaultwhite">
-                  {order.delivery.method}:
+                  {order.delivery?.method ?? '—'}:
                 </span>
                 <span className="font-body-large-large-regular text-defaultwhite">
-                  {order.delivery.timeframe}
+                  {order.delivery?.timeframe ?? '—'}
                 </span>
               </div>
             </div>
