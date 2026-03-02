@@ -33,7 +33,10 @@ export default function ProductDetail() {
                 const data = await productService.getProduct(id);
                 setProduct(data);
                 setTotalPrice(data.price);
-                // Do not preselect a variant; user must choose one if they want
+                if (data.variants && data.variants.length > 0) {
+                    setSelectedVariant(data.variants[0]);
+                    setTotalPrice(data.variants[0].price || data.price);
+                }
                 // Fetch related products in parallel
                 try {
                     const related = await productService.getRelatedProducts(id, 8);
