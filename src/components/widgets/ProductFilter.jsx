@@ -286,6 +286,44 @@ const ProductFilter = ({
 
   return (
     <div className={`flex flex-col w-full items-start gap-6 ${className}`}>
+     
+      {/* Brand filter */}
+      <Accordion
+        type="single"
+        collapsible
+        className="w-full"
+        defaultValue="brand"
+      >
+        <AccordionItem value="brand" className="border-none">
+          <AccordionTrigger className="font-heading-header-6-header-6-semibold font-[number:var(--heading-header-6-header-6-semibold-font-weight)] text-white text-[length:var(--heading-header-6-header-6-semibold-font-size)] tracking-[var(--heading-header-6-header-6-semibold-letter-spacing)] leading-[var(--heading-header-6-header-6-semibold-line-height)] [font-style:var(--heading-header-6-header-6-semibold-font-style)] py-0">
+            Brand
+          </AccordionTrigger>
+          <AccordionContent className="pt-6">
+            <div className="flex flex-col max-h-[200px] overflow-y-auto w-full items-start gap-4 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-red-500 [&::-webkit-scrollbar-thumb]:rounded-full" style={{ scrollbarColor: 'rgb(239 68 68) transparent' }}>
+              {brandOptions.map((option) => (
+                <div
+                  key={option.id}
+                  className="flex items-center gap-3 w-full"
+                >
+                  <Checkbox
+                    id={`brand-${option.id}`}
+                    checked={selectedBrands.includes(option.id)}
+                    onCheckedChange={(checked) => handleBrandChange(option.id, checked)}
+                    className="w-5 h-5 rounded border-neutral-500 data-[state=checked]:bg-red-500 data-[state=checked]:border-red-500"
+                  />
+                  <label
+                    htmlFor={`brand-${option.id}`}
+                    className="font-body-large-large-medium font-[number:var(--body-large-large-medium-font-weight)] text-defaultgrey-2 text-[length:var(--body-large-large-medium-font-size)] tracking-[var(--body-large-large-medium-letter-spacing)] leading-[var(--body-large-large-medium-line-height)] [font-style:var(--body-large-large-medium-font-style)]"
+                  >
+                    {option.label}
+                  </label>
+                </div>
+              ))}
+            </div>
+          </AccordionContent>
+        </AccordionItem>
+      </Accordion>
+
       {/* Category filter (product type) */}
       <Accordion
         type="single"
@@ -326,43 +364,6 @@ const ProductFilter = ({
       <Separator
         className="w-full h-px mt-[-1.00px] bg-neutral-600 relative self-stretch object-cover"
       />
-
-      {/* Brand filter */}
-      <Accordion
-        type="single"
-        collapsible
-        className="w-full"
-        defaultValue="brand"
-      >
-        <AccordionItem value="brand" className="border-none">
-          <AccordionTrigger className="font-heading-header-6-header-6-semibold font-[number:var(--heading-header-6-header-6-semibold-font-weight)] text-white text-[length:var(--heading-header-6-header-6-semibold-font-size)] tracking-[var(--heading-header-6-header-6-semibold-letter-spacing)] leading-[var(--heading-header-6-header-6-semibold-line-height)] [font-style:var(--heading-header-6-header-6-semibold-font-style)] py-0">
-            Brand
-          </AccordionTrigger>
-          <AccordionContent className="pt-6">
-            <div className="flex flex-col max-h-[200px] overflow-y-auto w-full items-start gap-4 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-red-500 [&::-webkit-scrollbar-thumb]:rounded-full" style={{ scrollbarColor: 'rgb(239 68 68) transparent' }}>
-              {brandOptions.map((option) => (
-                <div
-                  key={option.id}
-                  className="flex items-center gap-3 w-full"
-                >
-                  <Checkbox
-                    id={`brand-${option.id}`}
-                    checked={selectedBrands.includes(option.id)}
-                    onCheckedChange={(checked) => handleBrandChange(option.id, checked)}
-                    className="w-5 h-5 rounded border-neutral-500 data-[state=checked]:bg-red-500 data-[state=checked]:border-red-500"
-                  />
-                  <label
-                    htmlFor={`brand-${option.id}`}
-                    className="font-body-large-large-medium font-[number:var(--body-large-large-medium-font-weight)] text-defaultgrey-2 text-[length:var(--body-large-large-medium-font-size)] tracking-[var(--body-large-large-medium-letter-spacing)] leading-[var(--body-large-large-medium-line-height)] [font-style:var(--body-large-large-medium-font-style)]"
-                  >
-                    {option.label}
-                  </label>
-                </div>
-              ))}
-            </div>
-          </AccordionContent>
-        </AccordionItem>
-      </Accordion>
 
       <Separator
         className="w-full h-px mt-[-1.00px] bg-neutral-600 relative self-stretch object-cover"

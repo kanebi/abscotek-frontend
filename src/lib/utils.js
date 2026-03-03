@@ -8,10 +8,19 @@ export function cn(...inputs) {
 let cachedRates = null;
 let lastFetchTime = 0;
 let ratesFetchPromise = null;
-const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
+const CACHE_DURATION = 5 * 60 * 1000; // 5 min so header/amounts show updated backend rates
+
+const FALLBACK_RATES = {
+  USDC: 1,
+  USD: 1,
+  EUR: 0.92,
+  NGN: 1500,
+  GHS: 15,
+  GHC: 15,
+};
 
 /**
- * Get platform exchange rates from backend. Single in-flight request; 24h cache.
+ * Get platform exchange rates from backend. Single in-flight request; short cache so UI updates.
  */
 export async function getCurrencyRates() {
   const now = Date.now();
@@ -35,14 +44,7 @@ export async function getCurrencyRates() {
       return cachedRates;
     } catch (error) {
       if (cachedRates) return cachedRates;
-      cachedRates = normalizeRates({
-        USDC: 1,
-        USD: 1,
-        EUR: 0.92,
-        NGN: 1500,
-        GHS: 15,
-        GHC: 15,
-      });
+      cachedRates = normalizeRates(FALLBACK_RATES);
       lastFetchTime = Date.now();
       return cachedRates;
     } finally {
@@ -58,7 +60,20 @@ function normalizeRates(rates) {
   if (r.GHC && !r.GHS) r.GHS = r.GHC;
   if (r.USD !== undefined && r.USDC === undefined) r.USDC = r.USD;
   if (r.USDC === undefined) r.USDC = 1;
+  // Never leave 0 or invalid so conversions don't show 0 (use fallback per currency)
+  for (const [key, val] of Object.entries(r)) {
+    const n = Number(val);
+    if (val == null || Number.isNaN(n) || n <= 0) {
+      r[key] = FALLBACK_RATES[key] ?? (key === 'USD' || key === 'USDC' ? 1 : 1);
+    }
+  }
   return r;
+}
+
+/** Call to force refetch of rates on next getCurrencyRates() (e.g. after backend rate update). */
+export function clearCurrencyRatesCache() {
+  cachedRates = null;
+  lastFetchTime = 0;
 }
 
 export function convertCurrency(amount, from, to, rates) {
