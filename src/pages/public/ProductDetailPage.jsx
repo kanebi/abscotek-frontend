@@ -32,11 +32,8 @@ export default function ProductDetail() {
                 setLoading(true);
                 const data = await productService.getProduct(id);
                 setProduct(data);
+                // Start with base product price; do NOT auto-select any variant on load
                 setTotalPrice(data.price);
-                if (data.variants && data.variants.length > 0) {
-                    setSelectedVariant(data.variants[0]);
-                    setTotalPrice(data.variants[0].price || data.price);
-                }
                 // Fetch related products in parallel
                 try {
                     const related = await productService.getRelatedProducts(id, 8);
@@ -253,7 +250,7 @@ export default function ProductDetail() {
                                         {/* All Variants in a single list */}
                                         <div className="space-y-2">
                                             {p.variants.map((variant) => {
-                                                const isSelected = selectedVariant?._id === variant._id || selectedVariant?.name === variant.name;
+                                                const isSelected = selectedVariant === variant;
                                                 const inStock = (variant.stock || 0) > 0;
                                                 return (
                                                     <button
@@ -472,7 +469,7 @@ export default function ProductDetail() {
                                                 {/* All Variants in a single list */}
                                                 <div className="space-y-2">
                                                     {p.variants.map((variant) => {
-                                                        const isSelected = selectedVariant?._id === variant._id || selectedVariant?.name === variant.name;
+                                                        const isSelected = selectedVariant === variant;
                                                         const inStock = (variant.stock || 0) > 0;
                                                         return (
                                                             <button
