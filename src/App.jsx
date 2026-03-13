@@ -14,6 +14,7 @@ import OrderManagement from './pages/admin/OrderManagement';
 import OrderDetail from './pages/admin/OrderDetail';
 import CartManagement from './pages/admin/CartManagement';
 import DeliveryMethodManagement from './pages/admin/DeliveryMethodManagement';
+import GiveawayManagement from './pages/admin/GiveawayManagement';
 import WishlistManagement from './pages/admin/WishlistManagement';
 
 // Public Pages
@@ -30,6 +31,9 @@ import OrderSuccessPage from './pages/public/OrderSuccessPage';
 import CheckoutSuccessPage from './pages/public/CheckoutSuccessPage';
 import UserProfilePage from './pages/public/UserProfilePage';
 import ReferralPage from './pages/public/ReferralPage';
+import ReferLandingPage from './pages/public/ReferLandingPage';
+import GiveawayPage from './pages/public/GiveawayPage';
+import ClaimGiveawayPage from './pages/public/ClaimGiveawayPage';
 import WithdrawalPage from './pages/public/WithdrawalPage';
 import WishlistPage from './pages/public/WishlistPage';
 import SearchResultsPage from './pages/public/SearchResultsPage';
@@ -99,6 +103,9 @@ function App() {
                 element={<UserProfilePage />}
               />
               <Route path={AppRoutes.referral.path} element={<ReferralPage />} />
+              <Route path="/refer/:id" element={<ReferLandingPage />} />
+              <Route path={AppRoutes.giveaway.path} element={<GiveawayPage />} />
+              <Route path={AppRoutes.claimGiveaway.path} element={<ClaimGiveawayPage />} />
               <Route path={AppRoutes.withdrawal.path} element={<WithdrawalPage />} />
               <Route path={AppRoutes.wishlist.path} element={<WishlistPage />} />
               <Route
@@ -116,6 +123,7 @@ function App() {
                 <Route path="orders/:id" element={<OrderDetail />} />
                 <Route path="carts" element={<CartManagement />} />
                 <Route path="delivery-methods" element={<DeliveryMethodManagement />} />
+                <Route path="giveaways" element={<GiveawayManagement />} />
                 <Route path="wishlist" element={<WishlistManagement />} />
               </Route>
               <Route path={AppRoutes.vendor.path} element={<AdminRouteGuard />}>

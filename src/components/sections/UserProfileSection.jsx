@@ -31,6 +31,7 @@ export default function UserProfileSection() {
   const [totalPages, setTotalPages] = useState(1);
   const [paginationData, setPaginationData] = useState({});
   const ordersPerPage = 10;
+  const [activeTab, setActiveTab] = useState("my-order");
 
   const fetchOrders = async () => {
     try {
@@ -317,11 +318,15 @@ export default function UserProfileSection() {
     </div>
   );
 
+  const handleTabChange = (value) => {
+    setActiveTab(value);
+  };
+
   return (
     <div className="flex flex-col w-full items-start gap-6 md:gap-10 mb-10">
-      <Tabs defaultValue="my-order" className="w-full relative mt-8 md:mt-0 ">
+      <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full relative mt-8 md:mt-0 ">
         <div className="md:flex absolute md:relative md:left-0 md:top-0 -top-[34px]">
-        <TabsList className="inline-flex gap-4   md:gap-7 relative w-full h-auto p-0 bg-transparent items-center justify-center">
+        <TabsList className="inline-flex gap-4 md:gap-7 relative w-full h-auto p-0 bg-transparent items-center justify-center">
           <TabsTrigger
             value="my-order"
             style={{backgroundColor: 'transparent'}}
@@ -334,8 +339,7 @@ export default function UserProfileSection() {
 
           <TabsTrigger
             value="referral-bonus"
-            style={{backgroundColor: 'transparent'}}
-            className="bg-transparent z-10 rounded-none data-[state=active]:border-b-2 border-primaryp-300 inline-flex flex-col items-center gap-3 relative h-auto px-2 py-0 data-[state=active]:text-primaryp-200 data-[state=inactive]:text-neutralneutral-300 [font-family:'Mona_Sans-SemiBold',Helvetica] font-semibold text-sm md:text-base"
+            className="bg-transparent z-10 rounded-none data-[state=active]:border-b-2 data-[state=active]:bg-transparent data-[state=active]:shadow-none border-primaryp-300 inline-flex flex-col items-center gap-3 relative h-auto px-2 py-0 data-[state=active]:text-primaryp-200 data-[state=inactive]:text-neutralneutral-300 [font-family:'Mona_Sans-SemiBold',Helvetica] font-semibold text-sm md:text-base"
           >
             <div className="relative self-stretch mt-[-1.00px] text-center tracking-[0] leading-[18px] md:leading-[22.4px]">
               Referral Bonus

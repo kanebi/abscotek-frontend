@@ -16,13 +16,17 @@ import orderService from "@/services/orderService";
 import useNotificationStore from "@/store/notificationStore";
 import { resolveOrderImageUrl } from "@/utils/orderProduct";
 
-function paymentMethodLabel(method) {
+function paymentMethodLabel(method, paymentOnDelivery) {
   if (!method) return '—';
   const m = String(method).toLowerCase();
-  if (m === 'seerbit') return 'Seerbit';
-  if (m === 'crypto') return 'Crypto (USDC)';
-  if (m === 'paystack') return 'Paystack';
-  return method;
+  let label = '—';
+  if (m === 'seerbit') label = 'Seerbit';
+  else if (m === 'crypto') label = 'Crypto (USDC)';
+  else if (m === 'paystack') label = 'Paystack';
+  else if (m === 'giveaway') label = 'Giveaway';
+  else label = method;
+  if (paymentOnDelivery) label += ' (payment on delivery)';
+  return label;
 }
 
 export const OrderDetailsSection = ({ order, onBackToList, onOrderUpdated }) => {
@@ -200,7 +204,7 @@ export const OrderDetailsSection = ({ order, onBackToList, onOrderUpdated }) => 
                   </div>
                   <div className="inline-flex items-center gap-0.5 relative flex-[0_0_auto]">
                     <span className="relative w-fit font-body-base-base-medium text-defaultgrey-2 text-[length:var(--body-base-base-medium-font-size)]">Payment:</span>
-                    <span className="relative w-fit font-body-base-base-medium text-defaultgrey-2 text-[length:var(--body-base-base-medium-font-size)]">{paymentMethodLabel(displayOrder?.paymentMethod)}{displayOrder?.paymentStatus && displayOrder.paymentStatus !== 'paid' ? ` (${displayOrder.paymentStatus})` : ''}</span>
+                    <span className="relative w-fit font-body-base-base-medium text-defaultgrey-2 text-[length:var(--body-base-base-medium-font-size)]">{paymentMethodLabel(displayOrder?.paymentMethod, displayOrder?.paymentOnDelivery)}{displayOrder?.paymentStatus && displayOrder.paymentStatus !== 'paid' ? ` (${displayOrder.paymentStatus})` : ''}</span>
                   </div>
                 </div>
 
@@ -246,7 +250,7 @@ export const OrderDetailsSection = ({ order, onBackToList, onOrderUpdated }) => 
                     </div>
                     <div className="inline-flex items-center gap-0.5">
                       <span className="font-body-large-large-regular text-defaultgrey-2">Payment:</span>
-                      <span className="font-body-large-large-medium text-defaultgrey-2">{paymentMethodLabel(displayOrder?.paymentMethod)}{displayOrder?.paymentStatus && displayOrder.paymentStatus !== 'paid' ? ` (${displayOrder.paymentStatus})` : ''}</span>
+                      <span className="font-body-large-large-medium text-defaultgrey-2">{paymentMethodLabel(displayOrder?.paymentMethod, displayOrder?.paymentOnDelivery)}{displayOrder?.paymentStatus && displayOrder.paymentStatus !== 'paid' ? ` (${displayOrder.paymentStatus})` : ''}</span>
                     </div>
                   </div>
                   <div className="font-heading-header-5-header-5-semibold text-defaultgrey-2">

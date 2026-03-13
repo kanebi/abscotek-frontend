@@ -1,5 +1,10 @@
 import apiClient from '@/lib/apiClient';
 
+const getReferrerByCode = async (code) => {
+  const response = await apiClient.get(`/referrals/referrer/${encodeURIComponent(code)}`);
+  return response.data;
+};
+
 const generateReferralLink = async () => {
   const response = await apiClient.post('/referrals/generate');
   return response.data;
@@ -26,6 +31,7 @@ const getWithdrawals = async () => {
 };
 
 export default {
+  getReferrerByCode,
   generateReferralLink,
   getReferralStats,
   getReferredUsers,

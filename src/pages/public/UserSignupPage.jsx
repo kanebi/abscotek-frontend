@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import authService from '../../services/authService';
 import { AppRoutes } from '../../config/routes';
 import SEO from '../../components/SEO';
@@ -9,6 +9,8 @@ import Layout from '../../components/Layout';
 import { Button } from '../../components/ui/button';
 
 function UserSignupPage() {
+  const [searchParams] = useSearchParams();
+  const refFromUrl = searchParams.get('ref') || '';
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -16,11 +18,17 @@ function UserSignupPage() {
     password: '',
     confirmPassword: '',
     phoneNumber: '',
-    referralCode: ''
+    referralCode: refFromUrl
   });
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (refFromUrl) {
+      setFormData((prev) => ({ ...prev, referralCode: refFromUrl }));
+    }
+  }, [refFromUrl]);
 
   const setIsAuthenticated = useStore((state) => state.setIsAuthenticated);
   const setToken = useStore((state) => state.setToken);

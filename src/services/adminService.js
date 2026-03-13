@@ -115,6 +115,32 @@ const getUserReport = async (startDate, endDate) => {
   return response.data;
 };
 
+// Giveaways (admin)
+const getGiveaways = async () => {
+  const response = await apiClient.get('/admin/giveaways');
+  return response.data;
+};
+
+const getGiveawayById = async (id) => {
+  const response = await apiClient.get(`/admin/giveaways/${id}`);
+  return response.data;
+};
+
+const createGiveaway = async (data) => {
+  const response = await apiClient.post('/admin/giveaways', data);
+  return response.data;
+};
+
+const updateGiveaway = async (id, data) => {
+  const response = await apiClient.put(`/admin/giveaways/${id}`, data);
+  return response.data;
+};
+
+const deleteGiveaway = async (id) => {
+  const response = await apiClient.delete(`/admin/giveaways/${id}`);
+  return response.data;
+};
+
 export default {
   // Dashboard
   getDashboardStats,
@@ -148,4 +174,11 @@ export default {
   getSalesReport,
   getInventoryReport,
   getUserReport,
+
+  // Giveaways
+  getGiveaways,
+  getGiveawayById,
+  createGiveaway,
+  updateGiveaway,
+  deleteGiveaway,
 };

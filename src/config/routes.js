@@ -53,6 +53,10 @@ export const AppRoutes = {
     path: '/admin/delivery-methods',
     name: 'Manage Delivery Methods',
   },
+  adminGiveaways: {
+    path: '/admin/giveaways',
+    name: 'Giveaways',
+  },
   adminWishlist: {
     path: '/admin/wishlist',
     name: 'Manage Wishlist',
@@ -98,6 +102,10 @@ export const AppRoutes = {
     path: '/referral',
     name: 'Referral Program',
   },
+  refer: {
+    path: '/refer/:id',
+    name: 'Referral invite',
+  },
   withdrawal: {
     path: '/withdrawal',
     name: 'Withdrawal',
@@ -109,6 +117,14 @@ export const AppRoutes = {
   search: {
     path: '/search',
     name: 'Search',
+  },
+  giveaway: {
+    path: '/giveaway',
+    name: 'Giveaways',
+  },
+  claimGiveaway: {
+    path: '/claim/:giveawayId/:productId',
+    name: 'Claim Giveaway',
   },
   // Add more routes here as needed
 };

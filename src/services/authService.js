@@ -99,8 +99,16 @@ const updateUserProfile = async (profileData) => {
   return response.data;
 };
 
-const authenticateWithPrivy = async (privyAccessToken) => {
-  const response = await apiClient.post('/auth/privy', { accessToken: privyAccessToken });
+const REFERRAL_CODE_STORAGE_KEY = 'referralCodeForSignup';
+
+const authenticateWithPrivy = async (privyAccessToken, referralCode = null) => {
+  const codeToSend = referralCode || (typeof window !== 'undefined' ? sessionStorage.getItem(REFERRAL_CODE_STORAGE_KEY) : null);
+  const body = { accessToken: privyAccessToken };
+  if (codeToSend) body.referralCode = codeToSend;
+  const response = await apiClient.post('/auth/privy', body);
+  if (codeToSend && typeof window !== 'undefined') {
+    sessionStorage.removeItem(REFERRAL_CODE_STORAGE_KEY);
+  }
   if (response.data.token) {
     localStorage.setItem('token', response.data.token);
     if (response.data.user) {
@@ -108,6 +116,13 @@ const authenticateWithPrivy = async (privyAccessToken) => {
     }
   }
   return response.data;
+};
+
+/** Store referral code so the next Privy auth (e.g. after login modal) sends it to backend. */
+export const setReferralCodeForNextAuth = (code) => {
+  if (typeof window !== 'undefined' && code) {
+    sessionStorage.setItem(REFERRAL_CODE_STORAGE_KEY, code);
+  }
 };
 
 const logout = () => {
@@ -147,6 +162,7 @@ export default {
   getUserProfile,
   updateUserProfile,
   authenticateWithPrivy,
+  setReferralCodeForNextAuth,
   logout,
   extractErrorMessage
 };

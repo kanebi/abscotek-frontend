@@ -11,6 +11,7 @@ import {
   ShoppingCart, 
   Truck, 
   Heart, 
+  Gift,
   ClipboardList,
   LogOut,
   BarChart3
@@ -59,6 +60,13 @@ function AdminDashboard() {
       path: AppRoutes.adminDeliveryMethods.path,
       icon: Truck,
       color: 'bg-warningw-500 hover:bg-warningw-400'
+    },
+    {
+      title: 'Manage Giveaways',
+      description: 'View, create, and manage giveaways with coupon or wallet allow lists',
+      path: AppRoutes.adminGiveaways.path,
+      icon: Gift,
+      color: 'bg-pink-500 hover:bg-pink-400'
     },
     {
       title: 'Manage Wishlist',

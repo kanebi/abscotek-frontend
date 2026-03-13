@@ -359,10 +359,25 @@ function OrderDetail() {
                     <span>Payment Currency:</span>
                     <span className="text-white">{order.currency || 'USDC'}</span>
                   </div>
+                  {order.paymentMethod && (
+                    <div className="flex justify-between">
+                      <span>Payment Method:</span>
+                      <span className="text-white capitalize">
+                        {order.paymentMethod === 'giveaway' ? 'Giveaway' : order.paymentMethod}
+                        {order.paymentOnDelivery ? ' (payment on delivery)' : ''}
+                      </span>
+                    </div>
+                  )}
                   {order.paymentStatus && (
                     <div className="flex justify-between">
                       <span>Payment Status:</span>
                       <span className="text-white capitalize">{order.paymentStatus}</span>
+                    </div>
+                  )}
+                  {order.isGiveaway && (
+                    <div className="flex justify-between">
+                      <span>Payment on delivery:</span>
+                      <span className="text-white">{order.paymentOnDelivery ? 'Yes' : 'No'}</span>
                     </div>
                   )}
                 </div>

@@ -14,6 +14,7 @@ export default function Web3AuthProvider({ children }) {
   return (
     <PrivyProvider
       appId={PrivyConfig.appId}
+      clientId={PrivyConfig.clientId}
       config={PrivyConfig.config}
     >
       <Web3AuthInitializer>

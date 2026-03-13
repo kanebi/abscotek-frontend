@@ -9,7 +9,8 @@ function DeliveryAddressList({
   onSelectAddress, 
   onAddNew, 
   onEdit, 
-  onDelete 
+  onDelete,
+  showContinueButton = true
 }) {
   const [isLoading, setIsLoading] = useState(false);
 
@@ -142,14 +143,16 @@ function DeliveryAddressList({
             </div>
           ))}
           
-          <div className="pt-4">
-            <Button 
-              disabled={!selectedAddressId || isLoading}
-              className="w-full md:w-auto bg-red-500 hover:bg-red-600 text-white px-8 py-3 rounded-lg font-medium disabled:opacity-50"
-            >
-              {isLoading ? 'Loading...' : 'Continue'}
-            </Button>
-          </div>
+          {showContinueButton && (
+            <div className="pt-4">
+              <Button 
+                disabled={!selectedAddressId || isLoading}
+                className="w-full md:w-auto bg-red-500 hover:bg-red-600 text-white px-8 py-3 rounded-lg font-medium disabled:opacity-50"
+              >
+                {isLoading ? 'Loading...' : 'Continue'}
+              </Button>
+            </div>
+          )}
         </div>
       )}
     </div>
